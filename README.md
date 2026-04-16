@@ -100,3 +100,5 @@ Backend: uvicorn main:app --reload
 * **Документи / поля:** camelCase (firstName, lastLogin, rewardPoints)
 * **Індекси:** collection_field_idx (appointments_doctorId_idx)
 * **Схеми Mongoose / Pydantic:** PascalCase (UserSchema, AppointmentSchema)
+
+ *`docker compose down -v` - якщо бд не оновилась після зміни seed.js то треба видалити volume з даними*
