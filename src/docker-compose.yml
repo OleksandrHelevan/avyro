@@ -26,4 +26,20 @@ services:
       - ./web-api:/app
     environment:
       - PYTHONUNBUFFERED=1
+      - MONGO_URL=mongodb://mongo:27017/webdb
+    depends_on:
+      - mongo
     restart: unless-stopped
+
+  mongo:
+    container_name: mongo-db
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
