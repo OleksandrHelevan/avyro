@@ -1,0 +1,29 @@
+services:
+  frontend:
+    container_name: web-app
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_APP_PORT}:${WEB_APP_PORT}"
+    volumes:
+      - ./web-app:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    container_name: web-api
+    build:
+      context: ./web-api
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_API_PORT}:${WEB_API_PORT}"
+    volumes:
+      - ./web-api:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
