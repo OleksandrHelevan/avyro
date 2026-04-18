@@ -1,8 +1,24 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from pymongo.errors import ServerSelectionTimeoutError
 
-# 3.2) Опис метаданих API (згідно з Vision проекту)
+from config.db import db
+from modules.users_module.api.user_controller import router as user_router
+from modules.users_module.api.auth_controller import router as auth_router
+from modules.users_module.application.services.UserService import UserService, UserAlreadyExistsException
+from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+
+async def user_already_exists_handler(request: Request, exc: UserAlreadyExistsException):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"message": str(exc)},
+    )
+
+async def general_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"message": "Internal server error", "detail": str(exc)},
+    )
 app = FastAPI(
     title="Avyro — Health Journey API",
     version="1.0.0",
@@ -12,57 +28,30 @@ app = FastAPI(
     }
 )
 
-# --- Схеми даних (Pydantic моделі згідно з Naming Convention) ---
+app.add_exception_handler(UserAlreadyExistsException, user_already_exists_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
-class AppointmentBase(BaseModel):
-    doctor_id: str = Field(..., example="doc_777")
-    patient_id: str = Field(..., example="user_42")
-    appointment_date: str = Field(..., example="2026-05-20T10:30:00")
 
-class AppointmentResponse(AppointmentBase):
-    id: str = Field(..., example="65f1a2b3c4d5e6f7g8h9")
-    status: str = Field(..., example="confirmed")
-
-class RewardPoints(BaseModel):
-    points: int = Field(..., example=100)
-    badge_name: Optional[str] = Field(None, example="Перший крок")
-
-# --- Ендпоінти (3.3 Анотування згідно з MVP Scope) ---
-
-@app.post(
-    "/appointments/", 
-    response_model=AppointmentResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Smart Booking: Бронювання слота",
-    description="Створює новий запис до лікаря в один клік. Доступно для ролі 'Пацієнт'.",
-    tags=["Smart Booking"],
-    responses={
-        201: {"description": "Візит успішно заброньовано"},
-        400: {"description": "Цей слот уже зайнятий або невалідний ID лікаря"}
-    }
-)
-async def create_appointment(appointment: AppointmentBase):
-    # Тут логіка збереження в MongoDB (Федорюк Мірча оцінить)
-    return {
-        "id": "65f1a2b3c4d5",
-        "status": "confirmed",
-        **appointment.model_dump()
-    }
-
-@app.get(
-    "/gamification/rewards/{user_id}",
-    response_model=RewardPoints,
-    summary="Отримання нагород (Gamification Engine)",
-    description="Повертає кількість балів та актуальні бейджі користувача для конвертації у знижки.",
-    tags=["Gamification Engine"],
-    responses={
-        200: {"description": "Дані про бали отримано"},
-        404: {"description": "Користувача не знайдено"}
-    }
-)
-async def get_user_rewards(user_id: str):
-    return {"points": 100, "badge_name": "Перший крок"}
+def get_user_service() -> UserService:
+    repository = UserRepository(db.users)
+    return UserService(repository)
+app.dependency_overrides[user_router.dependencies[0] if user_router.dependencies else None] = get_user_service
+app.include_router(auth_router)
+app.include_router(user_router)
 
 @app.get("/", tags=["General"], summary="Health Check")
 def read_root():
-    return {"status": "Avyro API is running", "version": "1.0.0"}
+    return {
+        "status": "Avyro API is running",
+        "version": "1.0.0",
+        "system": "Healthy"
+    }
+
+@app.get("/health/db", tags=["General"])
+def db_health():
+    try:
+        db.command("ping")
+        return {"status": "ok", "mongo": "connected"}
+    except ServerSelectionTimeoutError:
+        return {"status": "error", "mongo": "not connected"}
+
