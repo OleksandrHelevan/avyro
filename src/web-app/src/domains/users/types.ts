@@ -5,7 +5,8 @@ export interface LoginRequest {
 type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
   role: Role;
-  exp: number;
+  expiresAt: number;
+  tokenType: string;
 }

@@ -1,9 +1,9 @@
 import type {LoginRequest} from "../../domains/users/types.ts";
 import {useLogin} from "../../domains/users/useLogin/useLogin.ts";
 import {Link} from "react-router-dom";
-import TextInput from "../../domains/users/components/TextInput/TextInput.tsx";
-import Button from "../../domains/users/components/Button/Button.tsx";
-import Form from "../../domains/users/components/Form/Form.tsx";
+import TextInput from "../../components/TextInput/TextInput.tsx";
+import Button from "../../components/Button/Button.tsx";
+import Form from "../../components/Form/Form.tsx";
 
 export default function LoginPage() {
     const {mutate, isPending} = useLogin();
