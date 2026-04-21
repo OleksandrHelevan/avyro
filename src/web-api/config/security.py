@@ -5,7 +5,7 @@ import bcrypt
 from jose import jwt, JWTError
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 def get_env(name: str) -> str:
@@ -14,12 +14,11 @@ def get_env(name: str) -> str:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
-
 SECRET_KEY = get_env("JWT_SECRET")
 ALGORITHM = get_env("JWT_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(get_env("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+security_scheme = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
@@ -49,7 +48,8 @@ def create_access_token(data: dict):
     return token, int(expire.timestamp())
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
+    token = auth.credentials
     try:
         payload = jwt.decode(
             token,
@@ -62,4 +62,5 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
