@@ -6,7 +6,6 @@ from modules.users_module.application.dto.LoginResponse import LoginResponse
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from config.security import verify_password, create_access_token
 
-
 class AuthService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository

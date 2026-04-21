@@ -5,7 +5,35 @@ export interface LoginRequest {
 type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
   role: Role;
-  exp: number;
+  expiresAt: number;
+  tokenType: string;
+  userId: string;
+}
+
+export interface Profile{
+  fullName: string;
+  phone: string;
+  specializationId: string;
+  avatarUrl: string;
+}
+
+export interface SignUpRequest {
+  email: string;
+  password: string;
+  role: Role;
+  isActive: boolean;
+  profile: Profile | null;
+}
+
+export interface SignUpResponse {
+  _id: string;
+  email: string;
+  role: Role;
+  isActive: boolean;
+  profile: Profile;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt: Date;
 }
