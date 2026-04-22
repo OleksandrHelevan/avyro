@@ -1,68 +1,76 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-from typing import List, Optional
+import time
+from fastapi import FastAPI, Request, status, Response
+from fastapi.responses import JSONResponse
+from pymongo.errors import ServerSelectionTimeoutError
+from starlette.middleware.base import BaseHTTPMiddleware
 
-# 3.2) Опис метаданих API (згідно з Vision проекту)
+from config.db import db
+from config.logging_config import logger
+from modules.users_module.api.user_controller import router as user_router
+from modules.users_module.api.auth_controller import router as auth_router
+
+from modules.users_module.api.exception.exception_handlers import (
+    forbidden_handler,
+    invalid_user_id_handler,
+    user_not_found_handler,
+    user_already_exists_handler,
+    invalid_credentials_handler,
+    general_exception_handler
+)
+
+from modules.users_module.api.exception.exceptions import (
+    UserAlreadyExistsException,
+    UserNotFoundException,
+    InvalidUserIdException,
+    ForbiddenException,
+    InvalidCredentialsException
+)
+
 app = FastAPI(
     title="Avyro — Health Journey API",
     version="1.0.0",
-    description="API для гейміфікованої медичної платформи. Система нагород, запис до лікарів та управління візитами.",
+    description=(
+        "API для гейміфікованої медичної платформи. "
+        "Система нагород, запис до лікарів та управління візитами."
+    ),
     contact={
-        "name": "Островський Владислав (Backend Developer)",
+        "name": "Avyro team",
     }
 )
 
-# --- Схеми даних (Pydantic моделі згідно з Naming Convention) ---
+async def logging_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = round(time.time() - start_time, 4)
 
-class AppointmentBase(BaseModel):
-    doctor_id: str = Field(..., example="doc_777")
-    patient_id: str = Field(..., example="user_42")
-    appointment_date: str = Field(..., example="2026-05-20T10:30:00")
+    logger.info(
+        f"Method: {request.method} | Path: {request.url.path} | "
+        f"Status: {response.status_code} | Time: {process_time}s"
+    )
+    return response
 
-class AppointmentResponse(AppointmentBase):
-    id: str = Field(..., example="65f1a2b3c4d5e6f7g8h9")
-    status: str = Field(..., example="confirmed")
 
-class RewardPoints(BaseModel):
-    points: int = Field(..., example=100)
-    badge_name: Optional[str] = Field(None, example="Перший крок")
+app.add_middleware(BaseHTTPMiddleware, dispatch=logging_middleware)
 
-# --- Ендпоінти (3.3 Анотування згідно з MVP Scope) ---
+app.add_exception_handler(UserAlreadyExistsException, user_already_exists_handler)
+app.add_exception_handler(UserNotFoundException, user_not_found_handler)
+app.add_exception_handler(InvalidUserIdException, invalid_user_id_handler)
+app.add_exception_handler(ForbiddenException, forbidden_handler)
+app.add_exception_handler(InvalidCredentialsException, invalid_credentials_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
-@app.post(
-    "/appointments/", 
-    response_model=AppointmentResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Smart Booking: Бронювання слота",
-    description="Створює новий запис до лікаря в один клік. Доступно для ролі 'Пацієнт'.",
-    tags=["Smart Booking"],
-    responses={
-        201: {"description": "Візит успішно заброньовано"},
-        400: {"description": "Цей слот уже зайнятий або невалідний ID лікаря"}
-    }
-)
-async def create_appointment(appointment: AppointmentBase):
-    # Тут логіка збереження в MongoDB (Федорюк Мірча оцінить)
-    return {
-        "id": "65f1a2b3c4d5",
-        "status": "confirmed",
-        **appointment.model_dump()
-    }
+app.include_router(auth_router)
+app.include_router(user_router)
 
-@app.get(
-    "/gamification/rewards/{user_id}",
-    response_model=RewardPoints,
-    summary="Отримання нагород (Gamification Engine)",
-    description="Повертає кількість балів та актуальні бейджі користувача для конвертації у знижки.",
-    tags=["Gamification Engine"],
-    responses={
-        200: {"description": "Дані про бали отримано"},
-        404: {"description": "Користувача не знайдено"}
-    }
-)
-async def get_user_rewards(user_id: str):
-    return {"points": 100, "badge_name": "Перший крок"}
 
-@app.get("/", tags=["General"], summary="Health Check")
-def read_root():
-    return {"status": "Avyro API is running", "version": "1.0.0"}
+@app.get("/health", tags=["General"], summary="Health Status")
+def db_health():
+    try:
+        db.command("ping")
+        return {"status": "Avyro API is running", "version": "0.1", "mongo": "connected"}
+    except (ServerSelectionTimeoutError, Exception) as e:
+        logger.critical(f"Database health check failed: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "error", "mongo": "not connected", "message": "Database is offline"}
+        )

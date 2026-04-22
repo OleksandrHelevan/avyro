@@ -9,8 +9,14 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] })
   ],
   server: {
-    host: true,
     port: 3000,
-    strictPort: true
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://web-api:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   }
 })

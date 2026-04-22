@@ -1,3 +1,16 @@
+// Optional cleanup for repeatable local runs:
+// db.Users.drop();
+// db.Specializations.drop();
+// db.Schedules.drop();
+// db.Slots.drop();
+// db.Appointments.drop();
+// db.Rewards.drop();
+// db.Badges.drop();
+// db.Transactions.drop();
+// db.PatientProgress.drop();
+
+db = db.getSiblingDB('avyro');
+
 function createCollectionSafe(name, options) {
   const exists = db.getCollectionNames().includes(name);
   if (!exists) {
@@ -34,7 +47,6 @@ createCollectionSafe('Specializations', {
 });
 
 db.Specializations.createIndex({ name: 1 }, { unique: true, name: 'ux_name' });
-
 createCollectionSafe('Users', {
   validator: {
     $jsonSchema: {
@@ -43,10 +55,10 @@ createCollectionSafe('Users', {
       properties: {
         email: { bsonType: 'string' },
         password: { bsonType: 'string' },
-        role: { enum: ['PATIENT', 'DOCTOR'] },
+        role: { enum: ['PATIENT', 'DOCTOR', 'ADMIN'] },
         isActive: { bsonType: 'bool' },
         profile: {
-          bsonType: 'object',
+          bsonType: ['object', 'null'],
           required: ['fullName'],
           properties: {
             fullName: { bsonType: 'string' },

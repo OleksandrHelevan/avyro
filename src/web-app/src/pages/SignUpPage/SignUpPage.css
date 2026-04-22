@@ -1,0 +1,118 @@
+/* Основний обгортковий контейнер */
+.registration-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #42e8e0 0%, #a06af9 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Секція вибору ролі */
+.registration-wrapper .role-selector {
+  margin-bottom: 20px;
+}
+
+.registration-wrapper .role-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.registration-wrapper .role-options {
+  display: flex;
+  gap: 12px;
+}
+
+.registration-wrapper .role-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  background: white;
+}
+
+/* Радіо-коло всередині опції */
+.registration-wrapper .radio-circle {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  margin-right: 10px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Активний стан ролі */
+.registration-wrapper .role-option.active {
+  border-color: #111827;
+  background: #f9fafb;
+}
+
+.registration-wrapper .role-option.active .radio-circle {
+  border-color: #111827;
+}
+
+/* Крапка всередині радіо-кола при активності */
+.registration-wrapper .role-option.active .radio-circle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #111827;
+  border-radius: 50%;
+}
+
+/* Контейнер для чекбокса "Умови послуг" */
+.registration-wrapper .terms-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.registration-wrapper .terms-container a {
+  color: #111827;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Посилання для повернення до логіну */
+.registration-wrapper .back-to-login {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.registration-wrapper .back-to-login a {
+  color: #111827;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.registration-wrapper .back-to-login a:hover {
+  text-decoration: underline;
+}
+
+/* Стиль помилки (коли паролі не збігаються) */
+.registration-wrapper .input-error label {
+  color: #ef4444 !important;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* Утилітарний клас для повної ширини кнопки */
+.w-full {
+  width: 100%;
+}
