@@ -1,40 +1,30 @@
-from fastapi import FastAPI, Request, status
+import time
+from fastapi import FastAPI, Request, status, Response
 from fastapi.responses import JSONResponse
 from pymongo.errors import ServerSelectionTimeoutError
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config.db import db
-
+from config.logging_config import logger
 from modules.users_module.api.user_controller import router as user_router
 from modules.users_module.api.auth_controller import router as auth_router
 
 from modules.users_module.api.exception.exception_handlers import (
     forbidden_handler,
     invalid_user_id_handler,
-    user_not_found_handler
+    user_not_found_handler,
+    user_already_exists_handler,
+    invalid_credentials_handler,
+    general_exception_handler
 )
 
-from modules.users_module.application.services.UserService import (
+from modules.users_module.api.exception.exceptions import (
     UserAlreadyExistsException,
     UserNotFoundException,
     InvalidUserIdException,
-    ForbiddenException
+    ForbiddenException,
+    InvalidCredentialsException
 )
-
-async def user_already_exists_handler(request: Request, exc: UserAlreadyExistsException):
-    return JSONResponse(
-        status_code=status.HTTP_409_CONFLICT,
-        content={"message": str(exc)},
-    )
-
-
-async def general_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "message": "Internal server error",
-            "detail": str(exc)
-        },
-    )
 
 app = FastAPI(
     title="Avyro — Health Journey API",
@@ -44,33 +34,43 @@ app = FastAPI(
         "Система нагород, запис до лікарів та управління візитами."
     ),
     contact={
-        "name": "Островський Владислав (Backend Developer)",
+        "name": "Avyro team",
     }
 )
+
+async def logging_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = round(time.time() - start_time, 4)
+
+    logger.info(
+        f"Method: {request.method} | Path: {request.url.path} | "
+        f"Status: {response.status_code} | Time: {process_time}s"
+    )
+    return response
+
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=logging_middleware)
 
 app.add_exception_handler(UserAlreadyExistsException, user_already_exists_handler)
 app.add_exception_handler(UserNotFoundException, user_not_found_handler)
 app.add_exception_handler(InvalidUserIdException, invalid_user_id_handler)
 app.add_exception_handler(ForbiddenException, forbidden_handler)
+app.add_exception_handler(InvalidCredentialsException, invalid_credentials_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(auth_router)
 app.include_router(user_router)
 
 
-@app.get("/health", tags=["General"], summary="Health Check")
-def health():
-    return {
-        "status": "Avyro API is running",
-        "version": "1.0.0",
-        "system": "Healthy"
-    }
-
-
-@app.get("/health/db", tags=["General"])
+@app.get("/health", tags=["General"], summary="Health Status")
 def db_health():
     try:
         db.command("ping")
-        return {"status": "ok", "mongo": "connected"}
-    except ServerSelectionTimeoutError:
-        return {"status": "error", "mongo": "not connected"}
+        return {"status": "Avyro API is running", "version": "0.1", "mongo": "connected"}
+    except (ServerSelectionTimeoutError, Exception) as e:
+        logger.critical(f"Database health check failed: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "error", "mongo": "not connected", "message": "Database is offline"}
+        )

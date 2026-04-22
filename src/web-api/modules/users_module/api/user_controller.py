@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from config.db import db
+from config.logging_config import logger
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.users_module.application.services.UserService import UserService
 
@@ -21,8 +22,8 @@ def get_patient_profile(
     _=Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ):
+    logger.info(f"Fetching patient profile for ID: {user_id}")
     return service.get_patient_profile(user_id)
-
 
 @router.patch("/patients/{user_id}", response_model=PatientResponse)
 def patch_patient_profile(
@@ -31,4 +32,7 @@ def patch_patient_profile(
     _=Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ):
-    return service.patch_patient_profile(user_id, request)
+    logger.info(f"Updating patient profile for ID: {user_id}")
+    result = service.patch_patient_profile(user_id, request)
+    logger.info(f"Profile updated successfully for ID: {user_id}")
+    return result
