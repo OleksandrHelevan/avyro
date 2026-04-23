@@ -32,3 +32,11 @@ def patch_patient_profile(
     service: UserService = Depends(get_user_service),
 ):
     return service.patch_patient_profile(user_id, request)
+
+@router.put("/profile")
+async def update_patient_profile(
+
+    user = Depends(get_current_user)
+):
+
+    return {"status": "success", "message": "Роутер працює!", "user": user}
