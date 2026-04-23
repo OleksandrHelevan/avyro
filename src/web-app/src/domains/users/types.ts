@@ -47,3 +47,18 @@ export interface GetPatientResponse {
   createdAt: Date;
   lastLoginAt: Date;
 }
+export interface PatchPatientRequest {
+  fullName: string;
+  phone: string;
+  avatarUrl: string;
+}
+export interface PatchPatientResponse {
+  _id: string;
+  name: string;
+  isActive: boolean;
+  fullName: string;
+  phone: string;
+  avatarUrl: string;
+  createdAt: Date;
+  lastLoginAt: Date;
+}

@@ -1,5 +1,13 @@
 import {userApiClient} from "../api/userApiClient.ts";
-import type {LoginRequest, LoginResponse, SignUpRequest, SignUpResponse, GetPatientResponse} from "../types.ts";
+import type {
+  LoginRequest,
+  LoginResponse,
+  SignUpRequest,
+  SignUpResponse,
+  GetPatientResponse,
+  PatchPatientRequest,
+  PatchPatientResponse,
+} from "../types.ts";
 
 export const userService = {
   login: async (request: LoginRequest): Promise<LoginResponse> => {
@@ -10,5 +18,8 @@ export const userService = {
   },
   getPatientById: async (id: string): Promise<GetPatientResponse> => {
     return userApiClient.getPatientById(id);
+  },
+  patchPatient: async (id: string, request: PatchPatientRequest): Promise<PatchPatientResponse> => {
+    return userApiClient.patchPatient(id, request)
   }
 }
