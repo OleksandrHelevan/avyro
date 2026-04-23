@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from modules.users_module.domains.user.UserRole import UserRole
@@ -12,8 +12,9 @@ class ProfileResponse(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: str = Field(alias="_id")
+    model_config = ConfigDict(populate_by_name=True)
 
+    id: str = Field(alias="_id")
     email: EmailStr
     role: UserRole
     isActive: bool
@@ -23,6 +24,3 @@ class UserResponse(BaseModel):
     createdAt: datetime
     updatedAt: datetime
     lastLoginAt: Optional[datetime] = None
-
-    class Config:
-        populate_by_name = True

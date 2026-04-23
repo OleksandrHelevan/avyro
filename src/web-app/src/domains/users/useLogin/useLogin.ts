@@ -13,7 +13,6 @@ export const useLogin = () => {
 
       toast.success("Вхід успішний!");
 
-      // Редірект на головну
       window.location.href = "/";
     },
     onError: (error: any) => {
