@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import ServerSelectionTimeoutError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from modules.users_module.api.DoctorController import router as doctor_router
+
 from config.db import db
 from config.logging_config import logger
 from modules.users_module.api.user_controller import router as user_router
@@ -61,6 +63,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(doctor_router)
 
 
 @app.get("/health", tags=["General"], summary="Health Status")
