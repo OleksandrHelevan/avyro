@@ -6,7 +6,9 @@ import type {
   SignUpResponse,
   GetPatientResponse,
   PatchPatientRequest,
-  PatchPatientResponse,
+  PatchPatientResponse, GetDoctorResponse,
+  UpdateDoctorProfileRequest,
+  UpdateProfileResponse
 } from "../types.ts";
 
 export const userService = {
@@ -21,5 +23,12 @@ export const userService = {
   },
   patchPatient: async (id: string, request: PatchPatientRequest): Promise<PatchPatientResponse> => {
     return userApiClient.patchPatient(id, request)
+  },
+  getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
+    return userApiClient.getDoctorById(id);
+
+  },
+  updateDoctorProfile: async (request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
+    return userApiClient.updateDoctorProfile(request);
   }
 }
