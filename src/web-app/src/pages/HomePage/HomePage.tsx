@@ -2,13 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import "./HomePage.css";
 
-// Анімація для блоку (з'являється знизу вгору)
 const fadeUpVariant = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-// Анімація для контейнера, щоб його дочірні елементи з'являлися по черзі (stagger)
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
@@ -20,8 +18,8 @@ const staggerContainer = {
 const HomePage = () => {
   const [activeSpec, setActiveSpec] = useState("Неврологія");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-  // Дані
   const slides = [
     { title: "Безкоштовна онлайн-консультація", desc: "Для нових пацієнтів до кінця місяця", color: "linear-gradient(135deg, rgba(24,192,196,0.8), rgba(114,86,161,0.8))" },
     { title: "Комплексний чекап організму", desc: "Знижка 20% на всі аналізи", color: "linear-gradient(135deg, rgba(114,86,161,0.8), rgba(24,192,196,0.8))" },
@@ -48,7 +46,6 @@ const HomePage = () => {
     { id: 2, author: "Андрій К.", role: "Пацієнт", text: "Завдяки MED.avyro я забув про черги в реєстратурі. Зручний запис, нагадування про візит — 10/10!" }
   ];
 
-  // Слайдер
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -58,13 +55,11 @@ const HomePage = () => {
 
   return (
     <div className="aero-viewport light-theme">
-      {/* ФОН */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1"></div>
         <div className="light-blob blob-2"></div>
       </div>
 
-      {/* --- ПЛАВАЮЧІ МЕДИЧНІ СТІКЕРИ --- */}
       <div className="floating-icons-container">
         <div className="bg-icon icon-heart"></div>
         <div className="bg-icon icon-cross"></div>
@@ -72,35 +67,9 @@ const HomePage = () => {
         <div className="bg-icon icon-heart2"></div>
         <div className="bg-icon icon-plus"></div>
       </div>
-      {/* ------------------------------- */}
-
-      {/* НАВБАР (З'являється одразу) */}
-      <motion.nav
-        className="white-nav"
-        initial={{ y: -60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="nav-content">
-          <div className="logo-group">
-            <div className="logo-icon-med"></div>
-            <h1><span className="logo-accent">Avyro</span></h1>
-          </div>
-          <div className="nav-links">
-            <a href="#" className="nav-link active-link">Знайти лікаря</a>
-            <a href="#" className="nav-link">Мої записи</a>
-            <a href="#" className="nav-link">Мій кабінет</a>
-          </div>
-          <div className="user-profile">
-            <span className="user-name">Олена М.</span>
-            <div className="user-avatar"></div>
-          </div>
-        </div>
-      </motion.nav>
 
       <main className="main-content">
 
-        {/* СЛАЙДЕР (З'являється одразу) */}
         <motion.div
           className="slider-container"
           initial="hidden"
@@ -131,7 +100,6 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* ПОШУК (Анімація при скролі) */}
         <motion.div
           className="search-section"
           initial="hidden"
@@ -146,7 +114,6 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* СТАТИСТИКА (По черзі при скролі) */}
         <motion.div
           className="stats-row"
           initial="hidden"
@@ -159,7 +126,6 @@ const HomePage = () => {
           <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">4.9</span> Середня оцінка</motion.div>
         </motion.div>
 
-        {/* ЯК ЦЕ ПРАЦЮЄ */}
         <motion.div
           className="how-it-works"
           initial="hidden"
@@ -179,7 +145,6 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* ФІЛЬТРИ */}
         <motion.div
           className="specs-section"
           initial="hidden"
@@ -201,7 +166,6 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* СІТКА ЛІКАРІВ */}
         <motion.div
           className="results-section"
           initial="hidden"
@@ -234,7 +198,6 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* ВІДГУКИ */}
         <motion.div
           className="reviews-section"
           initial="hidden"
@@ -262,7 +225,6 @@ const HomePage = () => {
 
       </main>
 
-      {/* ФУТЕР */}
       <motion.footer
         className="aero-footer glass-light"
         initial="hidden"
@@ -303,16 +265,65 @@ const HomePage = () => {
         </div>
       </motion.footer>
 
-      {/* ПЛАВАЮЧИЙ ЧАТ-БОТ */}
-      <motion.button
-        className="floating-chatbot"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1, type: "spring", stiffness: 200 }}
-      >
-        <span className="pulse-ring"></span>
-        💬
-      </motion.button>
+      <div className="floating-help-container" style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 999 }}>
+        <AnimatePresence>
+          {isHelpOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="glass-light"
+              style={{
+                position: 'absolute',
+                bottom: '80px',
+                right: '0',
+                width: '320px',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: 'rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                color: '#111827',
+                border: '1px solid rgba(255, 255, 255, 0.6)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#7b51b3' }}>Як це працює?</h3>
+                <button
+                  onClick={() => setIsHelpOpen(false)}
+                  style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#6b7280' }}
+                >
+                  ✕
+                </button>
+              </div>
+              <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '0.9rem', color: '#4b5563' }}>
+                <li><strong>1. Знайдіть лікаря:</strong> Використовуйте пошук або фільтри за спеціалізацією.</li>
+                <li><strong>2. Запишіться:</strong> Оберіть зручний слот у профілі лікаря.</li>
+                <li><strong>3. Кабінет:</strong> Перейдіть у "Мій кабінет", щоб заповнити дані для швидкого прийому.</li>
+                <li><strong>4. Бонуси:</strong> Отримуйте бейджі та знижки за здорові звички!</li>
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          className="floating-chatbot"
+          onClick={() => setIsHelpOpen(!isHelpOpen)}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 1, type: "spring", stiffness: 200 }}
+          style={{
+            width: '60px', height: '60px', borderRadius: '50%',
+            border: 'none', background: '#7b51b3', color: 'white',
+            fontSize: '1.8rem', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(123, 81, 179, 0.4)',
+            position: 'absolute', bottom: '0', right: '0'
+          }}
+        >
+          <span className="pulse-ring"></span>
+          {isHelpOpen ? '✕' : '❓'}
+        </motion.button>
+      </div>
 
     </div>
   );

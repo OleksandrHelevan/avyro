@@ -20,8 +20,9 @@ export const userApiClient = {
     apiClient.post<SignUpResponse>('/sign-up', request),
   getPatientById: async (id: string) =>
     apiClient.get<GetPatientResponse>(`/users/patients/${id}`),
-  patchPatient: async ( id: string, request: PatchPatientRequest) =>
+  patchPatient: async (id: string, request: PatchPatientRequest) =>
     apiClient.patch<PatchPatientResponse>(`/users/patients/${id}`, request),
+
   getDoctorById: async (id: string) =>
     apiClient.get<GetDoctorResponse>(`api/v1/doctors/${id}`),
   updateDoctorProfile: async (request: UpdateDoctorProfileRequest) =>

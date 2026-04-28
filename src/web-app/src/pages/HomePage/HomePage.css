@@ -110,7 +110,7 @@ body {
 .user-avatar { width: 36px; height: 36px; background: #ddd; border-radius: 50%; }
 
 /* ГОЛОВНИЙ КОНТЕНТ */
-.main-content { max-width: 1400px; width: 95%; margin: 0 auto; padding: 120px 2rem 5vh; }
+.main-content { max-width: 1400px; width: 95%; margin: 0 auto;  }
 
 /* ЗАГАЛЬНЕ СКЛО */
 .glass-light {
