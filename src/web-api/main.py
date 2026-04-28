@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI, Request, status, Response
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pymongo.errors import ServerSelectionTimeoutError
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -10,6 +10,7 @@ from config.db import db
 from config.logging_config import logger
 from modules.users_module.api.user_controller import router as user_router
 from modules.users_module.api.auth_controller import router as auth_router
+from modules.appointments_module.api.ScheduleController import router as schedule_router
 
 from modules.users_module.api.exception.exception_handlers import (
     forbidden_handler,
@@ -64,7 +65,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(doctor_router)
-
+app.include_router(schedule_router)
 
 @app.get("/health", tags=["General"], summary="Health Status")
 def db_health():
