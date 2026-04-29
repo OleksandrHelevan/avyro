@@ -4,7 +4,7 @@ from bson import ObjectId
 from modules.users_module.domains.user.User import User
 from modules.users_module.domains.user.Profile import Profile
 
-from modules.users_module.application.mapper.UserMapper import UserMapper
+from modules.users_module.application.mapper.PatientMapper import UserMapper
 from modules.users_module.api.exception.exceptions import (
     UserNotFoundException,
     ForbiddenException,
@@ -15,7 +15,7 @@ from modules.users_module.api.exception.exceptions import (
 from config.security import hash_password
 
 
-class UserService:
+class PatientService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
 

@@ -11,7 +11,7 @@ from modules.users_module.application.dto.SpecializationDto import (
     CreateSpecializationRequest
 )
 
-router = APIRouter(prefix="/api/v1/specializations", tags=["Specializations"])
+router = APIRouter(prefix="/specializations", tags=["Specializations"])
 
 
 def get_specialization_service() -> SpecializationService:

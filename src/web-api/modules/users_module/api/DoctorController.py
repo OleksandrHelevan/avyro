@@ -14,7 +14,7 @@ from modules.users_module.application.dto.DoctorProfile import (
 
 # Якщо у тебе роутер вже з префіксом /users, зміни префікс за потреби.
 # Я залишаю /api/v1/doctors як у твоїх попередніх файлах, але шляхи всередині відповідають твоїй тасці
-router = APIRouter(prefix="/api/v1/doctors", tags=["Doctors"])
+router = APIRouter(prefix="/users/doctors", tags=["Doctors"])
 
 
 def get_doctor_service() -> DoctorService:

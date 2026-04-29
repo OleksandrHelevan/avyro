@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import Mock, patch
-from datetime import datetime
 from modules.users_module.api.exception.exceptions import InvalidCredentialsException
 from modules.users_module.application.dto.LoginRequest import LoginRequest
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
