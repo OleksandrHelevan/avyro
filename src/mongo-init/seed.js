@@ -8,7 +8,6 @@ db = db.getSiblingDB('avyro');
 
 db.Transactions.deleteMany({});
 db.Appointments.deleteMany({});
-db.Slots.deleteMany({});
 db.Schedules.deleteMany({});
 db.Rewards.deleteMany({});
 db.PatientProgress.deleteMany({});
@@ -35,13 +34,6 @@ const ids = {
     annaWeekly: ObjectId('68039a000000000000000301'),
     oleksiiCustom: ObjectId('68039a000000000000000302')
   },
-  slots: {
-    anna0900: ObjectId('68039a000000000000000401'),
-    anna0930: ObjectId('68039a000000000000000402'),
-    anna1000Blocked: ObjectId('68039a000000000000000403'),
-    oleksii1100: ObjectId('68039a000000000000000404'),
-    oleksii1130: ObjectId('68039a000000000000000405')
-  },
   badges: {
     cardioBronze: ObjectId('68039a000000000000000501'),
     cardioSilver: ObjectId('68039a000000000000000502'),
@@ -66,7 +58,7 @@ const ids = {
   }
 };
 
-// Base datetimes for slots / appointments
+// Base datetimes for / appointments
 const slotAnna0900From = new Date('2026-04-22T09:00:00Z');
 const slotAnna0930From = new Date('2026-04-22T09:30:00Z');
 const slotAnna1000From = new Date('2026-04-22T10:00:00Z');

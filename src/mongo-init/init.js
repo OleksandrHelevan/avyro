@@ -2,7 +2,6 @@
 // db.Users.drop();
 // db.Specializations.drop();
 // db.Schedules.drop();
-// db.Slots.drop();
 // db.Appointments.drop();
 // db.Rewards.drop();
 // db.Badges.drop();
@@ -115,29 +114,6 @@ createCollectionSafe('Schedules', {
 
 db.Schedules.createIndex({ doctorId: 1 }, { name: 'ix_doctorId' });
 
-createCollectionSafe('Slots', {
-  validator: {
-    $jsonSchema: {
-      bsonType: 'object',
-      required: ['scheduleId', 'doctorId', 'from', 'to', 'type', 'createdAt'],
-      properties: {
-        scheduleId: { bsonType: 'objectId' },
-        doctorId: { bsonType: 'objectId' },
-        from: { bsonType: 'date' },
-        to: { bsonType: 'date' },
-        type: { enum: ['AVAILABLE', 'BLOCKED'] },
-        appointmentId: { bsonType: ['objectId', 'null'] },
-        createdAt: { bsonType: 'date' }
-      }
-    }
-  },
-  validationLevel: 'strict',
-  validationAction: 'error'
-});
-
-db.Slots.createIndex({ doctorId: 1, from: 1 }, { unique: true, name: 'ux_doctorId_from' });
-db.Slots.createIndex({ doctorId: 1, from: 1, to: 1 }, { name: 'ix_doctorId_from_to' });
-db.Slots.createIndex({ appointmentId: 1 }, { name: 'ix_appointmentId' });
 
 createCollectionSafe('Appointments', {
   validator: {
