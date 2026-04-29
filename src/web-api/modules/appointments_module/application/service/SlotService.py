@@ -1,48 +1,32 @@
+import calendar
 from datetime import datetime, timedelta, timezone
+from typing import List
 from modules.appointments_module.domains.slot.Slot import Slot, SlotType
-from modules.appointments_module.domains.schedule.Schedule import Schedule
-from modules.appointments_module.infrastructure.persistence.SlotRepository import SlotRepository
 
 
 class SlotService:
-    def __init__(self, slot_repository: SlotRepository):
-        self.slot_repository = slot_repository
 
-    def generate_slots_for_schedule(self, schedule: Schedule, days_ahead: int = 30):
-        repeating = schedule.repeating
+    def generate_monthly_slots(self, doctor_id: str, year: int, month: int, config: dict) -> List[Slot]:
+        slots = []
+        days_of_week = config.get("daysOfWeek", [])
+        duration = config.get("slotDuration", 30)
+        start_h, start_m = map(int, config["startTime"].split(":"))
+        end_h, end_m = map(int, config["endTime"].split(":"))
 
-        days_of_week = repeating.get("daysOfWeek", [])
-        start_time_str = repeating.get("startTime")
-        end_time_str = repeating.get("endTime")
-        duration = repeating.get("slotDuration", 30)
+        _, last_day = calendar.monthrange(year, month)
 
-        if not start_time_str or not end_time_str:
-            return
+        for day in range(1, last_day + 1):
+            current_date = datetime(year, month, day, tzinfo=timezone.utc)
+            if current_date.weekday() in days_of_week:
+                slot_time = current_date.replace(hour=start_h, minute=start_m, second=0, microsecond=0)
+                work_end = current_date.replace(hour=end_h, minute=end_m, second=0, microsecond=0)
 
-        start_h, start_m = map(int, start_time_str.split(":"))
-        end_h, end_m = map(int, end_time_str.split(":"))
+                while slot_time + timedelta(minutes=duration) <= work_end:
+                    slots.append(Slot(
+                        from_time=slot_time,
+                        to_time=slot_time + timedelta(minutes=duration),
+                        slot_type=SlotType.AVAILABLE
+                    ))
+                    slot_time += timedelta(minutes=duration)
 
-        now = datetime.now(timezone.utc)
-
-        for i in range(days_ahead):
-            current_date = now + timedelta(days=i)
-
-            if current_date.weekday() not in days_of_week:
-                continue
-
-            slot_start = current_date.replace(hour=start_h, minute=start_m, second=0, microsecond=0)
-            work_end = current_date.replace(hour=end_h, minute=end_m, second=0, microsecond=0)
-
-            while slot_start + timedelta(minutes=duration) <= work_end:
-                if slot_start > now:
-                    new_slot = Slot(
-                        schedule_id=schedule.id,
-                        doctor_id=schedule.doctor_id,
-                        from_time=slot_start,
-                        to_time=slot_start + timedelta(minutes=duration),
-                        slot_type=SlotType.AVAILABLE,
-                        created_at=datetime.now(timezone.utc)
-                    )
-                    self.slot_repository.create(new_slot)
-
-                slot_start += timedelta(minutes=duration)
+        return slots
