@@ -1,16 +1,22 @@
 from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
 
 class DoctorProfileUpdateRequest(BaseModel):
-    full_name: str = Field(
-        ...,
-        min_length=3,
-        description="ПІБ лікаря (мінімум 3 символи)"
-    )
-    specialization_id: str = Field(
-        ...,
-        description="ID спеціалізації з БД (MongoDB ObjectId у форматі рядка)"
-    )
+    fullName: str = Field(..., min_length=3, description="Введіть коректне ПІБ")
+    phone: Optional[str] = None
+    avatarUrl: Optional[str] = None
+    specialization_id: str
 
-class DoctorProfileResponse(BaseModel):
-    status: str
-    message: str
+class DoctorProfileUpdateResponse(BaseModel):
+    id: str = Field(alias="_id")
+    email: str
+    isActive: bool
+    fullName: Optional[str] = None
+    phone: Optional[str] = None
+    avatarUrl: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    lastLoginAt: Optional[datetime] = None
+
+class DoctorProfileResponse(DoctorProfileUpdateResponse):
+    specializationName: Optional[str] = None
