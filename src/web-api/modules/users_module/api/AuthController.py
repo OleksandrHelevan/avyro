@@ -4,7 +4,7 @@ from modules.users_module.application.dto.LoginResponse import LoginResponse
 from modules.users_module.application.dto.CreateUserRequest import CreateUserRequest
 from modules.users_module.application.dto.UserResponse import UserResponse
 from modules.users_module.application.services.AuthService import AuthService
-from modules.users_module.application.services.UserService import UserService
+from modules.users_module.application.services.PatientService import PatientService
 from config.db import db
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from config.logging_config import logger
@@ -13,8 +13,8 @@ router = APIRouter(prefix="", tags=["Auth"])
 def get_auth_service() -> AuthService:
     return AuthService(UserRepository(db["Users"]))
 
-def get_user_service() -> UserService:
-    return UserService(UserRepository(db["Users"]))
+def get_user_service() -> PatientService:
+    return PatientService(UserRepository(db["Users"]))
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
@@ -29,7 +29,7 @@ async def login(
 @router.post("/sign-up", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     request: CreateUserRequest,
-    user_service: UserService = Depends(get_user_service)
+    user_service: PatientService = Depends(get_user_service)
 ):
     logger.info(f"Registration attempt for email: {request.email} with role: {request.role}")
     result = user_service.create_user(request)

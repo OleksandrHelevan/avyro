@@ -8,8 +8,8 @@ from modules.users_module.api.DoctorController import router as doctor_router
 
 from config.db import db
 from config.logging_config import logger
-from modules.users_module.api.user_controller import router as user_router
-from modules.users_module.api.auth_controller import router as auth_router
+from modules.users_module.api.PatientController import router as user_router
+from modules.users_module.api.AuthController import router as auth_router
 from modules.users_module.api.SpecializationController import router as specialization_router
 
 from modules.users_module.api.exception.exception_handlers import (

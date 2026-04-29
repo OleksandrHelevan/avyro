@@ -9,7 +9,7 @@ from modules.users_module.api.exception.exceptions import (
     UserAlreadyExistsException
 )
 from modules.users_module.domains.user.Profile import Profile
-from modules.users_module.application.services.UserService import UserService
+from modules.users_module.application.services.PatientService import PatientService
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def mock_user_repository():
 
 @pytest.fixture
 def user_service(mock_user_repository):
-    return UserService(user_repository=mock_user_repository)
+    return PatientService(user_repository=mock_user_repository)
 
 
 def test_to_object_id_success(user_service):
@@ -35,8 +35,8 @@ def test_to_object_id_invalid(user_service):
     assert str(exc_info.value) == "Invalid user id"
 
 
-@patch("modules.users_module.application.services.UserService.UserMapper")
-@patch("modules.users_module.application.services.UserService.hash_password")
+@patch("modules.users_module.application.services.PatientService.UserMapper")
+@patch("modules.users_module.application.services.PatientService.hash_password")
 def test_create_user_success_with_profile(mock_hash_password, mock_user_mapper, user_service, mock_user_repository):
     request = Mock()
     request.email = "newuser@example.com"
@@ -77,7 +77,7 @@ def test_create_user_raises_exception_if_exists(user_service, mock_user_reposito
     mock_user_repository.create.assert_not_called()
 
 
-@patch("modules.users_module.application.services.UserService.UserMapper")
+@patch("modules.users_module.application.services.PatientService.UserMapper")
 def test_get_patient_profile_success(mock_user_mapper, user_service, mock_user_repository):
     user_id = str(ObjectId())
 
@@ -103,7 +103,7 @@ def test_get_patient_profile_not_found(user_service, mock_user_repository):
     assert str(exc_info.value) == "User not found"
 
 
-@patch("modules.users_module.application.services.UserService.UserMapper")
+@patch("modules.users_module.application.services.PatientService.UserMapper")
 def test_get_patient_profile_forbidden_for_non_patient(mock_user_mapper, user_service, mock_user_repository):
     user_id = str(ObjectId())
     mock_user_repository.get_by_id.return_value = Mock()
@@ -116,7 +116,7 @@ def test_get_patient_profile_forbidden_for_non_patient(mock_user_mapper, user_se
     assert str(exc_info.value) == "Not a patient"
 
 
-@patch("modules.users_module.application.services.UserService.UserMapper")
+@patch("modules.users_module.application.services.PatientService.UserMapper")
 def test_patch_patient_profile_success(mock_user_mapper, user_service, mock_user_repository):
     user_id = str(ObjectId())
 
@@ -141,7 +141,7 @@ def test_patch_patient_profile_success(mock_user_mapper, user_service, mock_user
     mock_user_repository.update_profile.assert_called_once()
 
 
-@patch("modules.users_module.application.services.UserService.UserMapper")
+@patch("modules.users_module.application.services.PatientService.UserMapper")
 def test_patch_patient_profile_creates_profile_if_none(mock_user_mapper, user_service, mock_user_repository):
     user_id = str(ObjectId())
 
