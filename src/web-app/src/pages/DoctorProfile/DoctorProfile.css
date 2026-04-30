@@ -1,0 +1,51 @@
+.doctor-theme .doc-ring {
+  background: linear-gradient(135deg, #3bceb5, #3b82f6) !important;
+}
+
+.doctor-theme .doc-badge {
+  background: rgba(59, 206, 181, 0.1) !important;
+  color: #2d9d8a !important;
+}
+
+.schedule-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1rem;
+}
+
+.slots-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.slot-item {
+  background: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #3bceb5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.remove-slot {
+  border: none;
+  background: none;
+  color: #ff4d4d;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-slot-btn {
+  background: #3bceb5;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
