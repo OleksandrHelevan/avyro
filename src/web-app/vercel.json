@@ -1,5 +1,12 @@
 {
   "rewrites": [
-  { "source": "/(.*)", "destination": "/" }
-]
+    {
+      "source": "/api/:path*",
+      "destination": "https://avyro.fly.dev/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
 }
