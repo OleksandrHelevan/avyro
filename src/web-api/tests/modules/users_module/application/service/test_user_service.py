@@ -23,11 +23,16 @@ def mock_request_repository():
 
 
 @pytest.fixture
-def user_service(mock_user_repository, mock_request_repository):
-    # Додано обов'язковий request_repository
+def mock_reward_repository():
+    return Mock()
+
+
+@pytest.fixture
+def user_service(mock_user_repository, mock_request_repository, mock_reward_repository):
     return PatientService(
         user_repository=mock_user_repository,
-        request_repository=mock_request_repository
+        request_repository=mock_request_repository,
+        reward_repository=mock_reward_repository
     )
 
 
@@ -100,21 +105,6 @@ def test_create_user_raises_exception_if_exists(user_service, mock_user_reposito
 
 
 @patch("modules.users_module.application.services.PatientService.UserMapper")
-def test_get_patient_profile_success(mock_user_mapper, user_service, mock_user_repository):
-    user_id = str(ObjectId())
-
-    mock_user = Mock()
-    mock_user_repository.get_by_id.return_value = mock_user
-    mock_user_mapper.normalize_role.return_value = "PATIENT"
-    mock_user_mapper.to_patient_response.return_value = "PatientProfileData"
-
-    response = user_service.get_patient_profile(user_id)
-
-    assert response == "PatientProfileData"
-    mock_user_repository.get_by_id.assert_called_once()
-
-
-@patch("modules.users_module.application.services.PatientService.UserMapper")
 def test_get_patient_profile_forbidden_for_non_patient(mock_user_mapper, user_service, mock_user_repository):
     user_id = str(ObjectId())
     mock_user_repository.get_by_id.return_value = Mock()
@@ -128,23 +118,65 @@ def test_get_patient_profile_forbidden_for_non_patient(mock_user_mapper, user_se
 
 
 @patch("modules.users_module.application.services.PatientService.UserMapper")
-def test_patch_patient_profile_success(mock_user_mapper, user_service, mock_user_repository):
+def test_get_patient_profile_success(mock_user_mapper, user_service, mock_user_repository, mock_reward_repository):
+    user_id = str(ObjectId())
+
+    # Створюємо мок-користувача з правильними даними
+    mock_user = Mock()
+    mock_user.id = ObjectId(user_id)
+    mock_user.email = "test@example.com"
+    mock_user.profile.full_name = "John Doe"
+    mock_user.profile.phone = "12345"
+    mock_user.profile.avatar_url = "url"
+    mock_user.profile.address = "address"
+
+    mock_user_repository.get_by_id.return_value = mock_user
+    mock_user_mapper.normalize_role.return_value = "PATIENT"
+
+    # Вчимо мок повертати порожній список нагород
+    mock_reward_repository.get_by_patient_id.return_value = []
+
+    response = user_service.get_patient_profile(user_id)
+
+    # Перевіряємо нову структуру відповіді
+    assert response["email"] == "test@example.com"
+    assert response["fullName"] == "John Doe"
+    assert response["isProfileCompleted"] is True
+    assert response["rewards"] == []
+
+    mock_user_repository.get_by_id.assert_called_once()
+
+
+@patch("modules.users_module.application.services.PatientService.UserMapper")
+def test_patch_patient_profile_success(mock_user_mapper, user_service, mock_user_repository, mock_reward_repository):
     user_id = str(ObjectId())
 
     request = Mock()
     request.fullName = "Updated Name"
     request.phone = "111222333"
     request.avatarUrl = "http://new.com/img.png"
+    request.address = "New Address"
 
     mock_user = Mock()
+    mock_user.id = ObjectId(user_id)
+    mock_user.email = "test@example.com"
+    # Імітуємо існуючий профіль
     mock_user.profile = Profile(full_name="Old Name")
 
-    mock_user_repository.get_by_id.side_effect = [mock_user, mock_user]
+    mock_user_repository.get_by_id.return_value = mock_user
     mock_user_mapper.normalize_role.return_value = "PATIENT"
-    mock_user_mapper.to_patient_response.return_value = "UpdatedProfile"
+
+    # Налаштовуємо моки для нагород (бонусу ще немає)
+    mock_reward_repository.has_profile_bonus.return_value = False
+    mock_reward_repository.get_by_patient_id.return_value = []
 
     response = user_service.patch_patient_profile(user_id, request)
 
-    assert response == "UpdatedProfile"
-    assert mock_user.profile.full_name == "Updated Name"
+    # Перевіряємо, чи оновилися дані і статус заповненості
+    assert response["fullName"] == "Updated Name"
+    assert response["isProfileCompleted"] is True
+    assert response["rewards"] == []
+
+    # Перевіряємо, чи викликалися потрібні методи
     mock_user_repository.update_profile.assert_called_once()
+    mock_reward_repository.create.assert_called_once()  # Бонус має бути створено!
