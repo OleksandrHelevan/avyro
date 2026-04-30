@@ -8,7 +8,6 @@ interface RequestOptions {
 }
 
 const getToken = () => {
-  // ЗМІНЕНО: Шукаємо accessToken (як у твоєму App.tsx), або token про всяк випадок
   const data = localStorage.getItem("accessToken") || localStorage.getItem("token");
   if (!data) return null;
 
