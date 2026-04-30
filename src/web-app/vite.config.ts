@@ -13,7 +13,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://web-api:8000',
+        target: 'https://avyro.fly.dev',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }

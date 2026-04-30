@@ -1,6 +1,6 @@
 import type {LoginRequest} from "../../domains/users/types.ts";
 import {useLogin} from "../../domains/users/useLogin/useLogin.ts";
-import {Link, useNavigate} from "react-router-dom"; // Додали useNavigate
+import {Link, useNavigate} from "react-router-dom";
 import TextInput from "../../components/TextInput/TextInput.tsx";
 import Button from "../../components/Button/Button.tsx";
 import Form from "../../components/Form/Form.tsx";
@@ -8,21 +8,14 @@ import './LoginPage.css'
 
 export default function LoginPage() {
   const {mutate, isPending} = useLogin();
-  const navigate = useNavigate(); // Ініціалізуємо навігацію
+  const navigate = useNavigate();
 
   const onSubmit = (data: LoginRequest) => {
     mutate(data, {
-      onSuccess: (response) => {
-        // ТУТ ВАЖЛИВИЙ МОМЕНТ:
-        // Якщо твій хук useLogin САМ не зберігає токен у localStorage,
-        // то це треба зробити тут. Наприклад:
-        // localStorage.setItem("med_token", response.accessToken);
-
-        // Перекидаємо на головну сторінку
+      onSuccess: () => {
         navigate("/");
       },
       onError: (error) => {
-        // Тут можна додати toast з помилкою, якщо логін не вдався
         console.error("Помилка логіну:", error);
       }
     });

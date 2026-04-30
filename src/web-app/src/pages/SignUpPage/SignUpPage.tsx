@@ -13,7 +13,6 @@ export default function RegistrationPage() {
   const navigate = useNavigate(); // Ініціалізуємо навігацію
 
   const onSubmit = (data: any) => {
-    // Беремо тільки email та password (confirmPassword для бекенду не потрібен)
     const { email, password } = data;
 
     // Формуємо об'єкт строго за інтерфейсом SignUpRequest
@@ -99,11 +98,6 @@ export default function RegistrationPage() {
               }
               type="password"
               placeholder="••••••••••••"
-              className={
-                watch("confirmPassword") && watch("password") !== watch("confirmPassword")
-                  ? "input-error"
-                  : ""
-              }
               rules={{
                 required: "Підтвердіть пароль",
                 validate: (val: string) => {

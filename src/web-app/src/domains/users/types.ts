@@ -2,7 +2,7 @@ export interface LoginRequest {
   email: string;
   password: string;
 }
-type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
+export type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
 
 export interface LoginResponse {
   accessToken: string;
