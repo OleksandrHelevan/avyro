@@ -62,3 +62,23 @@ export interface PatchPatientResponse {
   createdAt: Date;
   lastLoginAt: Date;
 }
+export interface GetDoctorResponse {
+  status: string;
+  message: string;
+}
+export interface UpdatePatientProfileRequest {
+  fullName: string;
+  phone: string;
+  avatarUrl: string;
+}
+
+export interface UpdateDoctorProfileRequest {
+  full_name: string;
+  specialization_id: string;
+
+}
+
+export interface UpdateProfileResponse {
+status:string;
+  message: string;
+}

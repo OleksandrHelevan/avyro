@@ -1,80 +1,124 @@
-# Файл: modules/users_module/application/services/DoctorService.py
-
 import logging
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 
-from modules.users_module.application.dto.DoctorProfile import DoctorProfileUpdateRequest, DoctorProfileResponse
+from modules.users_module.application.dto.DoctorProfile import (
+    DoctorProfileUpdateRequest,
+    DoctorProfileUpdateResponse,
+    DoctorProfileResponse
+)
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
 
 logger = logging.getLogger(__name__)
 
 
 class DoctorService:
-    # 1. Додаємо ініціалізацію, щоб приймати репозиторій
-    def __init__(self, repository: UserRepository):
-        self.repository = repository
+    def __init__(self, user_repository: UserRepository, spec_repository: SpecializationRepository):
+        self.user_repository = user_repository
+        self.spec_repository = spec_repository
 
-    # 2. Робимо твою функцію методом класу (додаємо self)
-    async def update_doctor_profile(
-        self,
-        user_id: str,
-        profile_data: DoctorProfileUpdateRequest
-    ) -> DoctorProfileResponse:
-
-        # Оскільки ми використовуємо Repository (як у UserService),
-        # доступ до бази має йти через self.repository, а не через прямий клієнт.
-        # Наприклад: await self.repository.update_user(...)
-
+    def patch_doctor_profile(self, user_id: str, profile_data: DoctorProfileUpdateRequest) -> dict:
+        # 1. Перевіряємо валідність ID
         try:
+            user_oid = ObjectId(user_id)
             spec_oid = ObjectId(profile_data.specialization_id)
-            # ... далі твоя логіка оновлення
-
-            pass  # заміни pass на свій код
-
         except InvalidId:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний ID спеціалізації"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
-# Файл: modules/users_module/application/services/DoctorService.py
+        # 2. Перевірка, чи існує спеціалізація
+        specialization = self.spec_repository.get_by_id(spec_oid)
+        if not specialization:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Оберіть вашу медичну спеціалізацію (такого фаху не знайдено)")
 
-    # ... твій попередній код (__init__ та update_doctor_profile) ...
+        # 3. Отримуємо юзера
+        user = self.user_repository.get_by_id(user_oid)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
 
-    def get_doctor_by_id(self, user_id: str):
-        # 1. Перевіряємо валідність ObjectID
+        if getattr(user, "role", "") != "DOCTOR":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Користувач не є лікарем")
+
+        # 4. Формуємо об'єкт профілю
+        profile_update = {
+            "fullName": profile_data.fullName,
+            "full_name": profile_data.fullName,
+            "phone": profile_data.phone,
+            "avatarUrl": profile_data.avatarUrl,
+            "avatar_url": profile_data.avatarUrl,
+            "specialization_id": str(spec_oid)
+        }
+        # 5. Оновлюємо в базі
+        self.user_repository.update_profile(user_oid, profile_update)
+
+        # 6. Отримуємо оновленого юзера для формування відповіді
+        updated_user = self.user_repository.get_by_id(user_oid)
+        profile_obj = getattr(updated_user, "profile", None)
+
+        # Безпечна функція для отримання значень (і з об'єктів, і зі словників)
+        def get_profile_attr(obj, attr_name):
+            if not obj:
+                return None
+            if isinstance(obj, dict):
+                return obj.get(attr_name)
+            return getattr(obj, attr_name, None)
+
+        return {
+            "_id": str(updated_user.id),
+            "email": updated_user.email,
+            "isActive": getattr(updated_user, "is_active", True),
+            "fullName": get_profile_attr(profile_obj, "fullName") or get_profile_attr(profile_obj, "full_name"),
+            "phone": get_profile_attr(profile_obj, "phone"),
+            "avatarUrl": get_profile_attr(profile_obj, "avatarUrl") or get_profile_attr(profile_obj, "avatar_url"),
+
+            "createdAt": getattr(updated_user, "created_at", None),
+            "lastLoginAt": getattr(updated_user, "last_login_at", None)
+        }
+
+    def get_doctor_by_id(self, user_id: str) -> dict:
         try:
             user_oid = ObjectId(user_id)
         except InvalidId:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний формат ID лікаря"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
-        # 2. Отримуємо користувача з бази через існуючий метод репозиторію
-        user = self.repository.get_by_id(user_oid)
-
-        # 3. Якщо користувача немає
+        user = self.user_repository.get_by_id(user_oid)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Лікаря не знайдено"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
 
-        # 4. Перевіряємо, чи цей користувач має роль DOCTOR (можливо, атрибут називається user.role)
-        if user.role != "DOCTOR":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Користувач за цим ID не є лікарем"
-            )
+        if getattr(user, "role", "") != "DOCTOR":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Користувач не є лікарем")
 
-        # 5. Повертаємо дані (адаптуй цей словник під те, що очікує твій DoctorProfileResponse)
-        # Приклад того, як це може виглядати:
+        profile_obj = getattr(user, "profile", None)
+
+        # Безпечна функція для отримання значень
+        def get_profile_attr(obj, attr_name):
+            if not obj:
+                return None
+            if isinstance(obj, dict):
+                return obj.get(attr_name)
+            return getattr(obj, attr_name, None)
+
+        spec_id_str = get_profile_attr(profile_obj, "specialization_id")
+
+        specialization_name = None
+        if spec_id_str:
+            try:
+                spec_doc = self.spec_repository.get_by_id(ObjectId(spec_id_str))
+                if spec_doc:
+                    specialization_name = spec_doc.name
+            except InvalidId:
+                pass
+
         return {
-            "id": str(user.id),
+            "_id": str(user.id),
             "email": user.email,
-            # Якщо профіль лежить у властивості profile:
-            **getattr(user, "profile", {})
+            "isActive": getattr(user, "is_active", True),
+            "fullName": get_profile_attr(profile_obj, "fullName"),
+            "phone": get_profile_attr(profile_obj, "phone"),
+            "avatarUrl": get_profile_attr(profile_obj, "avatarUrl"),
+            "createdAt": getattr(user, "created_at", None),
+            "lastLoginAt": getattr(user, "last_login_at", None),
+            "specializationName": specialization_name
         }
