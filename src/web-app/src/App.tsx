@@ -4,13 +4,22 @@ import LoginPage from './pages/LoginPage/LoginPage.tsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.tsx';
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import PatientProfile from "./pages/PatientProfile/PatientProfile.tsx";
-
-// ДОДАНО: Імпорт нашого Хедера (перевір, щоб шлях відповідав твоїй структурі папок)
+import DoctorProfile from "./pages/DoctorProfile/DoctorProfile.tsx";
 import Header from "./components/Header/Header.tsx";
-
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { queryClient } from "./services/queryClient.ts";
+
+// --- ДИСПЕТЧЕР ПРОФІЛІВ ---
+// Перевіряє роль користувача і віддає потрібний компонент
+const ProfileDispatcher = () => {
+  const role = localStorage.getItem("userRole")?.replace(/"/g, '');
+
+  if (role === "DOCTOR") {
+    return <DoctorProfile />;
+  }
+  return <PatientProfile />;
+};
 
 // --- КОМПОНЕНТИ-ОБГОРТКИ ДЛЯ МАРШРУТІВ ---
 
@@ -40,7 +49,6 @@ export default function App() {
       <Toaster position="bottom-right" />
       <BrowserRouter>
 
-        {/* ДОДАНО: Хедер тепер глобальний і працює для всього додатку */}
         <Header />
 
         <Routes>
@@ -49,7 +57,8 @@ export default function App() {
             {/* ЗАХИЩЕНІ СТОРІНКИ */}
             <Route element={<ProtectedRoute />}>
               <Route index element={<HomePage />} />
-              <Route path="profile" element={<PatientProfile />} />
+              {/* Замість жорсткого PatientProfile тепер працює диспетчер */}
+              <Route path="profile" element={<ProfileDispatcher />} />
             </Route>
 
             {/* ПУБЛІЧНІ СТОРІНКИ */}

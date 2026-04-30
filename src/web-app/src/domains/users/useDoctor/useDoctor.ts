@@ -1,15 +1,9 @@
-import {useQuery} from "@tanstack/react-query";
-import {userService} from "../service/userService.ts";
-
-export const useDoctor = (id: string) => {
-
-  const {data, isLoading, isPending, error} = useQuery({
-    queryKey: ["doctor", id],
-    queryFn: () => userService.getDoctorById(id),
-    enabled: !!id,
+import { useQuery } from "@tanstack/react-query";
+import { userService } from "../service/userService";
+export const useDoctor = (userId: string) => {
+  return useQuery({
+    queryKey: ["doctor", userId],
+    queryFn: () => userService.getDoctorById(userId),
+    enabled: !!userId, // Запит не відправиться, якщо ID порожній
   });
-  return {
-
-    data, isLoading, isPending, error
-  }
 };
