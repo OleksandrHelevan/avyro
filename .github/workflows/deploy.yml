@@ -38,4 +38,4 @@ jobs:
             -a avyro
 
       - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only -a avyro
+        run: flyctl deploy --remote-only --config fly.toml --ha=false -a avyro
