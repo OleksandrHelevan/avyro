@@ -9,7 +9,7 @@ from modules.users_module.api.DoctorController import router as doctor_router
 from config.db import db
 from config.logging_config import logger
 from modules.users_module.api.PatientController import router as user_router
-from modules.users_module.api.AuthController import router as auth_route
+from modules.users_module.api.AuthController import router as auth_router
 from modules.appointments_module.api.ScheduleController import router as schedule_router
 from modules.users_module.api.SpecializationController import router as specialization_router
 

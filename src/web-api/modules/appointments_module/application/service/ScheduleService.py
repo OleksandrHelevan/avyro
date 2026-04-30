@@ -7,7 +7,6 @@ from modules.appointments_module.application.service.SlotService import SlotServ
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
 
-
 class ScheduleService:
     def __init__(self, repository: ScheduleRepository, slot_service: SlotService):
         self.repository = repository

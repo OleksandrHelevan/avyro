@@ -1,7 +1,15 @@
+from enum import Enum
 from typing import Optional, List, Dict, Any
 from bson import ObjectId
 from datetime import datetime
 from modules.appointments_module.domains.slot.Slot import Slot
+
+
+class ScheduleStatus(Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
 
 class Schedule:
     def __init__(
@@ -15,6 +23,7 @@ class Schedule:
         slots: List[Slot],
         created_at: datetime,
         updated_at: datetime,
+        status: ScheduleStatus = ScheduleStatus.PENDING,  # Статус за замовчуванням
         _id: Optional[ObjectId] = None,
     ):
         self.id = _id
@@ -25,6 +34,7 @@ class Schedule:
         self.is_repeated = is_repeated
         self.repeating = repeating
         self.slots = slots
+        self.status = status
         self.created_at = created_at
         self.updated_at = updated_at
 
@@ -37,6 +47,7 @@ class Schedule:
             "isRepeated": self.is_repeated,
             "repeating": self.repeating,
             "slots": [slot.to_dict() for slot in self.slots],
+            "status": self.status.value if hasattr(self.status, "value") else self.status,
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
         }
@@ -52,6 +63,12 @@ class Schedule:
         slots_data = data.get("slots", [])
         slots = [Slot.from_dict(s) for s in slots_data]
 
+        raw_status = data.get("status", "PENDING")
+        try:
+            status = ScheduleStatus(raw_status)
+        except ValueError:
+            status = ScheduleStatus.PENDING
+
         return Schedule(
             _id=data.get("_id"),
             doctor_id=data.get("doctorId"),
@@ -61,6 +78,7 @@ class Schedule:
             is_repeated=data.get("isRepeated", False),
             repeating=data.get("repeating", {}),
             slots=slots,
+            status=status,
             created_at=data.get("createdAt"),
             updated_at=data.get("updatedAt"),
         )
