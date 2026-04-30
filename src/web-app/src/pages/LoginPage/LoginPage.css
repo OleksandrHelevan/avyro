@@ -92,5 +92,5 @@
 }
 
 input[name="confirmPassword"]:invalid + label {
-  color: #EF4444; // червоний колір для "НЕ ЗБІГАЮТЬСЯ"
+  color: #EF4444;
 }

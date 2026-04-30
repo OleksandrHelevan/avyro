@@ -84,7 +84,6 @@
   border-color: #a78bfa;
 }
 
-/* Радіо-коло всередині опції */
 .registration-wrapper .radio-circle {
   width: 20px;
   height: 20px;
@@ -96,7 +95,6 @@
   transition: all 0.3s ease;
 }
 
-/* Активний стан ролі (Фірмові кольори) */
 .registration-wrapper .role-option.active {
   border-color: #7256a1;
   background: rgba(114, 86, 161, 0.05);
@@ -120,7 +118,6 @@
   border-radius: 50%;
 }
 
-/* --- ПОЛЯ ВВОДУ --- */
 .registration-wrapper form input[type="email"],
 .registration-wrapper form input[type="password"],
 .registration-wrapper form input[type="text"] {
@@ -151,7 +148,7 @@
 
 .registration-wrapper .terms-container {
   display: flex;
-  align-items: center; /* Центруємо чекбокс і текст */
+  align-items: center;
   gap: 10px;
   margin: 5px 0 10px;
   font-size: 0.9rem;
