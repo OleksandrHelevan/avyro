@@ -8,7 +8,8 @@ interface RequestOptions {
 }
 
 const getToken = () => {
-  const data = localStorage.getItem("token");
+  // ЗМІНЕНО: Шукаємо accessToken (як у твоєму App.tsx), або token про всяк випадок
+  const data = localStorage.getItem("accessToken") || localStorage.getItem("token");
   if (!data) return null;
 
   try {
@@ -55,7 +56,10 @@ async function request<T>(
 
   if (!response.ok) {
     if (response.status === 401) {
+      // ЗМІНЕНО: Видаляємо обидва варіанти ключів, щоб точно розлогінити юзера
+      localStorage.removeItem("accessToken");
       localStorage.removeItem("token");
+      // Опціонально: можна додати window.location.href = '/login', щоб одразу викидало на сторінку входу
     }
     const errorData = (await response.json().catch(() => ({}))) as { message?: string };
     throw new Error(errorData.message || `HTTP Error: ${response.status}`);
@@ -70,9 +74,4 @@ export const apiClient = {
   put: <T>(endpoint: string, body: unknown, headers?: Headers) => request<T>(endpoint, 'PUT', { body, headers }),
   patch: <T>(endpoint: string, body: unknown, headers?: Headers) => request<T>(endpoint, 'PATCH', { body, headers }),
   delete: <T>(endpoint: string, headers?: Headers) => request<T>(endpoint, 'DELETE', { headers }),
-};
-
-export const setInStorage = (key: string, data: unknown) => {
-  const value = typeof data === 'string' ? data : JSON.stringify(data);
-  localStorage.setItem(key, value);
 };

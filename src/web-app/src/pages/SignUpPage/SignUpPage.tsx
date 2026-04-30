@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // ДОДАНО useNavigate
 import { useSignUp } from "../../domains/users/useSignUp/useSignUp.ts";
 import type { SignUpRequest, Role } from "../../domains/users/types.ts";
 import TextInput from "../../components/TextInput/TextInput.tsx";
@@ -8,14 +8,13 @@ import Form from "../../components/Form/Form.tsx";
 import "./SignUpPage.css";
 
 export default function RegistrationPage() {
-  // Використовуємо великі літери для відповідності інтерфейсу Role
   const [selectedRole, setSelectedRole] = useState<Role>("PATIENT");
   const { mutate, isPending } = useSignUp();
+  const navigate = useNavigate(); // Ініціалізуємо навігацію
 
   const onSubmit = (data: any) => {
-    // Витягуємо дані з форми, ігноруючи confirmPassword для запиту
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { confirmPassword, email, password } = data;
+    // Беремо тільки email та password (confirmPassword для бекенду не потрібен)
+    const { email, password } = data;
 
     // Формуємо об'єкт строго за інтерфейсом SignUpRequest
     const requestData: SignUpRequest = {
@@ -31,7 +30,13 @@ export default function RegistrationPage() {
       }
     };
 
-    mutate(requestData);
+    // Відправляємо запит
+    mutate(requestData, {
+      onSuccess: () => {
+        // Якщо реєстрація успішна — перекидаємо на сторінку входу
+        navigate("/login");
+      }
+    });
   };
 
   return (

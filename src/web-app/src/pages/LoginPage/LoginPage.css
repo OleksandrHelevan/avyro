@@ -3,7 +3,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #42E8E0 0%, #A06AF9 100%);
   padding: 20px;
 
   .role-selector {
@@ -92,7 +91,6 @@
   }
 }
 
-// Стилізація тексту для помилки confirmPassword (приклад)
 input[name="confirmPassword"]:invalid + label {
   color: #EF4444; // червоний колір для "НЕ ЗБІГАЮТЬСЯ"
 }

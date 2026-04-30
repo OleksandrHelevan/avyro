@@ -2,25 +2,30 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from config.db import db
 from config.security import get_current_user
 
-# Імпортуємо Repository та Service (за аналогією з Users)
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
 from modules.users_module.application.services.DoctorService import DoctorService
 
-# DTO
-from modules.users_module.application.dto.DoctorProfile import DoctorProfileUpdateRequest, DoctorProfileResponse
+from modules.users_module.application.dto.DoctorProfile import (
+    DoctorProfileUpdateRequest,
+    DoctorProfileUpdateResponse,
+    DoctorProfileResponse
+)
 
-router = APIRouter(prefix="/api/v1/doctors", tags=["Doctors"])
+# Якщо у тебе роутер вже з префіксом /users, зміни префікс за потреби.
+# Я залишаю /api/v1/doctors як у твоїх попередніх файлах, але шляхи всередині відповідають твоїй тасці
+router = APIRouter(prefix="/users/doctors", tags=["Doctors"])
 
 
-# 1. Dependency Injection для Service
 def get_doctor_service() -> DoctorService:
-    # Припускаємо, що лікарі зберігаються в тій самій колекції Users,
-    # оскільки ми перевіряємо поле "role" у юзера.
-    return DoctorService(UserRepository(db["Users"]))
+    # Ініціалізуємо обидва репозиторії
+    user_repo = UserRepository(db["Users"])
+    spec_repo = SpecializationRepository(db["Specializations"])
+    return DoctorService(user_repository=user_repo, spec_repository=spec_repo)
 
 
-# 2. Перевірка ролі лікаря
 def require_doctor_role(user: dict = Depends(get_current_user)) -> dict:
+    # RBAC: Тільки для лікарів
     if user.get("role") != "DOCTOR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -29,28 +34,34 @@ def require_doctor_role(user: dict = Depends(get_current_user)) -> dict:
     return user
 
 
-# 3. Сам ендпоінт
-@router.put("/me/profile", response_model=DoctorProfileResponse)
-async def api_update_doctor_profile(
+@router.patch("/{user_id}", response_model=DoctorProfileUpdateResponse)
+def patch_doctor_profile(
+    user_id: str,
     profile_data: DoctorProfileUpdateRequest,
     current_user: dict = Depends(require_doctor_role),
     service: DoctorService = Depends(get_doctor_service)
 ):
-    # Отримуємо ID користувача (залежить від того, як він зберігається в токені/базі)
-    user_id = str(current_user.get("_id") or current_user.get("id"))
+    """Оновити профіль лікаря (тільки для лікарів)"""
 
-    # Викликаємо метод сервісу замість прямої роботи з БД
-    return service.update_doctor_profile(user_id, profile_data)
+    # 1. Чітко беремо ID з ключа 'sub', оскільки ми дізналися, що він саме там
+    token_user_id = current_user.get("sub")
 
-# Файл: modules/users_module/api/DoctorController.py
+    # 2. Перевіряємо, чи є ID в токені взагалі, і чи збігається він з ID з URL
+    if not token_user_id or str(token_user_id) != str(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ви можете редагувати лише власний профіль"
+        )
 
-# ... твої попередні імпорти та роути ...
+    # 3. Якщо все добре — оновлюємо
+    return service.patch_doctor_profile(user_id, profile_data)
+
 
 @router.get("/{user_id}", response_model=DoctorProfileResponse)
-def api_get_doctor_by_id(
+def get_doctor_by_id(
     user_id: str,
-    # Будь-який авторизований користувач може переглядати профіль лікаря
-    _ = Depends(get_current_user),
+    _=Depends(get_current_user),  # Будь-який авторизований юзер може дивитись профіль
     service: DoctorService = Depends(get_doctor_service)
 ):
+    """Отримати профіль лікаря за ID (для пацієнтів та інших)"""
     return service.get_doctor_by_id(user_id)
