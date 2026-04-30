@@ -23,3 +23,5 @@ class RewardRepository:
             "source.type": RewardSource.PROFILE_BONUS.value  # <--- ЗМІНА ТУТ: тепер шукаємо source.type
         })
         return count > 0
+
+
