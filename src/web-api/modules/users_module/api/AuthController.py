@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, status
+
+from modules.admin_module.infrastructure.persistence.RequestRepository import RequestRepository
 from modules.users_module.application.dto.LoginRequest import LoginRequest
 from modules.users_module.application.dto.LoginResponse import LoginResponse
 from modules.users_module.application.dto.CreateUserRequest import CreateUserRequest
-from modules.users_module.application.dto.UserResponse import UserResponse
+from typing import Any
 from modules.users_module.application.services.AuthService import AuthService
 from modules.users_module.application.services.PatientService import PatientService
 from config.db import db
@@ -14,7 +16,10 @@ def get_auth_service() -> AuthService:
     return AuthService(UserRepository(db["Users"]))
 
 def get_user_service() -> PatientService:
-    return PatientService(UserRepository(db["Users"]))
+    return PatientService(
+        UserRepository(db["Users"]),
+        RequestRepository(db["Requests"])
+    )
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
@@ -26,12 +31,17 @@ async def login(
     logger.info(f"Login successful for user: {request.email}")
     return result
 
-@router.post("/sign-up", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/sign-up", response_model=Any, status_code=status.HTTP_201_CREATED)
 async def register(
     request: CreateUserRequest,
     user_service: PatientService = Depends(get_user_service)
 ):
     logger.info(f"Registration attempt for email: {request.email} with role: {request.role}")
     result = user_service.create_user(request)
+
+    if isinstance(result, dict):
+        logger.info(f"Doctor registration request created: {request.email}")
+        return result
+
     logger.info(f"User registered successfully: {request.email} (ID: {result.id})")
     return result
