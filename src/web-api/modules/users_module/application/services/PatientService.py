@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 from bson import ObjectId
-
+from typing import Optional, List
 from modules.admin_module.domains.Request import Request, RequestType
 from modules.users_module.domains.user.User import User
 from modules.users_module.domains.user.Profile import Profile
@@ -204,3 +204,32 @@ class PatientService:
             "isProfileCompleted": is_completed,
             "rewards": rewards_response
         }
+
+    def get_doctors_list(self, specialization: Optional[str] = None):
+        """
+        Отримує список лікарів, форматує їх для відповіді.
+        """
+        spec_id = None
+        if specialization:
+            try:
+                spec_id = ObjectId(specialization)
+            except Exception:
+                raise InvalidUserIdException("Invalid specialization ID format")
+
+        doctors = self.user_repository.get_doctors(spec_id)
+
+        # Форматуємо відповідь (можете створити окремий DTO для цього)
+        result = []
+        for doc in doctors:
+            profile_data = doc.profile
+            result.append({
+                "id": str(doc.id),
+                "email": doc.email,
+                "fullName": getattr(profile_data, "full_name", None) if profile_data else None,
+                "avatarUrl": getattr(profile_data, "avatar_url", None) if profile_data else None,
+                "specializationId": str(getattr(profile_data, "specialization_id")) if profile_data and getattr(
+                    profile_data, "specialization_id", None) else None,
+                # Можете додати рейтинг або досвід, якщо вони є у вашій моделі
+            })
+
+        return result
