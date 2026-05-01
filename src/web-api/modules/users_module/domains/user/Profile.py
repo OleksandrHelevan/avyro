@@ -16,13 +16,11 @@ class Profile:
         self.avatar_url = avatar_url
 
     def to_dict(self) -> dict:
-        address: Optional[str] = None
         return {
             "fullName": self.full_name,
             "phone": self.phone,
             "specializationId": self.specialization_id,
             "avatarUrl": self.avatar_url,
-
         }
 
     @staticmethod
@@ -37,5 +35,3 @@ class Profile:
             if data.get("specializationId") else None,
             avatar_url=data.get("avatarUrl"),
         )
-
-    address: Optional[str] = None

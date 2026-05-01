@@ -35,3 +35,12 @@ def get_specialization_by_id(
     """Отримати дані конкретної спеціалізації за ID"""
     return service.get_specialization_by_id(spec_id)
 
+
+@router.post("/", response_model=SpecializationResponse, status_code=status.HTTP_201_CREATED)
+def create_specialization(
+    request: CreateSpecializationRequest,
+    _ = Depends(get_current_user), # Щоб створювати спеціалізації міг лише авторизований юзер
+    service: SpecializationService = Depends(get_specialization_service)
+):
+    """Створити нову медичну спеціалізацію"""
+    return service.create_specialization(request)

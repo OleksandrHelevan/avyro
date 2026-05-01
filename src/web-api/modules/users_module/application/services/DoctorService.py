@@ -4,7 +4,9 @@ from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 
 from modules.users_module.application.dto.DoctorProfile import (
-    DoctorProfileUpdateRequest
+    DoctorProfileUpdateRequest,
+    DoctorProfileUpdateResponse,
+    DoctorProfileResponse
 )
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
@@ -18,17 +20,20 @@ class DoctorService:
         self.spec_repository = spec_repository
 
     def patch_doctor_profile(self, user_id: str, profile_data: DoctorProfileUpdateRequest) -> dict:
+        # 1. Перевіряємо валідність ID
         try:
             user_oid = ObjectId(user_id)
             spec_oid = ObjectId(profile_data.specialization_id)
         except InvalidId:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
+        # 2. Перевірка, чи існує спеціалізація
         specialization = self.spec_repository.get_by_id(spec_oid)
         if not specialization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Оберіть вашу медичну спеціалізацію (такого фаху не знайдено)")
 
+        # 3. Отримуємо юзера
         user = self.user_repository.get_by_id(user_oid)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
@@ -36,6 +41,7 @@ class DoctorService:
         if getattr(user, "role", "") != "DOCTOR":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Користувач не є лікарем")
 
+        # 4. Формуємо об'єкт профілю
         profile_update = {
             "fullName": profile_data.fullName,
             "full_name": profile_data.fullName,
@@ -44,11 +50,14 @@ class DoctorService:
             "avatar_url": profile_data.avatarUrl,
             "specialization_id": str(spec_oid)
         }
+        # 5. Оновлюємо в базі
         self.user_repository.update_profile(user_oid, profile_update)
 
+        # 6. Отримуємо оновленого юзера для формування відповіді
         updated_user = self.user_repository.get_by_id(user_oid)
         profile_obj = getattr(updated_user, "profile", None)
 
+        # Безпечна функція для отримання значень (і з об'єктів, і зі словників)
         def get_profile_attr(obj, attr_name):
             if not obj:
                 return None
@@ -83,6 +92,7 @@ class DoctorService:
 
         profile_obj = getattr(user, "profile", None)
 
+        # Безпечна функція для отримання значень
         def get_profile_attr(obj, attr_name):
             if not obj:
                 return None
