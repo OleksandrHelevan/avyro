@@ -5,7 +5,6 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   Specialization, ScheduleRequest, ScheduleResponse
 } from "../types.ts";
-import {getFromStorage} from "../../../utils/localStorageUtil.ts";
 
 export const userService = {
   login: async (request: LoginRequest): Promise<LoginResponse> => {
@@ -30,8 +29,7 @@ export const userService = {
     return userApiClient.getDoctorById(id);
   },
 
-  patchDoctor: async (request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
-    const id = getFromStorage('userId') || "";
+  patchDoctor: async (id: string, request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
     return userApiClient.patchDoctor(id, request);
   },
 

@@ -20,11 +20,12 @@ export default function DoctorProfile() {
   const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
   const { mutate: requestSchedule, isPending: isScheduling } = useRequestSchedule();
 
-  // --- СТЕЙТ ПРОФІЛЮ ---
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     specializationId: "",
+    phone: "",
+    avatarUrl: "",
   });
 
   // --- СТЕЙТ РОЗКЛАДУ ---
@@ -38,19 +39,27 @@ export default function DoctorProfile() {
     slotDuration: 30,
   });
 
-  // Заповнення форми при завантаженні даних лікаря
   useEffect(() => {
     if (doctor) {
-      // Припускаємо, що бекенд повертає full_name або fullName
-      const rawName = (doctor as any).fullName || (doctor as any).full_name || "";
+      const rawName =
+        (doctor as any).fullName ||
+        (doctor as any).full_name ||
+        "";
+
       const nameParts = rawName.trim().split(/\s+/);
+
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
 
       setFormData({
         firstName: first,
         lastName: last,
-        specializationId: (doctor as any).specializationId || (doctor as any).specialization_id || "",
+        specializationId:
+          (doctor as any).specializationId ||
+          (doctor as any).specialization_id ||
+          "",
+        phone: (doctor as any).phone || "",
+        avatarUrl: (doctor as any).avatarUrl || "",
       });
     }
   }, [doctor]);
@@ -68,6 +77,8 @@ export default function DoctorProfile() {
       data: {
         full_name: `${formData.firstName} ${formData.lastName}`.trim(),
         specialization_id: formData.specializationId,
+        phone: formData.phone,
+        avatarUrl: formData.avatarUrl,
       }
     });
   };
