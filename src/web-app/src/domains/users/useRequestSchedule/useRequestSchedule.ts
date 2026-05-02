@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { userService } from "../service/userService";
-import type { ScheduleRequest } from "../../../types.ts";
 import toast from "react-hot-toast";
+import type {ScheduleRequest} from "../types.ts";
 
 export const useRequestSchedule = () => {
   return useMutation({

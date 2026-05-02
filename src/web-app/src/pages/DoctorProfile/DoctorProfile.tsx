@@ -7,7 +7,7 @@ import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import { useSpecializations } from "../../domains/users/useSpecializations/useSpecializations";
 import { useRequestSchedule } from "../../domains/users/useRequestSchedule/useRequestSchedule";
 // Якщо ви вже перенесли цю папку всередину users, змініть шлях на "../../domains/users/useUpdateDoctor/useUpdateDoctor"
-import { useUpdateDoctor } from "../../domains/useUpdateDoctor/useUpdateDoctor";
+import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
 
 import "./DoctorProfile.css";
 

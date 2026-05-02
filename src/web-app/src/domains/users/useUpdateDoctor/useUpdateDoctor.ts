@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { userService } from "../users/service/userService";
-import type { UpdateDoctorProfileRequest } from "../../../types.ts";
+import { userService } from "../service/userService.ts";
 import toast from "react-hot-toast";
+import type {UpdateDoctorProfileRequest} from "../types.ts";
 
 export const useUpdateDoctor = () => {
   const queryClient = useQueryClient();
