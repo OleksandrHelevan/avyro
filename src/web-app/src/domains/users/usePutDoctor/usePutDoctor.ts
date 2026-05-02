@@ -6,7 +6,7 @@ export const useUpdateDoctorProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateDoctorProfileRequest) => userService.updateDoctorProfile(data),
+    mutationFn: (data: UpdateDoctorProfileRequest) => userService.patchDoctor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["doctor"] });
     },
