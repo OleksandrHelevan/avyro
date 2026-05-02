@@ -31,7 +31,6 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* ФОНОВІ ЕЛЕМЕНТИ */}
       <div className="bright-gradient-bg"></div>
       <div className="light-blob blob-1"></div>
       <div className="light-blob blob-2"></div>
@@ -53,13 +52,8 @@ export default function LoginPage() {
             defaultValues: { email: "", password: "" }
           }}
         >
-          {({ watch }) => {
-            // ПІДПИСКА НА МАСИВ ПОЛІВ — це ключовий момент для миттєвої реакції
-            const [emailValue, passwordValue] = watch(["email", "password"]);
-
-            // Перевірка: чи обидва поля мають текст (без пробілів)
-            const canSubmit = !!emailValue?.trim() && !!passwordValue?.trim();
-
+          {() => {
+            // Прибрали watch та логіку canSubmit
             return (
               <>
                 <TextInput
@@ -67,7 +61,6 @@ export default function LoginPage() {
                   label="Електронна пошта"
                   type="email"
                   placeholder="doctor@avyro.com"
-                  rules={{ required: "Введіть email" }}
                 />
 
                 <TextInput
@@ -75,7 +68,6 @@ export default function LoginPage() {
                   label="Пароль"
                   type="password"
                   placeholder="••••••••"
-                  rules={{ required: "Введіть пароль" }}
                 />
 
                 <div className="form-footer">
@@ -83,8 +75,8 @@ export default function LoginPage() {
                     variant="primary"
                     type="submit"
                     className="w-full"
-                    // Тепер кнопка СТАНЕ СІРОЮ миттєво, якщо ти видалиш хоч один символ
-                    disabled={isPending || !canSubmit}
+                    // Кнопка блокується тільки під час запиту
+                    disabled={isPending}
                   >
                     {isPending ? "Вхід..." : "Увійти"}
                   </Button>
