@@ -9,6 +9,7 @@ from modules.admin_module.infrastructure.persistence.RequestRepository import Re
 from modules.users_module.api.SpecializationController import get_specialization_service
 from modules.users_module.application.dto.SpecializationDto import SpecializationResponse, CreateSpecializationRequest
 from modules.users_module.application.services.SpecializationService import SpecializationService
+from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.users_module.application.services.PatientService import PatientService
 
@@ -20,11 +21,22 @@ router = APIRouter(
 def get_admin_request_service(
     schedule_service=Depends(get_schedule_service)
 ) -> AdminRequestService:
+
     request_repo = RequestRepository(db["Requests"])
     user_repo = UserRepository(db["Users"])
-    user_service = PatientService(user_repo, request_repo)
+    reward_repo = RewardRepository(db["Rewards"])
 
-    return AdminRequestService(request_repo, user_service, schedule_service)
+    user_service = PatientService(
+        user_repo,
+        request_repo,
+        reward_repo
+    )
+
+    return AdminRequestService(
+        request_repo,
+        user_service,
+        schedule_service
+    )
 
 
 @router.get("/registrations", response_model=List[dict])
