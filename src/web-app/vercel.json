@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://avyro.fly.dev/:path*"
+      "destination": "https://avyro.onrender.com/:path*"
     },
     {
       "source": "/(.*)",
