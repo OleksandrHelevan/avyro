@@ -1,96 +1,146 @@
+/* =================== ФОН =================== */
+
+
+.bright-gradient-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(120deg, #07b6b8, #3b82f6, #7256a1, #07b6b8);
+  background-size: 300% 300%;
+  animation: gradientFlow 15s ease infinite;
+  z-index: -3;
+}
+
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+.light-blob {
+  position: fixed;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.4;
+  animation: floatLight 25s infinite ease-in-out;
+  z-index: -2;
+}
+
+
+.blob-1 {
+  background: #18c0c4;
+  top: -15%;
+  left: 5%;
+}
+
+
+.blob-2 {
+  background: #7256a1;
+  bottom: -25%;
+  right: 10%;
+  animation-delay: -8s;
+}
+
+
+@keyframes floatLight {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+
+/* =================== ІКОНКИ =================== */
+
+
+.floating-icons-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+.bg-icon {
+  position: absolute;
+  opacity: 0.3;
+  animation: swimIcon 30s infinite ease-in-out;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+
+@keyframes swimIcon {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(30px); }
+  100% { transform: translateY(0); }
+}
+
+
+/* =================== ФОРМА =================== */
+
+
 .registration-wrapper {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-
-  .role-selector {
-    margin-bottom: 20px;
-
-    .label {
-      font-size: 14px;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .role-card {
-      display: flex;
-      align-items: center;
-      padding: 12px 16px;
-      border: 1px solid #D1D5DB;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-
-      input { display: none; }
-
-      .dot {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #D1D5DB;
-        border-radius: 50%;
-        margin-right: 10px;
-        position: relative;
-      }
-
-      &.active {
-        border-color: #111827;
-        background-color: #F9FAFB;
-
-        .dot {
-          border-color: #111827;
-          &:after {
-            content: '';
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #111827;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-          }
-        }
-      }
-    }
-  }
-
-  .terms-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 15px;
-    font-size: 14px;
-
-    a {
-      color: #111827;
-      text-decoration: underline;
-      font-weight: 600;
-    }
-  }
-
-  .login-link {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 14px;
-
-    a {
-      font-weight: 600;
-      color: #111827;
-      text-decoration: none;
-      &:hover { text-decoration: underline; }
-    }
-  }
+  z-index: 10;
 }
 
-input[name="confirmPassword"]:invalid + label {
-  color: #EF4444;
+
+.registration-wrapper > * {
+  background: #e2e8f6;
+  padding: 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =================== КНОПКА =================== */
+
+
+button[type="submit"] {
+  padding: 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #4267e8, #9e64e5);
+  color: white;
+  font-weight: 700;
+  transition: 0.3s;
+}
+
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+
+/* =================== ТЕКСТ =================== */
+
+
+.back-to-login {
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+
+.back-to-login a {
+  font-weight: 700;
+  color: #7256a1;
+}
+
+
+.w-full {
+  width: 100%;
 }
