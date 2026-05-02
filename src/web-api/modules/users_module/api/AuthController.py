@@ -9,16 +9,21 @@ from modules.users_module.application.services.AuthService import AuthService
 from modules.users_module.application.services.PatientService import PatientService
 from config.db import db
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+# ДОДАНО: імпорт RewardRepository
+from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
 from config.logging_config import logger
+
 router = APIRouter(prefix="", tags=["Auth"])
 
 def get_auth_service() -> AuthService:
     return AuthService(UserRepository(db["Users"]))
 
 def get_user_service() -> PatientService:
+    # ОНОВЛЕНО: передаємо всі 3 репозиторії
     return PatientService(
-        UserRepository(db["Users"]),
-        RequestRepository(db["Requests"])
+        user_repository=UserRepository(db["Users"]),
+        request_repository=RequestRepository(db["Requests"]),
+        reward_repository=RewardRepository(db["Rewards"])
     )
 
 @router.post("/login", response_model=LoginResponse)

@@ -1,10 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from config.db import db
 from config.security import get_current_user
+
+from typing import Optional, List, Any
+from config.logging_config import logger
 
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
 from modules.users_module.application.services.DoctorService import DoctorService
+
+from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+from modules.admin_module.infrastructure.persistence.RequestRepository import RequestRepository
+from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
+from modules.users_module.application.services.PatientService import PatientService
 
 from modules.users_module.application.dto.DoctorProfile import (
     DoctorProfileUpdateRequest,
@@ -56,12 +64,20 @@ def patch_doctor_profile(
     # 3. Якщо все добре — оновлюємо
     return service.patch_doctor_profile(user_id, profile_data)
 
+def get_user_service():
+    return PatientService(
+        user_repository=UserRepository(db["Users"]),
+        request_repository=RequestRepository(db["Requests"]),
+        reward_repository=RewardRepository(db["Rewards"])
+    )
 
-@router.get("/{user_id}", response_model=DoctorProfileResponse)
-def get_doctor_by_id(
-    user_id: str,
-    _=Depends(get_current_user),  # Будь-який авторизований юзер може дивитись профіль
-    service: DoctorService = Depends(get_doctor_service)
+
+@router.get("", response_model=List[Any]) # Або використовуйте конкретний DTO (наприклад, List[DoctorResponse])
+def get_doctors(
+    specialization: Optional[str] = Query(None, description="Filter doctors by specialization ID"),
+    # _=Depends(get_current_user), # Розкоментуйте, якщо список лікарів доступний тільки авторизованим
+    service = Depends(get_user_service) # Замініть на свій метод отримання сервісу
 ):
-    """Отримати профіль лікаря за ID (для пацієнтів та інших)"""
-    return service.get_doctor_by_id(user_id)
+    logger.info(f"Fetching doctors list. Specialization filter: {specialization}")
+    return service.get_doctors_list(specialization)
+

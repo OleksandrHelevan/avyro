@@ -3,7 +3,8 @@ from typing import Optional
 from bson import ObjectId
 from pymongo.collection import Collection
 from modules.users_module.domains.user.User import User
-
+from modules.users_module.domains.user.UserRole import UserRole
+from typing import List, Optional, Any
 
 class UserRepository:
     def __init__(self, collection: Collection):
@@ -43,3 +44,17 @@ class UserRepository:
             {"_id": user_id},
             {"$set": {"lastLoginAt": login_time}}
         )
+
+        def get_doctors(self, specialization_id: Optional[ObjectId] = None) -> List[User]:
+            """
+            Отримує список всіх лікарів.
+            Якщо передано specialization_id, фільтрує за цією спеціалізацією.
+            """
+            query = {"role": UserRole.DOCTOR.value}
+
+            if specialization_id:
+                # Шукаємо specialization_id всередині вкладеного об'єкта profile
+                query["profile.specializationId"] = specialization_id
+
+            cursor = self.collection.find(query)
+            return [User.from_dict(doc) for doc in cursor]
