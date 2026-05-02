@@ -1,17 +1,12 @@
-from enum import Enum
 from typing import Optional, Any, Dict
+
 from bson import ObjectId
+
 from datetime import datetime, UTC
 
+from modules.requests_module.domains.RequestStatus import RequestStatus
+from modules.requests_module.domains.RequestType import RequestType
 
-class RequestType(Enum):
-    DOCTOR_REGISTRATION = "DOCTOR_REGISTRATION"
-    SCHEDULE_CREATION = "SCHEDULE_CREATION"
-
-class RequestStatus(Enum):
-    PENDING = "PENDING"
-    APPROVED = "APPROVED"
-    REJECTED = "REJECTED"
 
 class Request:
     def __init__(
@@ -41,13 +36,13 @@ class Request:
     def to_dict(self) -> dict:
         data = {
             "creatorId": str(self.creator_id) if self.creator_id else None,
-            "type": self.type.value if hasattr(self.type, "value") else self.type,
-            "status": self.status.value if hasattr(self.status, "value") else self.status,
+            "type": self.type.value,
+            "status": self.status.value,
             "payload": self.payload,
             "adminComment": self.admin_comment,
-            "createdAt": self.created_at,
-            "updatedAt": self.updated_at,
-            "processedAt": self.processed_at,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+            "processedAt": self.processed_at.isoformat() if self.processed_at else None,
             "processedBy": str(self.processed_by) if self.processed_by else None,
         }
         if self.id:

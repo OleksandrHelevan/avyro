@@ -1,7 +1,7 @@
 from datetime import datetime, UTC
 from bson import ObjectId
-from typing import Optional, List
-from modules.admin_module.domains.Request import Request, RequestType
+from typing import Optional
+from modules.requests_module.domains.Request import Request, RequestType
 from modules.users_module.domains.user.User import User
 from modules.users_module.domains.user.Profile import Profile
 from modules.users_module.application.mapper.PatientMapper import UserMapper
@@ -233,3 +233,6 @@ class PatientService:
             })
 
         return result
+
+    def get_user_by_email(self, email: str):
+        return self.user_repository.get_by_email(email)

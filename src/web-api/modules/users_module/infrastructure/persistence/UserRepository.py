@@ -1,10 +1,9 @@
 from datetime import datetime, timezone
-from typing import Optional
 from bson import ObjectId
 from pymongo.collection import Collection
 from modules.users_module.domains.user.User import User
-from modules.users_module.domains.user.UserRole import UserRole
-from typing import List, Optional, Any
+from typing import Optional, Any, Dict
+
 
 class UserRepository:
     def __init__(self, collection: Collection):
@@ -45,16 +44,15 @@ class UserRepository:
             {"$set": {"lastLoginAt": login_time}}
         )
 
-        def get_doctors(self, specialization_id: Optional[ObjectId] = None) -> List[User]:
-            """
-            Отримує список всіх лікарів.
-            Якщо передано specialization_id, фільтрує за цією спеціалізацією.
-            """
-            query = {"role": UserRole.DOCTOR.value}
+    def get_doctors(self, specialization_id: str = None) -> list:
+        query: Dict[str, Any] = {"role": "DOCTOR"}
 
-            if specialization_id:
-                # Шукаємо specialization_id всередині вкладеного об'єкта profile
-                query["profile.specializationId"] = specialization_id
+        if specialization_id:
+            try:
+                query["profile.specialization_id"] = ObjectId(specialization_id)
+            except Exception:
+                return []
 
-            cursor = self.collection.find(query)
-            return [User.from_dict(doc) for doc in cursor]
+        cursor = self.collection.find(query)
+
+        return [User.from_dict(doc) for doc in cursor]

@@ -3,7 +3,7 @@ from bson import ObjectId
 from pymongo.collection import Collection
 from datetime import datetime, UTC
 
-from modules.admin_module.domains.Request import Request, RequestStatus, RequestType
+from modules.requests_module.domains.Request import (Request, RequestStatus, RequestType)
 
 
 class RequestRepository:
@@ -20,7 +20,13 @@ class RequestRepository:
         data = self.collection.find_one({"_id": request_id})
         return Request.from_dict(data) if data else None
 
-    def update_status(self, request_id: ObjectId, status: RequestStatus, admin_id: ObjectId, comment: str = None) -> bool:
+    def update_status(
+        self,
+        request_id: ObjectId,
+        status: RequestStatus,
+        admin_id: ObjectId,
+        comment: str = None
+    ) -> bool:
         result = self.collection.update_one(
             {"_id": request_id},
             {
@@ -33,18 +39,42 @@ class RequestRepository:
                 }
             }
         )
+
         return result.modified_count > 0
 
     def get_requests_by_type(self, request_type: RequestType) -> List[Request]:
-        cursor = self.collection.find({"type": request_type.value}).sort("createdAt", -1)
+        cursor = (
+            self.collection
+            .find({"type": request_type.value})
+            .sort("createdAt", -1)
+        )
+
         return [Request.from_dict(doc) for doc in cursor]
 
     def get_active_registration_by_email(self, email: str) -> Optional[Request]:
         data = self.collection.find_one({
             "type": RequestType.DOCTOR_REGISTRATION.value,
             "status": {
-                "$in": [RequestStatus.PENDING.value, RequestStatus.APPROVED.value]
+                "$in": [
+                    RequestStatus.PENDING.value,
+                    RequestStatus.APPROVED.value
+                ]
             },
             "payload.email": email
         })
+
+        return Request.from_dict(data) if data else None
+
+    def get_active_specialization_by_name(self, name: str) -> Optional[Request]:
+        data = self.collection.find_one({
+            "type": RequestType.SPECIALIZATION_CREATION.value,
+            "status": {
+                "$in": [
+                    RequestStatus.PENDING.value,
+                    RequestStatus.APPROVED.value
+                ]
+            },
+            "payload.name": name
+        })
+
         return Request.from_dict(data) if data else None

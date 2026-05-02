@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from bson import ObjectId
 
-from modules.admin_module.domains.Request import Request, RequestType
+from modules.requests_module.domains.Request import Request, RequestType
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from modules.appointments_module.application.mapper.ScheduleMapper import ScheduleMapper
 from modules.appointments_module.application.service.SlotService import SlotService
