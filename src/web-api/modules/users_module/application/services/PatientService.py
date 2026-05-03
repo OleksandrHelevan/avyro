@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from bson import ObjectId
 from typing import Optional, List
 from modules.admin_module.domains.Request import Request, RequestType
@@ -54,7 +54,7 @@ class PatientService:
         return self.create_user_final(request)
 
     def create_user_final(self, request):
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         profile = None
         if request.profile:
