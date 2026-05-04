@@ -1,5 +1,4 @@
-from datetime import datetime, UTC
-
+from datetime import datetime, timezone
 from modules.users_module.api.exception.exceptions import InvalidCredentialsException
 from modules.users_module.application.dto.LoginRequest import LoginRequest
 from modules.users_module.application.dto.LoginResponse import LoginResponse
@@ -18,7 +17,7 @@ class AuthService:
 
         role_str = str(user.role.value) if hasattr(user.role, "value") else str(user.role)
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         self.user_repository.update_last_login(user.id, now)
 
         token, exp = create_access_token(

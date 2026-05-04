@@ -1,0 +1,211 @@
+import pytest
+from unittest.mock import Mock
+from bson.objectid import ObjectId
+from fastapi import HTTPException, status
+
+# Імпортуйте ваш DoctorService та DTO з правильних шляхів вашого проєкту
+from modules.users_module.application.services.DoctorService import DoctorService
+
+
+# Якщо DTO - це Pydantic модель, краще її імпортувати, або обійтися Mock, як нижче.
+# from modules.users_module.application.dto.DoctorProfile import DoctorProfileUpdateRequest
+
+@pytest.fixture
+def mock_user_repo():
+    return Mock()
+
+
+@pytest.fixture
+def mock_spec_repo():
+    return Mock()
+
+
+@pytest.fixture
+def doctor_service(mock_user_repo, mock_spec_repo):
+    return DoctorService(user_repository=mock_user_repo, spec_repository=mock_spec_repo)
+
+
+@pytest.fixture
+def valid_user_id():
+    return str(ObjectId())
+
+
+@pytest.fixture
+def valid_spec_id():
+    return str(ObjectId())
+
+
+@pytest.fixture
+def mock_profile_request(valid_spec_id):
+    # Імітуємо DTO DoctorProfileUpdateRequest
+    request = Mock()
+    request.specialization_id = valid_spec_id
+    request.fullName = "Dr. Gregory House"
+    request.phone = "+380991234567"
+    request.avatarUrl = "http://example.com/avatar.jpg"
+    return request
+
+
+# ==========================================
+# ТЕСТИ ДЛЯ PATCH_DOCTOR_PROFILE
+# ==========================================
+
+def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
+                                      mock_profile_request):
+    # Arrange
+    user_oid = ObjectId(valid_user_id)
+
+    mock_spec_repo.get_by_id.return_value = Mock(id=ObjectId(mock_profile_request.specialization_id), name="Терапевт")
+
+    # Імітуємо користувача до оновлення
+    initial_user = Mock(id=user_oid, role="DOCTOR", email="house@gmail.com", is_active=True)
+    initial_user.profile = None
+
+    # Імітуємо користувача після оновлення
+    updated_user = Mock(id=user_oid, role="DOCTOR", email="house@gmail.com", is_active=True, created_at="2023-01-01",
+                        last_login_at="2023-01-02")
+    updated_user.profile = {
+        "fullName": "Dr. Gregory House",
+        "phone": "+380991234567",
+        "avatarUrl": "http://example.com/avatar.jpg",
+        "specialization_id": mock_profile_request.specialization_id
+    }
+
+    # get_by_id викликається двічі: до оновлення і після
+    mock_user_repo.get_by_id.side_effect = [initial_user, updated_user]
+
+    # Act
+    result = doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
+
+    # Assert
+    assert result["_id"] == valid_user_id
+    assert result["email"] == "house@gmail.com"
+    assert result["fullName"] == "Dr. Gregory House"
+    assert result["phone"] == "+380991234567"
+    assert result["avatarUrl"] == "http://example.com/avatar.jpg"
+
+    mock_user_repo.update_profile.assert_called_once()
+    args, kwargs = mock_user_repo.update_profile.call_args
+    assert args[0] == user_oid
+    assert args[1]["specialization_id"] == mock_profile_request.specialization_id
+
+
+def test_patch_doctor_profile_invalid_id(doctor_service, mock_profile_request):
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.patch_doctor_profile("invalid-id", mock_profile_request)
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_patch_doctor_profile_spec_not_found(doctor_service, mock_spec_repo, valid_user_id, mock_profile_request):
+    # Arrange
+    mock_spec_repo.get_by_id.return_value = None
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
+    assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+    assert "Оберіть вашу медичну спеціалізацію" in exc_info.value.detail
+
+
+def test_patch_doctor_profile_user_not_found(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
+                                             mock_profile_request):
+    # Arrange
+    mock_spec_repo.get_by_id.return_value = Mock()
+    mock_user_repo.get_by_id.return_value = None
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
+    assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+    assert exc_info.value.detail == "Лікаря не знайдено"
+
+
+def test_patch_doctor_profile_not_a_doctor(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
+                                           mock_profile_request):
+    # Arrange
+    mock_spec_repo.get_by_id.return_value = Mock()
+    user_not_doctor = Mock(role="PATIENT")
+    mock_user_repo.get_by_id.return_value = user_not_doctor
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
+    assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+    assert exc_info.value.detail == "Користувач не є лікарем"
+
+
+# ==========================================
+# ТЕСТИ ДЛЯ GET_DOCTOR_BY_ID
+# ==========================================
+
+def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id, valid_spec_id):
+    # Arrange
+    mock_user = Mock(id=ObjectId(valid_user_id), role="DOCTOR", email="doc@mail.com", is_active=True)
+    mock_user.profile = {
+        "fullName": "Dr. Smith",
+        "phone": "111",
+        "avatarUrl": "img.png",
+        "specialization_id": valid_spec_id
+    }
+    mock_user.created_at = "2023-01-01"
+    mock_user.last_login_at = "2023-01-02"
+
+    mock_user_repo.get_by_id.return_value = mock_user
+    mock_spec = Mock()
+    mock_spec.name = "Хірург"
+    mock_spec_repo.get_by_id.return_value = mock_spec
+
+    # Act
+    result = doctor_service.get_doctor_by_id(valid_user_id)
+
+    # Assert
+    assert result["_id"] == valid_user_id
+    assert result["email"] == "doc@mail.com"
+    assert result["fullName"] == "Dr. Smith"
+    assert result["specializationName"] == "Хірург"
+
+
+def test_get_doctor_by_id_invalid_id(doctor_service):
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.get_doctor_by_id("bad-id")
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_get_doctor_by_id_user_not_found(doctor_service, mock_user_repo, valid_user_id):
+    # Arrange
+    mock_user_repo.get_by_id.return_value = None
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.get_doctor_by_id(valid_user_id)
+    assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_doctor_by_id_not_a_doctor(doctor_service, mock_user_repo, valid_user_id):
+    # Arrange
+    mock_user_repo.get_by_id.return_value = Mock(role="ADMIN")
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        doctor_service.get_doctor_by_id(valid_user_id)
+    # Зверніть увагу: у вашому коді get_doctor_by_id повертає 400, а patch - 403. Тест відповідає коду.
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+    assert exc_info.value.detail == "Користувач не є лікарем"
+
+
+def test_get_doctor_by_id_no_specialization(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id):
+    # Arrange
+    mock_user = Mock(id=ObjectId(valid_user_id), role="DOCTOR", email="doc@mail.com", is_active=True)
+    # Профіль без спеціалізації
+    mock_user.profile = {"fullName": "Dr. Smith"}
+
+    mock_user_repo.get_by_id.return_value = mock_user
+
+    # Act
+    result = doctor_service.get_doctor_by_id(valid_user_id)
+
+    # Assert
+    assert result["specializationName"] is None
+    mock_spec_repo.get_by_id.assert_not_called()
