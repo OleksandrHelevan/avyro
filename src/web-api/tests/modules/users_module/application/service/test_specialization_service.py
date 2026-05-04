@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 
+
 # Замініть ці імпорти на реальні шляхи у вашому проєкті
 from modules.users_module.application.services.SpecializationService import SpecializationService
 
@@ -11,11 +12,16 @@ from modules.users_module.application.services.SpecializationService import Spec
 def mock_repo():
     return Mock()
 
+@pytest.fixture
+def mock_request_repo():
+    return Mock()
 
 @pytest.fixture
-def spec_service(mock_repo):
-    return SpecializationService(repository=mock_repo)
-
+def spec_service(mock_repo, mock_request_repo):
+    return SpecializationService(
+        repository=mock_repo,
+        request_repository=mock_request_repo
+    )
 
 @pytest.fixture
 def valid_spec_id():
@@ -109,29 +115,30 @@ def test_get_specialization_by_id_not_found(spec_service, mock_repo, valid_spec_
 # ТЕСТИ ДЛЯ CREATE_SPECIALIZATION
 # ==========================================
 
-@patch("modules.users_module.application.services.SpecializationService.Specialization")
-def test_create_specialization_success(mock_specialization_class, spec_service, mock_repo):
+# Видали рядок @patch(...) над цією функцією!
+# 1. Додай mock_repo в аргументи
+def test_create_specialization_success(spec_service, mock_request_repo, mock_repo):
     # Arrange
     request_dto = Mock()
     request_dto.name = "Педіатр"
     request_dto.description = "Дитячий лікар"
+    fake_doctor_id = str(ObjectId())
 
-    mock_spec_instance = Mock(description="Дитячий лікар")
-    mock_spec_instance.name = "Педіатр"  # <--- ТУТ ТЕЖ ЗМІНЕНО
-    mock_specialization_class.return_value = mock_spec_instance
+    # 2. ДОДАЙ ЦЕЙ РЯДОК: Кажемо базі, що такої спеціалізації ще немає
+    mock_repo.get_by_name.return_value = None
 
+    # Імітуємо, що такої активної заявки ще немає
+    mock_request_repo.get_active_specialization_by_name.return_value = None
+
+    # Імітуємо збережену заявку
     created_id = ObjectId()
-    mock_created_spec = Mock(id=created_id, description="Дитячий лікар")
-    mock_created_spec.name = "Педіатр"  # <--- І ТУТ ТЕЖ
-    mock_repo.create.return_value = mock_created_spec
+    mock_created_request = Mock(id=created_id)
+    mock_request_repo.create.return_value = mock_created_request
 
     # Act
-    result = spec_service.create_specialization(request_dto)
+    result = spec_service.create_specialization_request(request_dto, fake_doctor_id)
 
     # Assert
-    assert result["_id"] == str(created_id)
-    assert result["name"] == "Педіатр"
-    assert result["description"] == "Дитячий лікар"
-
-    mock_specialization_class.assert_called_once_with(name="Педіатр", description="Дитячий лікар")
-    mock_repo.create.assert_called_once_with(mock_spec_instance)
+    assert result["requestId"] == str(created_id)
+    assert result["message"] == "Запит на створення спеціалізації відправлено"
+    mock_request_repo.create.assert_called_once()

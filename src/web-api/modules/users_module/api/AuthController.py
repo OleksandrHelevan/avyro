@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, status
+from typing import Any
 
 from config.dependencies import get_auth_service, get_patient_service
 from modules.users_module.application.dto.LoginRequest import LoginRequest
 from modules.users_module.application.dto.LoginResponse import LoginResponse
 from modules.users_module.application.dto.CreateUserRequest import CreateUserRequest
-from typing import Any
+# Додаємо імпорт нового DTO
+from modules.users_module.application.dto.DoctorStatusResponse import DoctorStatusResponse
 from modules.users_module.application.services.AuthService import AuthService
 from modules.users_module.application.services.PatientService import PatientService
 from config.logging_config import logger
@@ -34,4 +36,15 @@ async def register(
         return result
 
     logger.info(f"User registered successfully: {request.email} (ID: {result.id})")
+    return result
+
+# === НОВИЙ ЕНДПОІНТ ===
+@router.get("/doctors", response_model=DoctorStatusResponse)
+async def check_doctor_status(
+    email: str,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    logger.info(f"Checking registration status for doctor email: {email}")
+    # Делегуємо бізнес-логіку в AuthService
+    result = auth_service.check_doctor_status(email)
     return result

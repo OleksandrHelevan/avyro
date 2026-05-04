@@ -24,11 +24,21 @@ class DoctorService:
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
+        # 1. Спочатку дістаємо юзера і перевіряємо його
+        user = self.user_repository.get_by_id(user_oid)
+        if not user:
+            raise HTTPException(status_code=404, detail="Користувача не знайдено")
+
+        # Тести вимагають 403 помилку для не-лікарів
+        if str(user.role) != "DOCTOR" and str(user.role) != "Role.DOCTOR":
+            raise HTTPException(status_code=403, detail="Користувач не є лікарем")
+
+        # 2. Потім дістаємо спеціалізацію
         specialization = self.spec_repository.get_by_id(spec_oid)
         if not specialization:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Спеціалізацію не знайдено")
+            raise HTTPException(status_code=404, detail="Спеціалізацію не знайдено")
 
-        # Формуємо об'єкт профілю для бази
+        # ... далі твій старий код (оновлення профілю і збереження) ...
         profile_update = {
             "fullName": profile_data.fullName,
             "phone": profile_data.phone,
@@ -49,8 +59,11 @@ class DoctorService:
         # Завжди беремо свіжий об'єкт користувача з репозиторію
         user = self.user_repository.get_by_id(user_oid)
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
+            raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
+            # ДОДАЙ ОЦІ ДВА РЯДКИ:
+        if str(user.role) != "DOCTOR" and str(user.role) != "Role.DOCTOR":
+            raise HTTPException(status_code=400, detail="Користувач не є лікарем")
         profile_obj = getattr(user, "profile", None)
 
         def get_attr(obj, attr_name, default=None):

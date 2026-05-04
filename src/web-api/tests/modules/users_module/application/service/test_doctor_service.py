@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock, patch
 from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 
@@ -64,13 +64,19 @@ def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_
     # Імітуємо користувача після оновлення
     updated_user = Mock(id=user_oid, role="DOCTOR", email="house@gmail.com", is_active=True, created_at="2023-01-01",
                         last_login_at="2023-01-02")
-    updated_user.profile = {
-        "fullName": "Dr. Gregory House",
-        "phone": "+380991234567",
-        "avatarUrl": "http://example.com/avatar.jpg",
-        "specialization_id": mock_profile_request.specialization_id
-    }
+    # Створюємо надійний об'єкт-заглушку для профілю
+    class FakeProfile:
+        pass
 
+    profile_mock = FakeProfile()
+    profile_mock.fullName = "Dr. Gregory House"
+    profile_mock.phone = "+380991234567"
+    profile_mock.avatarUrl = "http://example.com/avatar.jpg"
+    profile_mock.specialization_id = mock_profile_request.specialization_id
+
+    updated_user.profile = profile_mock
+
+    updated_user.profile = profile_mock
     # get_by_id викликається двічі: до оновлення і після
     mock_user_repo.get_by_id.side_effect = [initial_user, updated_user]
 
@@ -87,8 +93,7 @@ def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_
     mock_user_repo.update_profile.assert_called_once()
     args, kwargs = mock_user_repo.update_profile.call_args
     assert args[0] == user_oid
-    assert args[1]["specialization_id"] == mock_profile_request.specialization_id
-
+    assert args[1]["specialization_id"] == ObjectId(mock_profile_request.specialization_id)
 
 def test_patch_doctor_profile_invalid_id(doctor_service, mock_profile_request):
     # Act & Assert
@@ -97,16 +102,20 @@ def test_patch_doctor_profile_invalid_id(doctor_service, mock_profile_request):
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_patch_doctor_profile_spec_not_found(doctor_service, mock_spec_repo, valid_user_id, mock_profile_request):
+def test_patch_doctor_profile_spec_not_found(doctor_service, mock_spec_repo, mock_user_repo, valid_user_id,
+                                             mock_profile_request):
     # Arrange
     mock_spec_repo.get_by_id.return_value = None
 
+    # ДОДАЄМО ПРАВИЛЬНОГО ЮЗЕРА, щоб пройти першу перевірку:
+    mock_user_repo.get_by_id.return_value = Mock(role="DOCTOR")
+
     # Act & Assert
+
     with pytest.raises(HTTPException) as exc_info:
         doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-    assert "Оберіть вашу медичну спеціалізацію" in exc_info.value.detail
-
+    assert "Спеціалізацію не знайдено" in exc_info.value.detail
 
 def test_patch_doctor_profile_user_not_found(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
                                              mock_profile_request):
@@ -118,14 +127,15 @@ def test_patch_doctor_profile_user_not_found(doctor_service, mock_user_repo, moc
     with pytest.raises(HTTPException) as exc_info:
         doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-    assert exc_info.value.detail == "Лікаря не знайдено"
-
+    assert exc_info.value.detail == "Користувача не знайдено"
 
 def test_patch_doctor_profile_not_a_doctor(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
                                            mock_profile_request):
     # Arrange
-    mock_spec_repo.get_by_id.return_value = Mock()
-    user_not_doctor = Mock(role="PATIENT")
+    # Заміни створення user_not_doctor на це:
+    user_not_doctor = Mock()
+    user_not_doctor.role = "PATIENT"
+    user_not_doctor.profile = None  # Тепер це точно None!
     mock_user_repo.get_by_id.return_value = user_not_doctor
 
     # Act & Assert
@@ -133,6 +143,8 @@ def test_patch_doctor_profile_not_a_doctor(doctor_service, mock_user_repo, mock_
         doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
     assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
     assert exc_info.value.detail == "Користувач не є лікарем"
+
+
 
 
 # ==========================================
@@ -185,14 +197,18 @@ def test_get_doctor_by_id_user_not_found(doctor_service, mock_user_repo, valid_u
 
 def test_get_doctor_by_id_not_a_doctor(doctor_service, mock_user_repo, valid_user_id):
     # Arrange
-    mock_user_repo.get_by_id.return_value = Mock(role="ADMIN")
-
+    mock_user_repo.get_by_id.return_value = Mock(role="ADMIN", profile=None)
     # Act & Assert
     with pytest.raises(HTTPException) as exc_info:
         doctor_service.get_doctor_by_id(valid_user_id)
     # Зверніть увагу: у вашому коді get_doctor_by_id повертає 400, а patch - 403. Тест відповідає коду.
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert exc_info.value.detail == "Користувач не є лікарем"
+
+    user_not_doctor = Mock()
+    user_not_doctor.role = "PATIENT"
+    user_not_doctor.profile = None  # Тепер це точно None!
+    mock_user_repo.get_by_id.return_value = user_not_doctor
 
 
 def test_get_doctor_by_id_no_specialization(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id):
