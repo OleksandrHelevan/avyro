@@ -36,5 +36,5 @@ export const userApiClient = {
 
   // --- Schedules ---
   requestSchedule: async (request: ScheduleRequest) =>
-    apiClient.post<ScheduleResponse>('/schedules/schedule/request', request),
+    apiClient.post<ScheduleResponse>('/schedules/request', request),
 }

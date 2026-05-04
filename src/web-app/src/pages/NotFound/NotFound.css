@@ -1,0 +1,110 @@
+.not-found-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.blob-404-1 {
+  width: 500px;
+  height: 500px;
+  background: #3bceb5;
+  top: -10%;
+  left: -10%;
+  filter: blur(120px);
+}
+
+.blob-404-2 {
+  width: 400px;
+  height: 400px;
+  background: #3b82f6;
+  bottom: -5%;
+  right: -5%;
+  filter: blur(100px);
+}
+
+.not-found-container {
+  max-width: 550px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
+
+.glass-card-404 {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 40px;
+  padding: 60px 40px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+.error-code {
+  font-size: 120px;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #3bceb5, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+  letter-spacing: -5px;
+}
+
+.error-icon-wrapper {
+  margin-bottom: 30px;
+  color: #3bceb5;
+}
+
+.pulse-icon {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 15px;
+}
+
+p {
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn-secondary-aero {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary-aero:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+@media (max-width: 480px) {
+  .error-code { font-size: 80px; }
+  .not-found-actions { flex-direction: column; }
+  .glass-card-404 { padding: 40px 20px; }
+}
