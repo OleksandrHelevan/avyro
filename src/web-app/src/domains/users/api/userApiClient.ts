@@ -13,7 +13,6 @@ export const userApiClient = {
   signUp: async (request: SignUpRequest) =>
     apiClient.post<SignUpResponse>('/sign-up', request),
 
-  // --- Patients ---
   getPatientById: async (id: string) =>
     apiClient.get<GetPatientResponse>(`/users/patients/${id}`),
 

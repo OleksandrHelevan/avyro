@@ -1,26 +1,39 @@
 import {
-  type DefaultValues, type FieldValues,
-  FormProvider, type SubmitHandler, useForm, type UseFormReturn,
+  type DefaultValues,
+  type FieldValues,
+  FormProvider,
+  type Resolver,
+  type SubmitHandler,
+  useForm,
+  type UseFormReturn,
 } from "react-hook-form";
-import type {ReactNode} from "react";
+import type { ReactNode } from "react";
 import "./Form.css";
 
 interface FormProps<T extends FieldValues> {
-  children: (methods: UseFormReturn<T>) => ReactNode,
-  onSubmit: SubmitHandler<T>,
-  title?: string,
-  subtitle?: string,
-  className?: string,
-  defaultValues?: DefaultValues<T>,
-  logo?: ReactNode,
-  formProps?: { mode: string; defaultValues: { password: string; email: string } }
+  children: (methods: UseFormReturn<T>) => ReactNode;
+  onSubmit: SubmitHandler<T>;
+  title?: string;
+  subtitle?: string;
+  className?: string;
+  defaultValues?: DefaultValues<T>;
+  resolver?: Resolver<T>;
 }
 
-export default function Form<T extends FieldValues>(
-  {children, onSubmit, className, defaultValues, title, subtitle}: FormProps<T>) {
-
+export default function Form<T extends FieldValues>({
+                                                      children,
+                                                      onSubmit,
+                                                      className,
+                                                      defaultValues,
+                                                      title,
+                                                      subtitle,
+                                                      resolver,
+                                                    }: FormProps<T>) {
   const methods = useForm<T>({
-    defaultValues
+    defaultValues,
+    resolver,
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
   });
 
   return (
@@ -32,6 +45,7 @@ export default function Form<T extends FieldValues>(
             {subtitle && <p className="form-card-subtitle">{subtitle}</p>}
           </div>
         )}
+
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
           className={`form-main-content ${className || ""}`}

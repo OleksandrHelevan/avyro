@@ -4,6 +4,6 @@ export const useDoctor = (userId: string) => {
   return useQuery({
     queryKey: ["doctor", userId],
     queryFn: () => userService.getDoctorById(userId),
-    enabled: !!userId, // Запит не відправиться, якщо ID порожній
+    enabled: !!userId,
   });
 };

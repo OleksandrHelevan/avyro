@@ -5,13 +5,10 @@ import SignUpPage from './pages/SignUpPage/SignUpPage.tsx';
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import PatientProfile from "./pages/PatientProfile/PatientProfile.tsx";
 import DoctorProfile from "./pages/DoctorProfile/DoctorProfile.tsx";
-import Header from "./components/Header/Header.tsx";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { queryClient } from "./services/queryClient.ts";
 
-// --- ДИСПЕТЧЕР ПРОФІЛІВ ---
-// Перевіряє роль користувача і віддає потрібний компонент
 const ProfileDispatcher = () => {
   const role = localStorage.getItem("userRole")?.replace(/"/g, '');
 
@@ -49,7 +46,6 @@ export default function App() {
       <Toaster position="bottom-right" />
       <BrowserRouter>
 
-        <Header />
 
         <Routes>
           <Route path="/" element={<RootLayout />}>
@@ -71,6 +67,7 @@ export default function App() {
 
           <Route path="*" element={<div>Сторінку не знайдено (404)</div>} />
         </Routes>
+
       </BrowserRouter>
     </QueryClientProvider>
   )
