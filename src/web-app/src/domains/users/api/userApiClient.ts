@@ -13,7 +13,6 @@ export const userApiClient = {
   signUp: async (request: SignUpRequest) =>
     apiClient.post<SignUpResponse>('/sign-up', request),
 
-  // --- Patients ---
   getPatientById: async (id: string) =>
     apiClient.get<GetPatientResponse>(`/users/patients/${id}`),
 
@@ -37,5 +36,5 @@ export const userApiClient = {
 
   // --- Schedules ---
   requestSchedule: async (request: ScheduleRequest) =>
-    apiClient.post<ScheduleResponse>('/schedules/schedule/request', request),
+    apiClient.post<ScheduleResponse>('/schedules/request', request),
 }

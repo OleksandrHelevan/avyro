@@ -1,146 +1,45 @@
-/* =================== ФОН =================== */
-
-
-.bright-gradient-bg {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(120deg, #07b6b8, #3b82f6, #7256a1, #07b6b8);
-  background-size: 300% 300%;
-  animation: gradientFlow 15s ease infinite;
-  z-index: -3;
-}
-
-
-@keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-
-.light-blob {
-  position: fixed;
-  width: 700px;
-  height: 700px;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.4;
-  animation: floatLight 25s infinite ease-in-out;
-  z-index: -2;
-}
-
-
-.blob-1 {
-  background: #18c0c4;
-  top: -15%;
-  left: 5%;
-}
-
-
-.blob-2 {
-  background: #7256a1;
-  bottom: -25%;
-  right: 10%;
-  animation-delay: -8s;
-}
-
-
-@keyframes floatLight {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.05); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-
-
-/* =================== ІКОНКИ =================== */
-
-
-.floating-icons-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-
-.bg-icon {
-  position: absolute;
-  opacity: 0.3;
-  animation: swimIcon 30s infinite ease-in-out;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-
-@keyframes swimIcon {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(30px); }
-  100% { transform: translateY(0); }
-}
-
-
-/* =================== ФОРМА =================== */
-
-
-.registration-wrapper {
-  min-height: 100vh;
+.sign-up-flow {
   display: flex;
   align-items: center;
+  gap: 4px;
   justify-content: center;
-  padding: 20px;
-  z-index: 10;
 }
-
-
-.registration-wrapper > * {
-  background: #e2e8f6;
-  padding: 40px;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-
-/* =================== КНОПКА =================== */
-
-
-button[type="submit"] {
-  padding: 14px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #4267e8, #9e64e5);
-  color: white;
-  font-weight: 700;
-  transition: 0.3s;
-}
-
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
-button:not(:disabled):hover {
-  transform: translateY(-1px);
-}
-
-
-/* =================== ТЕКСТ =================== */
-
-
-.back-to-login {
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-
-.back-to-login a {
-  font-weight: 700;
-  color: #7256a1;
-}
-
 
 .w-full {
   width: 100%;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-wrapper {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .login-form {
+    width: 320px;
+  }
+}
+
+.login-form-footer {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.form-hint.error {
+  color: #dc2626;
 }

@@ -5,40 +5,40 @@ import SignUpPage from './pages/SignUpPage/SignUpPage.tsx';
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import PatientProfile from "./pages/PatientProfile/PatientProfile.tsx";
 import DoctorProfile from "./pages/DoctorProfile/DoctorProfile.tsx";
-import Header from "./components/Header/Header.tsx";
+import ScheduleEditor from "./pages/ScheduleEditor/ScheduleEditor.tsx"; // 1. Імпортуємо новий компонент
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { queryClient } from "./services/queryClient.ts";
+import NotFound from "./pages/NotFound/NotFound.tsx";
 
 // --- ДИСПЕТЧЕР ПРОФІЛІВ ---
-// Перевіряє роль користувача і віддає потрібний компонент
 const ProfileDispatcher = () => {
   const role = localStorage.getItem("userRole")?.replace(/"/g, '');
-
-  if (role === "DOCTOR") {
-    return <DoctorProfile />;
-  }
+  if (role === "DOCTOR") return <DoctorProfile />;
   return <PatientProfile />;
 };
 
 // --- КОМПОНЕНТИ-ОБГОРТКИ ДЛЯ МАРШРУТІВ ---
 
-// 1. Захищений маршрут (тільки для тих, хто увійшов)
 const ProtectedRoute = () => {
   const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!token) return <Navigate to="/login" replace />;
   return <Outlet />;
 };
 
-// 2. Публічний маршрут (щоб залогінений юзер не міг зайти на сторінку логіну)
 const PublicRoute = () => {
   const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+  if (token) return <Navigate to="/" replace />;
+  return <Outlet />;
+};
 
-  if (token) {
-    return <Navigate to="/" replace />;
+// 2. Спеціальна обгортка для маршрутів, доступних тільки лікарям
+const DoctorOnlyRoute = () => {
+  const role = localStorage.getItem("userRole")?.replace(/"/g, '');
+
+  if (role !== "DOCTOR") {
+    // Якщо не лікар — відправляємо на головну або профіль
+    return <Navigate to="/profile" replace />;
   }
   return <Outlet />;
 };
@@ -48,17 +48,18 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <Toaster position="bottom-right" />
       <BrowserRouter>
-
-        <Header />
-
         <Routes>
           <Route path="/" element={<RootLayout />}>
 
             {/* ЗАХИЩЕНІ СТОРІНКИ */}
             <Route element={<ProtectedRoute />}>
               <Route index element={<HomePage />} />
-              {/* Замість жорсткого PatientProfile тепер працює диспетчер */}
               <Route path="profile" element={<ProfileDispatcher />} />
+
+              {/* 3. ДОДАЄМО МАРШРУТ ДЛЯ РЕДАКТОРА ГРАФІКА */}
+              <Route element={<DoctorOnlyRoute />}>
+                <Route path="schedule-edit" element={<ScheduleEditor />} />
+              </Route>
             </Route>
 
             {/* ПУБЛІЧНІ СТОРІНКИ */}
@@ -69,7 +70,7 @@ export default function App() {
 
           </Route>
 
-          <Route path="*" element={<div>Сторінку не знайдено (404)</div>} />
+          <Route path="*" element={<NotFound/>}/>
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

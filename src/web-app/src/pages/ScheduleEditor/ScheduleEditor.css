@@ -1,0 +1,188 @@
+/* --- ScheduleEditor --- */
+
+.schedule-editor-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.editor-title {
+  margin-top: 1rem;
+  font-size: 1.8rem;
+  color: #1e293b;
+  font-weight: 800;
+}
+
+.editor-card {
+  padding: 2.5rem !important;
+  border-radius: 24px !important;
+}
+
+/* Кнопка "Назад" */
+.back-btn {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 600;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  color: #3bceb5;
+  transform: translateX(-5px);
+}
+
+/* Секції */
+.schedule-section-block {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.schedule-section-block:last-child {
+  border-bottom: none;
+}
+
+.schedule-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-accent {
+  color: #3bceb5;
+}
+
+/* Кнопки днів */
+.days-flex-container {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.day-toggle-btn {
+  min-width: 65px;
+  height: 65px;
+  border-radius: 16px;
+  border: 2px solid rgba(59, 206, 181, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  color: #3bceb5;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+
+.day-toggle-btn:hover {
+  transform: translateY(-4px);
+  border-color: #3bceb5;
+  background: white;
+  box-shadow: 0 10px 20px rgba(59, 206, 181, 0.15);
+}
+
+.day-toggle-btn.active {
+  background: #3bceb5;
+  color: white;
+  border-color: #3bceb5;
+  box-shadow: 0 8px 25px rgba(59, 206, 181, 0.4);
+}
+
+.day-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Поля вводу */
+.schedule-params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 25px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.schedule-params-grid input,
+.schedule-params-grid select {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.schedule-params-grid input:focus,
+.schedule-params-grid select:focus {
+  border-color: #3bceb5;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 206, 181, 0.1);
+}
+
+/* Велика кнопка збереження */
+.save-schedule-btn {
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #3bceb5, #3b82f6);
+  color: white;
+  border: none;
+  padding: 20px;
+  border-radius: 18px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.4s ease;
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.25);
+}
+
+.save-schedule-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+  filter: brightness(1.1);
+}
+
+.save-schedule-btn:active {
+  transform: scale(0.98);
+}
+
+.save-schedule-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Спінер */
+.spinner {
+  display: inline-block;
+  animation: rotate 1.5s linear infinite;
+  font-size: 1.4rem;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
