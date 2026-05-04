@@ -22,7 +22,6 @@ export default function LoginPage() {
           setInStorage("userRole", response?.role);
           setInStorage("userId", response?.userId || response?.id);
 
-          toast.success("Вхід успішний!");
           navigate("/");
         }
       },

@@ -1,15 +1,21 @@
-.not-found-page {
-  min-height: 100vh;
+/* ПОВНА ЗАБОРОНА СКРОЛУ */
+.not-found-viewport {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  position: relative;
+
 }
 
+/* ВАШІ ОРИГІНАЛЬНІ КОЛЬОРИ БЛОБІВ */
 .blob-404-1 {
   width: 500px;
   height: 500px;
-  background: #3bceb5;
+  background: rgba(59, 206, 181, 0.25); /* #3bceb5 */
+  position: absolute;
   top: -10%;
   left: -10%;
   filter: blur(120px);
@@ -18,7 +24,8 @@
 .blob-404-2 {
   width: 400px;
   height: 400px;
-  background: #3b82f6;
+  background: rgba(59, 130, 246, 0.2); /* #3b82f6 */
+  position: absolute;
   bottom: -5%;
   right: -5%;
   filter: blur(100px);
@@ -52,7 +59,7 @@
 }
 
 .error-icon-wrapper {
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   color: #3bceb5;
 }
 
@@ -60,24 +67,49 @@
   animation: pulse-slow 3s infinite ease-in-out;
 }
 
-h1 {
+.error-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #1e293b;
+  color: #fdfdff;
   margin-bottom: 15px;
 }
 
-p {
-  color: #64748b;
+.error-text {
+  color: rgba(251, 252, 255, 0.94);
   line-height: 1.6;
+  margin-bottom: 35px;
 }
 
+/* СТИЛІЗАЦІЯ КНОПОК */
 .not-found-actions {
   display: flex;
   gap: 15px;
   justify-content: center;
 }
 
+/* Кнопка "На головну" (Бірюзово-синя) */
+.btn-primary-aero {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #3bceb5, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -5px rgba(59, 206, 181, 0.4);
+}
+
+.btn-primary-aero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -5px rgba(59, 206, 181, 0.5);
+  filter: brightness(1.05);
+}
+
+/* Кнопка "Назад" (Скляна) */
 .btn-secondary-aero {
   display: flex;
   align-items: center;
@@ -93,7 +125,7 @@ p {
 }
 
 .btn-secondary-aero:hover {
-  background: #f8fafc;
+  background: #f1f5f9;
   transform: translateY(-2px);
 }
 
@@ -103,7 +135,6 @@ p {
 }
 
 @media (max-width: 480px) {
-  .error-code { font-size: 80px; }
   .not-found-actions { flex-direction: column; }
-  .glass-card-404 { padding: 40px 20px; }
+  .btn-primary-aero, .btn-secondary-aero { width: 100%; justify-content: center; }
 }

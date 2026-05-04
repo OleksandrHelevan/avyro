@@ -7,8 +7,8 @@ const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="aero-viewport not-found-page">
-      {/* Фон з блобами як у профілі */}
+    <div className="not-found-viewport">
+      {/* Фон з вашими оригінальними кольорами блобів */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-404-1"></div>
         <div className="light-blob blob-404-2"></div>
@@ -21,8 +21,8 @@ const NotFoundPage: React.FC = () => {
             <AlertCircle size={64} className="pulse-icon" />
           </div>
 
-          <h1>Сторінку не знайдено</h1>
-          <p>
+          <h1 className="error-title">Сторінку не знайдено</h1>
+          <p className="error-text">
             На жаль, за цією адресою нічого немає. Можливо, ви помилилися в посиланні
             або сторінку було перенесено.
           </p>
