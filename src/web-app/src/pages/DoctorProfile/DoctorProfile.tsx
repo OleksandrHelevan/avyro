@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
 
   Stethoscope,
   Calendar as CalendarIcon,
-  Users,
-  BarChart3,
   UserCircle,
   LayoutDashboard
 } from "lucide-react";

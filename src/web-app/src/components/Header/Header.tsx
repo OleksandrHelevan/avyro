@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation, NavLink } from "react-router-dom"; // Використовуємо NavLink для активних станів
-import { Stethoscope, LogOut, User } from "lucide-react"; // SVG замість емодзі
+import { Stethoscope} from "lucide-react"; // SVG замість емодзі
 import "./Header.css";
 
 export default function Header() {
