@@ -74,3 +74,68 @@
     justify-content: center;
   }
 }
+/* Контейнер для інпута з іконкою */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Стилізація іконки всередині */
+.input-icon-svg {
+  position: absolute;
+  left: 14px;
+  color: #3bceb5; /* Ваш фірмовий колір */
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Відступи для тексту, щоб він не налізав на іконку */
+.input-wrapper input,
+.input-wrapper select {
+  width: 100%;
+  padding: 14px 16px 14px 44px !important; /* 44px зліва для іконки */
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.6);
+  outline: none;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
+  border-color: #3bceb5;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 206, 181, 0.1);
+}
+
+/* Сайдбар елементи */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-item svg {
+  transition: transform 0.2s ease;
+}
+
+.menu-item:hover svg {
+  transform: scale(1.1);
+}
+
+.menu-item.active {
+  background: white;
+  color: #3bceb5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}

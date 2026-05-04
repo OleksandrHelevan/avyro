@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
-import {  useNavigate } from "react-router-dom"; // Додано useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import {  Calendar as CalendarIcon } from "lucide-react"; // Додано іконки
+import {
+
+  Stethoscope,
+  Calendar as CalendarIcon,
+  Users,
+  BarChart3,
+  UserCircle,
+  LayoutDashboard
+} from "lucide-react";
 
 // Прямі імпорти ваших хуків
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
@@ -13,7 +21,7 @@ import "./DoctorProfile.css";
 const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
 export default function DoctorProfile() {
-  const navigate = useNavigate(); // Ініціалізація навігації
+  const navigate = useNavigate();
 
   // --- ХУКИ ---
   const { data: doctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
@@ -45,7 +53,6 @@ export default function DoctorProfile() {
     }
   }, [doctor]);
 
-  // --- ОБРОБНИКИ ---
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!CURRENT_USER_ID) {
@@ -78,8 +85,22 @@ export default function DoctorProfile() {
             {/* САЙДБАР */}
             <aside className="sidebar">
               <div className="sidebar-menu glass-light">
-                <button className="menu-item active">👨‍⚕️ Кабінет лікаря</button>
-
+                <button className="menu-item active">
+                  <LayoutDashboard size={18} />
+                  <span>Кабінет лікаря</span>
+                </button>
+                <button className="menu-item" onClick={() => navigate("/my-schedule")}>
+                  <CalendarIcon size={18} />
+                  <span>Мій розклад</span>
+                </button>
+                <button className="menu-item">
+                  <Users size={18} />
+                  <span>Пацієнти</span>
+                </button>
+                <Link to="/stats" className="menu-item highlight-item" style={{ textDecoration: 'none' }}>
+                  <BarChart3 size={18} />
+                  <span>Статистика</span>
+                </Link>
               </div>
             </aside>
 
@@ -102,8 +123,8 @@ export default function DoctorProfile() {
                   <div className="avatar-info">
                     <h2>{formData.firstName} {formData.lastName}</h2>
                     <span className="status-badge doc-badge">
-                    {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
-                  </span>
+                      {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
+                    </span>
                   </div>
                 </div>
 
@@ -126,33 +147,45 @@ export default function DoctorProfile() {
                 {/* БЛОК ПРОФІЛЮ */}
                 <form onSubmit={handleProfileSubmit} className="profile-form">
                   <div className="form-grid">
-                    <div className="form-group input-with-icon">
+                    <div className="form-group">
                       <label>Ім'я</label>
                       <div className="input-wrapper">
-                        <span className="input-icon">👤</span>
-                        <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} required />
+                        <UserCircle className="input-icon-svg" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Ваше ім'я"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                            required
+                        />
                       </div>
                     </div>
 
-                    <div className="form-group input-with-icon">
+                    <div className="form-group">
                       <label>Прізвище</label>
                       <div className="input-wrapper">
-                        <span className="input-icon">👤</span>
-                        <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} required />
+                        <UserCircle className="input-icon-svg" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Ваше прізвище"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                            required
+                        />
                       </div>
                     </div>
 
-                    <div className="form-group input-with-icon" style={{ gridColumn: "1 / -1" }}>
+                    <div className="form-group" style={{ gridColumn: "1 / -1" }}>
                       <label>Спеціалізація</label>
                       <div className="input-wrapper">
-                        <span className="input-icon">🩺</span>
+                        <Stethoscope className="input-icon-svg" size={18} />
                         <select
                             value={formData.specializationId}
                             onChange={(e) => setFormData({...formData, specializationId: e.target.value})}
-                            style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.8rem', borderRadius: '0.8rem', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', background: 'rgba(255, 255, 255, 0.6)' }}
+                            className="custom-select"
                             required
                         >
-                          <option value="" disabled>Оберіть спеціалізацію...</option>
+                          <option value="" disabled>Оберіть напрямок діяльності...</option>
                           {isSpecsLoading ? (
                               <option>Завантаження...</option>
                           ) : (
@@ -171,7 +204,6 @@ export default function DoctorProfile() {
                     </button>
                   </div>
                 </form>
-
               </div>
             </main>
           </div>
