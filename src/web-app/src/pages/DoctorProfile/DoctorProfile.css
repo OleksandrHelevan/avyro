@@ -1,0 +1,141 @@
+/* Контейнер для переходу до розкладу */
+.schedule-redirect-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+    transition: all 0.3s ease;
+}
+
+.schedule-redirect-card:hover {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(59, 206, 181, 0.3);
+}
+
+.redirect-info h3 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+.redirect-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Стилізація кнопки переходу */
+.btn-redirect-schedule {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.5rem;
+    background: white;
+    color: #3bceb5;
+    border: 1px solid #3bceb5;
+    border-radius: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(59, 206, 181, 0.1);
+}
+
+.btn-redirect-schedule:hover {
+    background: #3bceb5;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(59, 206, 181, 0.3);
+}
+
+.btn-redirect-schedule svg {
+    transition: transform 0.3s ease;
+}
+
+.btn-redirect-schedule:hover svg {
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* Адаптивність для мобільних пристроїв */
+@media (max-width: 600px) {
+    .schedule-redirect-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.2rem;
+    }
+
+    .btn-redirect-schedule {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Контейнер для інпута з іконкою */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Стилізація іконки всередині */
+.input-icon-svg {
+    position: absolute;
+    left: 14px;
+    color: #3bceb5; /* Ваш фірмовий колір */
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.doctor-theme .input-wrapper input,
+.doctor-theme .input-wrapper select {
+    width: 100%;
+    padding: 14px 16px 14px 44px !important; /* 44px зліва для іконки */
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.6);
+    outline: none;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
+    border-color: #3bceb5;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(59, 206, 181, 0.1);
+}
+
+/* Сайдбар елементи */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.menu-item svg {
+    transition: transform 0.2s ease;
+}
+
+.menu-item:hover svg {
+    transform: scale(1.1);
+}
+
+.menu-item.active {
+    background: white;
+    color: #3bceb5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}

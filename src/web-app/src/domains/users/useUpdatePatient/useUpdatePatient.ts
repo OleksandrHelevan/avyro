@@ -1,18 +1,23 @@
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {userService} from "../service/userService.ts";
-import type {PatchPatientRequest} from "../types.ts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { userService } from "../service/userService.ts";
 
 export const useUpdatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // Використовуємо конкретний тип замість any
-    mutationFn: ({id, patientData}: { id: string; patientData: PatchPatientRequest }) =>
-      userService.patchPatient(id, patientData),
-
-    onSuccess: (updatedPatient, variables) => {
-
-      queryClient.setQueryData(["patient", variables.id], updatedPatient);
+    // Метод, який ми бачили в userService
+    mutationFn: (data: any) => {
+      const id = (localStorage.getItem("userId") || "").replace(/"/g, '');
+      return userService.patchPatient(id, data);
     },
+    onSuccess: () => {
+      // КРИТИЧНО: змушуємо React Query заново завантажити дані профілю
+      queryClient.invalidateQueries({ queryKey: ["patient"] });
+      // Також можна додати сповіщення
+      alert("Дані успішно збережено!");
+    },
+    onError: (error) => {
+      console.error("Помилка при збереженні:", error);
+    }
   });
 };

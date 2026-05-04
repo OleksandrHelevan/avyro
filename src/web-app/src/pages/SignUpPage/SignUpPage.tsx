@@ -1,136 +1,166 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // ДОДАНО useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { useSignUp } from "../../domains/users/useSignUp/useSignUp.ts";
 import type { SignUpRequest, Role } from "../../domains/users/types.ts";
 import TextInput from "../../components/TextInput/TextInput.tsx";
 import Button from "../../components/Button/Button.tsx";
 import Form from "../../components/Form/Form.tsx";
+import {
+  type RadioOption,
+  RadioSelector,
+} from "../../components/RadioSelector/RadioSelector.tsx";
 import "./SignUpPage.css";
+import Checkbox from "../../components/Checkbox/Checkbox.tsx";
+import toast from "react-hot-toast";
 
-export default function RegistrationPage() {
+interface SignUpFormValues {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export default function SignUpPage() {
   const [selectedRole, setSelectedRole] = useState<Role>("PATIENT");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const { mutate, isPending } = useSignUp();
-  const navigate = useNavigate(); // Ініціалізуємо навігацію
+  const navigate = useNavigate();
 
-  const onSubmit = (data: any) => {
-    const { email, password } = data;
+  const roleOptions: RadioOption<Role>[] = [
+    { value: "PATIENT", label: "Пацієнт" },
+    { value: "DOCTOR", label: "Лікар" },
+  ];
 
-    // Формуємо об'єкт строго за інтерфейсом SignUpRequest
+  const onSubmit = (data: SignUpFormValues) => {
+    if (!termsAccepted) {
+      toast.error("Потрібно погодитись з умовами");
+      return;
+    }
+
     const requestData: SignUpRequest = {
-      email: email,
-      password: password,
+      email: data.email,
+      password: data.password,
       role: selectedRole,
-      isActive: true, // Обов'язкове поле
+      isActive: true,
       profile: {
-        fullName: "", // Можна додати інпути для цих полів пізніше
+        fullName: "",
         phone: "",
         specializationId: "",
-        avatarUrl: ""
-      }
+        avatarUrl: "",
+      },
     };
 
-    // Відправляємо запит
     mutate(requestData, {
       onSuccess: () => {
-        // Якщо реєстрація успішна — перекидаємо на сторінку входу
+        toast.success("Акаунт створено!");
         navigate("/login");
-      }
+      },
+      onError: () => {
+        toast.error("Помилка реєстрації");
+      },
     });
   };
 
   return (
-    <div className="registration-wrapper">
-      <Form<any>
-        onSubmit={onSubmit}
-        title="Реєстрація"
-        subtitle="Доєднайся до платформи"
-      >
-        {({ watch }) => (
-          <>
-            <div className="role-selector">
-              <p className="role-label">Виберіть вашу роль</p>
-              <div className="role-options">
-                <div
-                  className={`role-option ${selectedRole === "PATIENT" ? "active" : ""}`}
-                  onClick={() => setSelectedRole("PATIENT")}
-                >
-                  <div className="radio-circle"></div>
-                  <span>Пацієнт</span>
-                </div>
-                <div
-                  className={`role-option ${selectedRole === "DOCTOR" ? "active" : ""}`}
-                  onClick={() => setSelectedRole("DOCTOR")}
-                >
-                  <div className="radio-circle"></div>
-                  <span>Лікар</span>
-                </div>
-              </div>
-            </div>
+    <div className="signup-page">
+      <div className="signup-wrapper">
+        <Form<SignUpFormValues>
+          onSubmit={onSubmit}
+          title="Реєстрація"
+          subtitle="Доєднайся до платформи"
+          className="signup-form"
+          defaultValues={{
+            email: "",
+            password: "",
+            confirmPassword: "",
+          }}
+        >
+          {({ watch }) => {
+            const password = watch("password");
 
-            <TextInput
-              name="email"
-              label="Електронна адреса"
-              type="email"
-              placeholder="Введіть email"
-              rules={{
-                required: "Введіть email",
-                pattern: { value: /^\S+@\S+$/i, message: "Некоректний email" }
-              }}
-            />
+            return (
+              <>
+                <RadioSelector<Role>
+                  label="Виберіть вашу роль"
+                  options={roleOptions}
+                  value={selectedRole}
+                  onChange={setSelectedRole}
+                />
 
-            <TextInput
-              name="password"
-              label="Пароль"
-              type="password"
-              placeholder="••••••••••••"
-              rules={{
-                required: "Введіть пароль",
-                minLength: { value: 6, message: "Мінімум 6 символів" }
-              }}
-            />
+                <TextInput
+                  name="email"
+                  label="Електронна адреса"
+                  type="email"
+                  placeholder="Введіть email"
+                  rules={{
+                    required: "Email обов'язковий",
+                    pattern: {
+                      value: /^\S+@\S+\.\S+$/,
+                      message: "Некоректний email",
+                    },
+                  }}
+                />
 
-            <TextInput
-              name="confirmPassword"
-              label={
-                watch("confirmPassword") && watch("password") !== watch("confirmPassword")
-                  ? "ПАРОЛІ НЕ ЗБІГАЮТЬСЯ"
-                  : "Підтвердіть пароль"
-              }
-              type="password"
-              placeholder="••••••••••••"
-              rules={{
-                required: "Підтвердіть пароль",
-                validate: (val: string) => {
-                  if (watch('password') !== val) {
-                    return "Паролі не збігаються";
+                <TextInput
+                  name="password"
+                  label="Пароль"
+                  type="password"
+                  placeholder="••••••••"
+                  rules={{
+                    required: "Пароль обов'язковий",
+                    minLength: {
+                      value: 6,
+                      message: "Мінімум 6 символів",
+                    },
+                  }}
+                />
+
+                <TextInput
+                  name="confirmPassword"
+                  label="Підтвердження пароля"
+                  type="password"
+                  placeholder="••••••••"
+                  rules={{
+                    required: "Підтвердіть пароль",
+                    validate: (value: string) =>
+                      value === password || "Паролі не збігаються",
+                  }}
+                />
+
+                <Checkbox
+                  id="terms"
+                  checked={termsAccepted}
+                  onChange={setTermsAccepted}
+                  label={
+                    <>
+                      Погоджуюсь з{" "}
+                      <Link to="/terms">Умовами послуг</Link>
+                    </>
                   }
-                },
-              }}
-            />
+                />
 
-            <div className="terms-container">
-              <input type="checkbox" id="terms" required />
-              <label htmlFor="terms">
-                Погоджуюсь з <Link to="/terms">Умовами послуг</Link>
-              </label>
-            </div>
+                <div className="signup-form-footer">
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className="w-full"
+                    disabled={isPending || !termsAccepted}
+                  >
+                    {isPending
+                      ? "Реєстрація..."
+                      : "Зареєструватись"}
+                  </Button>
 
-            <div className="form-footer">
-              <Button
-                variant="primary"
-                type="submit"
-                className="w-full"
-                disabled={isPending}
-              >
-                {isPending ? "Реєстрація..." : "Зареєструватись"}
-              </Button>
-              <div className="back-to-login">
-                Вже маєте акаунт? <Link to="/login">Увійти</Link>
-              </div>
-            </div>
-          </>
-        )}
-      </Form>
+                  <div className="back-to-login">
+                    Вже маєте акаунт?{" "}
+                    <Link to="/login">Увійти</Link>
+                  </div>
+                </div>
+              </>
+            );
+          }}
+        </Form>
+      </div>
     </div>
   );
 }

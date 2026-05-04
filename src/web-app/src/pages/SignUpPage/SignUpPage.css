@@ -1,247 +1,30 @@
-.registration-wrapper {
+.signup-page {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  box-sizing: border-box;
-  background: linear-gradient(150deg, #18c0c4 0%, #7256a1 100%);
-  position: relative;
-  z-index: 10;
 }
 
-.registration-wrapper > div {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 10px 40px rgba(31, 38, 135, 0.15);
-  padding: 40px;
-  border-radius: 24px;
-  width: 100%;
-  max-width: 480px;
-}
-
-.registration-wrapper form {
-  background: transparent !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.registration-wrapper h2 {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #1f2937;
-  margin: 0 0 5px;
-  text-align: center;
-}
-
-.registration-wrapper > div > p,
-.registration-wrapper p.subtitle {
-  font-size: 0.95rem;
-  color: #4b5563;
-  text-align: center;
-  margin: 0 0 20px;
-}
-
-.registration-wrapper .role-selector {
-  margin-bottom: 5px;
-}
-
-.registration-wrapper .role-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #374151;
-  display: block;
-}
-
-.registration-wrapper .role-options {
-  display: flex;
-  gap: 12px;
-}
-
-.registration-wrapper .role-option {
-  flex: 1;
+.back-to-login {
+  margin-top: 8px;
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
-  color: #4b5563;
-  font-weight: 600;
-  font-size: 0.95rem;
+  gap: 4px;
+  justify-content: center;
 }
 
-.registration-wrapper .role-option:hover {
-  border-color: #a78bfa;
-}
-
-.registration-wrapper .radio-circle {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #d1d5db;
-  border-radius: 50%;
-  margin-right: 12px;
-  position: relative;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-}
-
-.registration-wrapper .role-option.active {
-  border-color: #7256a1;
-  background: rgba(114, 86, 161, 0.05);
-  color: #1f2937;
-  box-shadow: 0 4px 12px rgba(114, 86, 161, 0.1);
-}
-
-.registration-wrapper .role-option.active .radio-circle {
-  border-color: #7256a1;
-}
-
-.registration-wrapper .role-option.active .radio-circle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  background: #7256a1;
-  border-radius: 50%;
-}
-
-.registration-wrapper form input[type="email"],
-.registration-wrapper form input[type="password"],
-.registration-wrapper form input[type="text"] {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #d1d5db;
-  background: white;
-  font-size: 1rem;
-  color: #1f2937;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.registration-wrapper form input:focus {
-  outline: none;
-  border-color: #7256a1;
-  box-shadow: 0 0 0 3px rgba(114, 86, 161, 0.15);
-}
-
-.registration-wrapper form label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 6px;
-}
-
-.registration-wrapper .terms-container {
+.signup-wrapper {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 5px 0 10px;
-  font-size: 0.9rem;
-  color: #4b5563;
 }
 
-.registration-wrapper .terms-container input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #7256a1;
-  margin: 0;
-}
-
-.registration-wrapper .terms-container label {
-  margin: 0;
-  font-weight: 500;
-}
-
-.registration-wrapper .terms-container a {
-  color: #7256a1;
-  text-decoration: none;
-  font-weight: 700;
-  transition: 0.2s;
-}
-
-.registration-wrapper .terms-container a:hover {
-  text-decoration: underline;
-  color: #18c0c4;
-}
-
-.form-footer {
-  margin-top: 10px;
+.signup-form-footer{
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
 }
 
-.registration-wrapper button[type="submit"] {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #7256a1 0%, #5b4285 100%);
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(114, 86, 161, 0.3);
-}
-
-.registration-wrapper button[type="submit"]:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5b4285 0%, #4a346e 100%);
-  box-shadow: 0 6px 20px rgba(114, 86, 161, 0.4);
-  transform: translateY(-1px);
-}
-
-.registration-wrapper button[type="submit"]:disabled {
-  background: #a78bfa;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.registration-wrapper .back-to-login {
-  text-align: center;
-  font-size: 0.95rem;
-  color: #4b5563;
-}
-
-.registration-wrapper .back-to-login a {
-  color: #7256a1;
-  font-weight: 700;
-  text-decoration: none;
-  margin-left: 5px;
-  transition: 0.2s;
-}
-
-.registration-wrapper .back-to-login a:hover {
-  text-decoration: underline;
-  color: #18c0c4;
-}
-
-.registration-wrapper .input-error label {
-  color: #ef4444 !important;
-  font-weight: 800;
-}
-
-.registration-wrapper .input-error input {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
-}
-
-.w-full {
-  width: 100%;
+@media (min-width: 768px) {
+  .signup-form {
+    width: 320px;
+  }
 }

@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+:root {
+  --color-primary: #6c7fd8;
+  --color-primary-hover: #5a6ec7;
+  --color-text: #1e2a4a;
+  --color-text-secondary: #4a5580;
+  --color-text-muted: #8e9abf;
+  --color-input-bg: #ffffff;
+  --color-border: #c8d0ea;
+  --color-error: #e05252;
+  --color-error-bg: #fff2f2;
+  --color-bg: #6c7fd8;
+  --color-card-bg: #dde3f5;
+}

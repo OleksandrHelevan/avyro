@@ -21,94 +21,67 @@ class DoctorService:
         try:
             user_oid = ObjectId(user_id)
             spec_oid = ObjectId(profile_data.specialization_id)
-        except InvalidId:
+        except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
         specialization = self.spec_repository.get_by_id(spec_oid)
         if not specialization:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Оберіть вашу медичну спеціалізацію (такого фаху не знайдено)")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Спеціалізацію не знайдено")
 
-        user = self.user_repository.get_by_id(user_oid)
-        if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
-
-        if getattr(user, "role", "") != "DOCTOR":
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Користувач не є лікарем")
-
+        # Формуємо об'єкт профілю для бази
         profile_update = {
             "fullName": profile_data.fullName,
-            "full_name": profile_data.fullName,
             "phone": profile_data.phone,
             "avatarUrl": profile_data.avatarUrl,
-            "avatar_url": profile_data.avatarUrl,
-            "specialization_id": str(spec_oid)
+            "specialization_id": spec_oid
         }
+
         self.user_repository.update_profile(user_oid, profile_update)
 
-        updated_user = self.user_repository.get_by_id(user_oid)
-        profile_obj = getattr(updated_user, "profile", None)
-
-        def get_profile_attr(obj, attr_name):
-            if not obj:
-                return None
-            if isinstance(obj, dict):
-                return obj.get(attr_name)
-            return getattr(obj, attr_name, None)
-
-        return {
-            "_id": str(updated_user.id),
-            "email": updated_user.email,
-            "isActive": getattr(updated_user, "is_active", True),
-            "fullName": get_profile_attr(profile_obj, "fullName") or get_profile_attr(profile_obj, "full_name"),
-            "phone": get_profile_attr(profile_obj, "phone"),
-            "avatarUrl": get_profile_attr(profile_obj, "avatarUrl") or get_profile_attr(profile_obj, "avatar_url"),
-
-            "createdAt": getattr(updated_user, "created_at", None),
-            "lastLoginAt": getattr(updated_user, "last_login_at", None)
-        }
+        return self.get_doctor_by_id(user_id)
 
     def get_doctor_by_id(self, user_id: str) -> dict:
         try:
             user_oid = ObjectId(user_id)
-        except InvalidId:
+        except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
+        # Завжди беремо свіжий об'єкт користувача з репозиторію
         user = self.user_repository.get_by_id(user_oid)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лікаря не знайдено")
 
-        if getattr(user, "role", "") != "DOCTOR":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Користувач не є лікарем")
-
         profile_obj = getattr(user, "profile", None)
 
-        def get_profile_attr(obj, attr_name):
-            if not obj:
-                return None
-            if isinstance(obj, dict):
-                return obj.get(attr_name)
-            return getattr(obj, attr_name, None)
+        def get_attr(obj, attr_name, default=None):
+            if not obj: return default
+            if isinstance(obj, dict): return obj.get(attr_name, default)
+            return getattr(obj, attr_name, default)
 
-        spec_id_str = get_profile_attr(profile_obj, "specialization_id")
+        spec_id_raw = get_attr(profile_obj, "specialization_id") or get_attr(profile_obj, "specializationId")
 
         specialization_name = None
-        if spec_id_str:
+        spec_id_str = str(spec_id_raw) if spec_id_raw else None
+
+        if spec_id_raw:
             try:
-                spec_doc = self.spec_repository.get_by_id(ObjectId(spec_id_str))
+                search_oid = spec_id_raw if isinstance(spec_id_raw, ObjectId) else ObjectId(spec_id_str)
+                spec_doc = self.spec_repository.get_by_id(search_oid)
+
                 if spec_doc:
-                    specialization_name = spec_doc.name
-            except InvalidId:
-                pass
+                    specialization_name = getattr(spec_doc, "name", None)
+            except Exception as e:
+                logger.error(f"Error fetching specialization name: {e}")
 
         return {
             "_id": str(user.id),
             "email": user.email,
             "isActive": getattr(user, "is_active", True),
-            "fullName": get_profile_attr(profile_obj, "fullName"),
-            "phone": get_profile_attr(profile_obj, "phone"),
-            "avatarUrl": get_profile_attr(profile_obj, "avatarUrl"),
+            "fullName": get_attr(profile_obj, "fullName") or get_attr(profile_obj, "full_name"),
+            "phone": get_attr(profile_obj, "phone"),
+            "avatarUrl": get_attr(profile_obj, "avatarUrl") or get_attr(profile_obj, "avatar_url"),
+            "specializationId": spec_id_str,
+            "specializationName": specialization_name,
             "createdAt": getattr(user, "created_at", None),
-            "lastLoginAt": getattr(user, "last_login_at", None),
-            "specializationName": specialization_name
+            "lastLoginAt": getattr(user, "last_login_at", None)
         }

@@ -12,7 +12,7 @@ router = APIRouter(
 
 allow_doctor = RoleChecker(["DOCTOR"])
 
-@router.post("/schedule/request", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("/request", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def request_schedule_creation(
     dto: CreateScheduleDTO,
     service: ScheduleService = Depends(get_schedule_service),
