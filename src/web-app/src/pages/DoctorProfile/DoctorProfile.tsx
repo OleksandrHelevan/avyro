@@ -89,18 +89,7 @@ export default function DoctorProfile() {
                   <LayoutDashboard size={18} />
                   <span>Кабінет лікаря</span>
                 </button>
-                <button className="menu-item" onClick={() => navigate("/my-schedule")}>
-                  <CalendarIcon size={18} />
-                  <span>Мій розклад</span>
-                </button>
-                <button className="menu-item">
-                  <Users size={18} />
-                  <span>Пацієнти</span>
-                </button>
-                <Link to="/stats" className="menu-item highlight-item" style={{ textDecoration: 'none' }}>
-                  <BarChart3 size={18} />
-                  <span>Статистика</span>
-                </Link>
+
               </div>
             </aside>
 

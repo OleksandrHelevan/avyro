@@ -1,35 +1,10 @@
-/* Основний контейнер для тексту під кнопкою */
 .sign-up-flow {
   display: flex;
   align-items: center;
+  gap: 4px;
   justify-content: center;
-  gap: 6px;
-  /* Робимо відступ зверху, щоб текст не прилипав до кнопки */
-  margin-top: 24px;
 }
 
-/* Колір звичайного тексту "Нема акаунту?" або "Вже маєте акаунт?" */
-.sign-up-flow p {
-  margin: 0;
-  color: #64748b; /* Сірий колір як у формі реєстрації */
-  font-size: 0.9rem;
-}
-
-/* Стиль для посилання "Увійти" або "Зареєструватись" */
-.sign-up-flow a {
-  color: #5d59d4; /* Насичений фіолетовий колір з вашої форми реєстрації */
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-/* Ефект при наведенні на посилання */
-.sign-up-flow a:hover {
-  color: #4a47a3; /* Трохи темніший при наведенні */
-  text-decoration: underline;
-}
-
-/* Інші стилі вашої сторінки */
 .w-full {
   width: 100%;
 }
@@ -56,4 +31,15 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.form-hint.error {
+  color: #dc2626;
 }
