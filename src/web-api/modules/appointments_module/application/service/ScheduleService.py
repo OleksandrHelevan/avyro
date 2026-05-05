@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from bson import ObjectId
-
+from bson.errors import InvalidId
+from fastapi import HTTPException, status
 from modules.requests_module.domains.Request import Request, RequestType
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from modules.appointments_module.application.mapper.ScheduleMapper import ScheduleMapper
@@ -19,6 +20,33 @@ class ScheduleService:
         month = getattr(dto, 'month', datetime.now(timezone.utc).month)
         year = getattr(dto, 'year', datetime.now(timezone.utc).year)
         return self.create_monthly_schedule(dto.doctorId, year, month, dto)
+
+    def get_doctor_slots(self, doctor_id: str) -> list[dict]:
+        # 1. Валідація ObjectId
+        try:
+            doc_oid = ObjectId(doctor_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Невалідний формат ID лікаря"
+            )
+
+        schedules = self.repository.get_all_by_doctor_id(doc_oid)
+
+        if not schedules:
+            return []
+
+        all_slots = []
+        for schedule in schedules:
+            slots = schedule.get("slots", []) if isinstance(schedule, dict) else getattr(schedule, "slots", [])
+
+
+            for slot in slots:
+                slot_dict = slot if isinstance(slot, dict) else slot.__dict__
+
+                all_slots.append(slot_dict)
+
+        return all_slots
 
     def request_schedule_creation(self, dto: CreateScheduleDTO) -> str:
         request_obj = Request(

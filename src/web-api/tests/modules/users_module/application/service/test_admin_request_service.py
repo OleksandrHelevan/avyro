@@ -4,7 +4,7 @@ from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 
 # Замініть ці імпорти на реальні шляхи у вашому проєкті
-from modules.admin_module.domains.Request import RequestType, RequestStatus
+from modules.requests_module.domains.Request import RequestType, RequestStatus
 # Якщо шлях до AdminRequestService інший, оновіть його:
 from modules.admin_module.application.service.AdminRequestService import AdminRequestService
 
@@ -17,25 +17,26 @@ from modules.admin_module.application.service.AdminRequestService import AdminRe
 def mock_request_repo():
     return Mock()
 
-
 @pytest.fixture
 def mock_user_service():
     return Mock()
-
 
 @pytest.fixture
 def mock_schedule_service():
     return Mock()
 
+@pytest.fixture
+def mock_specialization_service():
+    return Mock()
 
 @pytest.fixture
-def admin_service(mock_request_repo, mock_user_service, mock_schedule_service):
+def admin_service(mock_request_repo, mock_user_service, mock_schedule_service, mock_specialization_service):
     return AdminRequestService(
         request_repo=mock_request_repo,
         user_service=mock_user_service,
-        schedule_service=mock_schedule_service
+        schedule_service=mock_schedule_service,
+        specialization_service=mock_specialization_service
     )
-
 
 @pytest.fixture
 def valid_request_id():
@@ -64,7 +65,7 @@ def test_approve_registration_success(mock_dto_class, admin_service, mock_reques
 
     mock_new_user = Mock()
     mock_user_service.create_user_final.return_value = mock_new_user
-
+    mock_user_service.get_user_by_email.return_value = None
     # Act
     result = admin_service.approve_registration(valid_request_id, valid_admin_id)
 
@@ -118,7 +119,7 @@ def test_approve_registration_creation_error(mock_dto_class, admin_service, mock
     )
     mock_request_repo.get_by_id.return_value = mock_request
     mock_user_service.create_user_final.side_effect = Exception("DB Timeout")
-
+    mock_user_service.get_user_by_email.return_value = None
     # Act & Assert
     with pytest.raises(HTTPException) as exc_info:
         admin_service.approve_registration(valid_request_id, valid_admin_id)

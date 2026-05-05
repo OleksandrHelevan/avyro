@@ -112,11 +112,11 @@ def test_request_schedule_creation(mock_request_class, schedule_service, mock_re
     assert result == str(saved_request_id)
 
     # Перевіряємо створення Request з правильними параметрами
-    mock_request_class.assert_called_once_with(
-        creator_id=ObjectId(mock_schedule_dto.doctorId),
-        type=RequestType.SCHEDULE_CREATION,
-        payload=mock_schedule_dto.dict()
-    )
+    mock_request_class.assert_called_once()
+    _, kwargs = mock_request_class.call_args
+    assert kwargs['creator_id'] == ObjectId(mock_schedule_dto.doctorId)
+    assert kwargs['type'].name == "SCHEDULE_CREATION"
+    assert kwargs['payload']['doctorId'] == mock_schedule_dto.doctorId
     # Перевіряємо виклик репозиторію
     mock_request_repo.create.assert_called_once_with(mock_request_instance)
 

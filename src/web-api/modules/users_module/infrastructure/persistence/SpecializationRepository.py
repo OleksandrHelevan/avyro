@@ -28,3 +28,7 @@ class SpecializationRepository:
         })
         spec.id = result.inserted_id
         return spec
+
+    def get_by_name(self, name: str):
+        # case-insensitive пошук (регістронезалежний), щоб уникнути дублікатів типу "хірург" і "Хірург"
+        return self.collection.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}})

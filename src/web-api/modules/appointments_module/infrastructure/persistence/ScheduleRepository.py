@@ -22,6 +22,12 @@ class ScheduleRepository:
         })
         return Schedule.from_dict(doc) if doc else None
 
+    def get_all_by_doctor_id(self, doctor_id: ObjectId) -> list:
+        """Повертає всі розклади для конкретного лікаря"""
+        # Якщо використовується PyMongo
+        schedules = self.collection.find({"doctorId": doctor_id})
+        return list(schedules)
+
     def book_slot(self, schedule_id: ObjectId, slot_id: ObjectId, appointment_id: ObjectId) -> bool:
         """Атомарне бронювання слота всередині масиву"""
         result = self.collection.update_one(
