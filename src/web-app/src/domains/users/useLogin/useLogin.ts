@@ -9,11 +9,15 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data: LoginRequest) => userService.login(data),
     onSuccess: (response: LoginResponse) => {
+      // 1. Зберігаємо дані
       setInStorage("accessToken", response.accessToken);
       setInStorage("userId", response.userId);
 
-      toast.success("Вхід успішний!");
+      // 2. Додаємо унікальний id.
+      // Це гарантує: якщо функція викличеться двічі,
+      // бібліотека просто оновить існуючий тост замість створення нового.
+      toast.success("Вхід успішний!", { id: "login-success" });
+    },
 
-    }
   });
 };

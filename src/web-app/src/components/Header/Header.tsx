@@ -1,21 +1,37 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate, useLocation, NavLink } from "react-router-dom"; // Використовуємо NavLink для активних станів
-import { Stethoscope} from "lucide-react"; // SVG замість емодзі
+import { Link, useNavigate, useLocation, NavLink } from "react-router-dom";
+import { Stethoscope } from "lucide-react";
+import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
+
+// Типізація для коректної роботи з даними лікаря
+interface DoctorData {
+  status?: string;
+  isApproved?: boolean;
+  isActive?: boolean;
+}
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const hideHeaderRoutes = ["/login", "/sign-up"];
-
+  // Отримуємо дані про користувача
+  const role = localStorage.getItem("userRole")?.replace(/"/g, '');
+  const userId = localStorage.getItem("userId")?.replace(/"/g, '');
   const isAuthenticated = !!(localStorage.getItem("accessToken") || localStorage.getItem("token"));
 
+  // Дані для лікаря
+  const isDoctorRole = role === "DOCTOR";
+  const { data } = useDoctor(isDoctorRole ? userId || "" : "");
+  const doctor = data as DoctorData | undefined;
+
+  // Перевірка статусу (isActive)
+  const isApprovedDoctor = isDoctorRole && doctor?.isActive === true;
+
+  const hideHeaderRoutes = ["/login", "/sign-up"];
+
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userRole"); // Не забудьте очистити роль
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -37,26 +53,61 @@ export default function Header() {
         </Link>
 
         <div className="nav-links">
-          {/* NavLink автоматично додає клас .active, коли шлях збігається */}
+          {/* Спільне посилання */}
           <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
             Знайти лікаря
           </NavLink>
 
-          {isAuthenticated && (
+          {/* НАВІГАЦІЯ ПАЦІЄНТА */}
+          {isAuthenticated && role === "PATIENT" && (
+            <NavLink to="/appointments" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+              Мої записи
+            </NavLink>
+          )}
+
+          {/* НАВІГАЦІЯ ЛІКАРЯ (тільки для активних) */}
+          {isAuthenticated && isApprovedDoctor && (
             <>
-              <NavLink to="/appointments" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                Мої записи
+              <NavLink to="/schedule-edit" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                Мій розклад
               </NavLink>
-              <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                Мій кабінет
+              <NavLink to="/patients" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                Пацієнти
               </NavLink>
             </>
+          )}
+
+          {/* НАВІГАЦІЯ АДМІНІСТРАТОРА */}
+          {isAuthenticated && role === "ADMIN" && (
+            <>
+              <NavLink to="/admin/requests" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                <div className="nav-item-with-icon">
+                  <span>Запити</span>
+                </div>
+              </NavLink>
+              <NavLink to="/admin/notifications" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                <div className="nav-item-with-icon">
+                  <span>Сповіщення</span>
+                </div>
+              </NavLink>
+              <NavLink to="/admin/schedules" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                <div className="nav-item-with-icon">
+                  <span>Розклади</span>
+                </div>
+              </NavLink>
+            </>
+          )}
+
+          {/* КАБІНЕТ */}
+          {isAuthenticated && (
+            <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+              Мій кабінет
+            </NavLink>
           )}
         </div>
 
         {isAuthenticated ? (
           <div className="auth-group">
-
             <button className="btn-logout" onClick={handleLogout}>
               <span>Вийти</span>
             </button>

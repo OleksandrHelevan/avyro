@@ -1,5 +1,6 @@
 /* Контейнер для переходу до розкладу */
 .schedule-redirect-card {
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -112,6 +113,7 @@
 
 /* Сайдбар елементи */
 .menu-item {
+
     display: flex;
     align-items: center;
     gap: 12px;
@@ -138,4 +140,8 @@
     background: white;
     color: #3bceb5;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.sidebar-menu {
+  display: flex;
+  margin-top: 15px;
 }
