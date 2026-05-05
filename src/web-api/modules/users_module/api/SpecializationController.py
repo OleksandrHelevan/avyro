@@ -42,5 +42,5 @@ async def create_specialization(
 ):
     return service.create_specialization_request(
         request,
-        str(current_doctor["_id"])
+        str(current_doctor["sub"])
     )
