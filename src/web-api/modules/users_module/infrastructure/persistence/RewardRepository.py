@@ -24,6 +24,10 @@ class RewardRepository:
         })
         return count > 0
 
-
+    def get_all_by_patient_id(self, patient_id: ObjectId) -> list:
+        """Повертає всі винагороди для конкретного пацієнта"""
+        # Знаходимо всі записи, де patient_id або user_id співпадає
+        rewards = self.collection.find({"user_id": patient_id})  # Або "patient_id", залежить від твоєї БД
+        return list(rewards)
 
 
