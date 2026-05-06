@@ -144,4 +144,5 @@
 .sidebar-menu {
   display: flex;
   margin-top: 15px;
+  flex-direction: column;
 }

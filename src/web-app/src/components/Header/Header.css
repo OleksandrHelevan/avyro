@@ -37,9 +37,12 @@
   font-weight: 800;
 }
 
+/* ОНОВЛЕНО: Центруємо лінки */
 .nav-links {
   display: flex;
   gap: 2rem;
+  flex-grow: 1; /* Займає весь доступний простір між лого і профілем */
+  justify-content: center; /* Ставить посилання чітко посередині */
 }
 
 .nav-link {
@@ -58,10 +61,12 @@
   border-bottom: 2px solid #7b51b3;
 }
 
+/* ОНОВЛЕНО: Притискаємо до правого краю */
 .auth-group {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  margin-left: auto; /* Відштовхує блок максимально вправо */
 }
 
 .user-profile {
@@ -126,4 +131,102 @@
 
 .btn-signup:hover {
   background: #623f91;
+}
+
+.profile-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a5568;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.profile-icon-btn:hover {
+  background-color: #f7fafc;
+  color: #2b6cb0;
+}
+
+.profile-icon-btn.active-icon {
+  color: #2b6cb0;
+  background-color: #ebf8ff;
+}
+
+/* ОНОВЛЕНО: Десктопна версія контейнера */
+.nav-links-container {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+/* Ховаємо бургер на десктопі */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+/* АДАПТИВНІСТЬ ДЛЯ МОБІЛОК */
+@media screen and (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* Перетворюємо контейнер у випадаюче меню */
+  .nav-links-container {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    /* Анімація появи */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    z-index: 99;
+  }
+
+  .nav-links-container.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .nav-link {
+    width: 100%;
+    display: block;
+    padding: 8px 0;
+  }
+
+  /* Лінія розділювача перед блоком авторизації/кабінету */
+  .auth-group {
+    width: 100%;
+    flex-direction: column;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+    gap: 12px;
+    margin-left: 0; /* ОНОВЛЕНО: скидаємо margin для мобілок, щоб меню не з'їжджало */
+  }
+
+  .btn-login, .btn-signup {
+    width: 100%;
+    text-align: center;
+  }
 }

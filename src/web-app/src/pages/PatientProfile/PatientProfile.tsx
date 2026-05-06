@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Додано useNavigate
 // Векторні іконки для чіткості
-import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud } from "lucide-react";
+import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react"; // Додано LogOut
 import "./PatientProfile.css";
 
 const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
 export default function PatientProfile() {
+  const navigate = useNavigate(); // Ініціалізація навігації
   const { data: patientResponse, isLoading, error } = usePatient(CURRENT_USER_ID);
 
   // Використовуємо мутацію для patchPatient
@@ -66,6 +67,12 @@ export default function PatientProfile() {
     });
   };
 
+  // Функція виходу
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   if (isLoading) return (
     <div className="loading-screen">
       <div className="aero-loader">
@@ -78,7 +85,8 @@ export default function PatientProfile() {
   if (error || !CURRENT_USER_ID) return <div className="error-message">Не вдалося завантажити профіль</div>;
 
   return (
-    <div className="aero-viewport light-theme profile-page">
+    // Додано жорстку висоту та приховано глобальний скрол (70px - висота хедера)
+    <div className="aero-viewport light-theme profile-page" style={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}>
       <input
         type="file"
         ref={fileInputRef}
@@ -92,8 +100,9 @@ export default function PatientProfile() {
         <div className="light-blob blob-2"></div>
       </div>
 
-      <div className="main-content">
-        <div className="layout-container">
+      {/* Обгортка на всю висоту */}
+      <div className="main-content" style={{ height: '100%' }}>
+        <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
 
           <aside className="sidebar">
             <div className="sidebar-menu glass-light">
@@ -104,7 +113,8 @@ export default function PatientProfile() {
             </div>
           </aside>
 
-          <main className="profile-content">
+          {/* Скрол дозволено ТІЛЬКИ тут. Додано відступ знизу 40px */}
+          <main className="profile-content" style={{ flex: 1, overflowY: 'auto', paddingBottom: '40px' }}>
             <div className="page-header">
               <h1>Особисті дані</h1>
               <p>Ваша інформація безпечно зашифрована</p>
@@ -167,13 +177,37 @@ export default function PatientProfile() {
                   </div>
                 </div>
 
-                <div className="form-actions">
-                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect">
+                {/* БЛОК КНОПОК: Зберегти + Вийти */}
+                <div className="form-actions" style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px' }}>
+                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{ flex: 1 }}>
                     {isUpdating ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                         <Loader2 className="animate-spin" size={18} /> Збереження...
                       </div>
                     ) : "Зберегти зміни"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      backgroundColor: '#fff1f2',
+                      color: '#e11d48',
+                      border: '1px solid #fda4af',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ffe4e6'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff1f2'}
+                  >
+                    <LogOut size={18} strokeWidth={2.5} />
+                    Вийти
                   </button>
                 </div>
               </form>
