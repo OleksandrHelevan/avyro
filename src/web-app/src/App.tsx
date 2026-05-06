@@ -12,15 +12,14 @@ import ScheduleEditor from "./pages/ScheduleEditor/ScheduleEditor.tsx";
 import NotApprovedPage from "./pages/NotApprovedPage/NotApprovedPage.tsx";
 import NotFound from "./pages/NotFound/NotFound.tsx";
 
-// Адмін-панель (імпортуйте ваші компоненти сторінок)
-// import AdminRequests from "./pages/Admin/AdminRequests.tsx";
-// import AdminNotifications from "./pages/Admin/AdminNotifications.tsx";
-// import AdminSchedules from "./pages/Admin/AdminSchedules.tsx";
 
 // Лейаут та сервіси
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "./services/queryClient.ts";
 import { useDoctor } from "./domains/users/useDoctor/useDoctor";
+import AdminSchedules from "./pages/AdminSchedules/AdminSchedules.tsx";
+import AdminRequests from "./pages/AdminRequests/AdminRequests.tsx";
+import AdminNotifications from "./pages/AdminNotifications/AdminNotifications.tsx";
 
 interface DoctorData {
   status?: string;
@@ -94,10 +93,6 @@ const DoctorOnlyRoute = () => {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/*
-          toastOptions з limit: 1 гарантує, що не буде "драбини" з тостів.
-          Новий тост просто замінить попередній.
-      */}
       <Toaster
         position="bottom-right"
         reverseOrder={false}
@@ -131,11 +126,11 @@ export default function App() {
                 <Route path="patients" element={<div>Сторінка пацієнтів</div>} />
               </Route>
 
-              {/* Маршрути для адміна */}
+              {/* ОНОВЛЕНО: Маршрути для адміна */}
               <Route element={<AdminRoute />}>
-                <Route path="admin/requests" element={<div>Сторінка запитів</div>} />
-                <Route path="admin/notifications" element={<div>Сторінка сповіщень</div>} />
-                <Route path="admin/schedules" element={<div>Сторінка розкладів</div>} />
+                <Route path="admin/requests" element={<AdminRequests />} />
+                <Route path="admin/specializations" element={<AdminNotifications />} />
+                <Route path="admin/schedules" element={<AdminSchedules />} />
               </Route>
             </Route>
 

@@ -1,0 +1,53 @@
+/* src/pages/Admin/AdminSchedules.css */
+.dash-page { padding: 2rem; max-width: 1200px; margin: 0 auto; background: #f8fafc; min-height: 100vh;}
+.dash-page h2 { color: #0f172a; margin-bottom: 2rem; }
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.dash-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.dash-header {
+  background: #1e293b; /* Темний солідний заголовок */
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dash-header h3 { margin: 0; font-size: 1.1rem; }
+.dash-header span { font-size: 0.85rem; color: #94a3b8; }
+
+.dash-metrics {
+  display: flex;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.metric-box {
+  flex: 1;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.metric-box span { display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;}
+.metric-box strong { font-size: 1.8rem; color: #0f172a; }
+
+.dash-actions { padding: 0 1.5rem 1.5rem; }
+.dash-btn {
+  width: 100%; padding: 12px; background: white; border: 1px solid #cbd5e1;
+  border-radius: 8px; color: #0f172a; font-weight: 600; cursor: pointer;
+}
+.dash-btn:hover { background: #f8fafc; }
