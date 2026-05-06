@@ -10,3 +10,5 @@ class CreateUserRequest(BaseModel):
     role: UserRole
     isActive: bool = True
     profile: Optional[CreateProfileRequest] = None
+
+    model_config = ConfigDict(extra='forbid')
