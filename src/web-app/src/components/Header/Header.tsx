@@ -1,6 +1,7 @@
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate, useLocation, NavLink } from "react-router-dom";
-import { Stethoscope } from "lucide-react";
+import { Link, useLocation, NavLink } from "react-router-dom";
+import { Stethoscope, User, Menu, X } from "lucide-react"; // Додали Menu та X
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
 
@@ -12,8 +13,8 @@ interface DoctorData {
 }
 
 export default function Header() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false); // Стан для мобільного меню
 
   // Отримуємо дані про користувача
   const role = localStorage.getItem("userRole")?.replace(/"/g, '');
@@ -30,10 +31,8 @@ export default function Header() {
 
   const hideHeaderRoutes = ["/login", "/sign-up"];
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
+  // Закриваємо меню при кліку на посилання
+  const closeMobileMenu = () => setIsMobileOpen(false);
 
   if (hideHeaderRoutes.includes(location.pathname)) {
     return null;
@@ -47,77 +46,85 @@ export default function Header() {
       transition={{ duration: 0.6 }}
     >
       <div className="nav-content">
-        <Link to="/" className="logo-group" style={{ textDecoration: 'none' }}>
+        <Link to="/" className="logo-group" style={{ textDecoration: 'none' }} onClick={closeMobileMenu}>
           <Stethoscope className="logo-icon-svg" size={28} />
           <h1><span className="logo-accent">Avyro</span></h1>
         </Link>
 
-        <div className="nav-links">
-          {/* Спільне посилання */}
-          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-            Знайти лікаря
-          </NavLink>
+        {/* Кнопка бургера (показується тільки на мобільних пристроях) */}
+        <button className="mobile-menu-btn" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+          {isMobileOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
 
-          {/* НАВІГАЦІЯ ПАЦІЄНТА */}
-          {isAuthenticated && role === "PATIENT" && (
-            <NavLink to="/appointments" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-              Мої записи
+        {/* Контейнер для посилань, який стає випадаючим меню на мобілках */}
+        <div className={`nav-links-container ${isMobileOpen ? "open" : ""}`}>
+          <div className="nav-links">
+            {/* Спільне посилання */}
+            <NavLink to="/" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+              Знайти лікаря
             </NavLink>
-          )}
 
-          {/* НАВІГАЦІЯ ЛІКАРЯ (тільки для активних) */}
-          {isAuthenticated && isApprovedDoctor && (
-            <>
-              <NavLink to="/schedule-edit" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                Мій розклад
+            {/* НАВІГАЦІЯ ПАЦІЄНТА */}
+            {isAuthenticated && role === "PATIENT" && (
+              <NavLink to="/appointments" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                Мої записи
               </NavLink>
-              <NavLink to="/patients" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                Пацієнти
-              </NavLink>
-            </>
-          )}
+            )}
 
-          {/* НАВІГАЦІЯ АДМІНІСТРАТОРА */}
-          {isAuthenticated && role === "ADMIN" && (
-            <>
-              <NavLink to="/admin/requests" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                <div className="nav-item-with-icon">
-                  <span>Запити</span>
-                </div>
-              </NavLink>
-              <NavLink to="/admin/notifications" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                <div className="nav-item-with-icon">
-                  <span>Сповіщення</span>
-                </div>
-              </NavLink>
-              <NavLink to="/admin/schedules" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                <div className="nav-item-with-icon">
-                  <span>Розклади</span>
-                </div>
-              </NavLink>
-            </>
-          )}
+            {/* НАВІГАЦІЯ ЛІКАРЯ (тільки для активних) */}
+            {isAuthenticated && isApprovedDoctor && (
+              <>
+                <NavLink to="/schedule-edit" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  Мій розклад
+                </NavLink>
+                <NavLink to="/patients" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  Пацієнти
+                </NavLink>
+              </>
+            )}
 
-          {/* КАБІНЕТ */}
-          {isAuthenticated && (
-            <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-              Мій кабінет
-            </NavLink>
+            {/* НАВІГАЦІЯ АДМІНІСТРАТОРА */}
+            {isAuthenticated && role === "ADMIN" && (
+              <>
+                <NavLink to="/admin/requests" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  <div className="nav-item-with-icon">
+                    <span>Запити</span>
+                  </div>
+                </NavLink>
+                <NavLink to="/admin/notifications" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  <div className="nav-item-with-icon">
+                    <span>Сповіщення</span>
+                  </div>
+                </NavLink>
+                <NavLink to="/admin/schedules" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  <div className="nav-item-with-icon">
+                    <span>Розклади</span>
+                  </div>
+                </NavLink>
+              </>
+            )}
+          </div>
+
+          {/* ПРАВИЙ БЛОК: АВТОРИЗАЦІЯ АБО ПРОФІЛЬ */}
+          {isAuthenticated ? (
+            <div className="auth-group">
+              {/* Іконка кабінету */}
+              <NavLink
+                to="/profile"
+                onClick={closeMobileMenu}
+                className={({ isActive }) => isActive ? "profile-icon-btn active-icon" : "profile-icon-btn"}
+                title="Мій кабінет"
+              >
+                <User size={24} />
+              </NavLink>
+            </div>
+          ) : (
+            <div className="auth-group">
+              <Link to="/login" className="btn-login" onClick={closeMobileMenu}>Увійти</Link>
+              <Link to="/sign-up" className="btn-signup" onClick={closeMobileMenu}>Реєстрація</Link>
+            </div>
           )}
         </div>
-
-        {isAuthenticated ? (
-          <div className="auth-group">
-            <button className="btn-logout" onClick={handleLogout}>
-              <span>Вийти</span>
-            </button>
-          </div>
-        ) : (
-          <div className="auth-group">
-            <Link to="/login" className="btn-login">Увійти</Link>
-            <Link to="/sign-up" className="btn-signup">Реєстрація</Link>
-          </div>
-        )}
       </div>
     </motion.nav>
   );
