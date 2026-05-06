@@ -1,9 +1,9 @@
-import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation, NavLink } from "react-router-dom";
 import { Stethoscope, User, Menu, X } from "lucide-react"; // Додали Menu та X
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
+import {useState} from "react";
 
 // Типізація для коректної роботи з даними лікаря
 interface DoctorData {
