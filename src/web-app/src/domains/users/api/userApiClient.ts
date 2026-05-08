@@ -4,7 +4,9 @@ import type {
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   Specialization, ScheduleRequest, ScheduleResponse,
-  AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse, AdminScheduleRequest // ДОДАНО ІМПОРТ ТИПУ
+  AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
+  AdminScheduleRequest,
+  DoctorListItem // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
 
 export const userApiClient = {
@@ -19,6 +21,10 @@ export const userApiClient = {
 
   patchPatient: async (id: string, request: PatchPatientRequest) =>
     apiClient.patch<PatchPatientResponse>(`/users/patients/${id}`, request),
+
+  // === НОВИЙ МЕТОД ДЛЯ ОТРИМАННЯ ВСІХ ЛІКАРІВ ===
+  getAllDoctors: async () =>
+    apiClient.get<DoctorListItem[]>('/users/doctors'),
 
   getDoctorById: async (id: string) =>
     apiClient.get<GetDoctorResponse>(`/users/doctors/${id}`),
@@ -40,35 +46,36 @@ export const userApiClient = {
 
   rejectRegistration: async (request_id: string, comment: string) =>
     apiClient.post<RejectRegistrationResponse>(`/admin/${request_id}/reject?comment=${encodeURIComponent(comment)}`, {}),
+
   getAdminRegistrations: async () =>
     apiClient.get<AdminRegistration[]>('/admin/registrations'),
-// Отримати всі запити на створення розкладів
+
+  // Отримати всі запити на створення розкладів
   getAdminSchedules: async () =>
     apiClient.get<AdminScheduleRequest[]>('/admin/schedules'),
+
+// Підтвердити розклад
   approveSchedule: async (schedule_id: string) =>
-    apiClient.post(`/admin/schedules/${schedule_id}/approve`, {}),
+    apiClient.post(`/admin/${schedule_id}/approve-schedule`, {}), // повернули старий правильний роут
 
   // Відхилити розклад
   rejectSchedule: async (schedule_id: string, comment: string) =>
-    apiClient.post(`/admin/schedules/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`, {}),
+    apiClient.post(`/admin/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`, {}), // прибрали /schedules/
   // --- АДМІН: Спеціалізації ---
 
-  // 1. Отримати всі запити на спеціалізації (припускаю, що ендпоінт такий самий за логікою)
+  // 1. Отримати всі запити на спеціалізації
   getAdminSpecializations: async () =>
     apiClient.get<any[]>('/admin/specializations'),
 
   // 2. Створити спеціалізацію напряму
-  // Припускаємо, що бекенд чекає об'єкт { name: "Назва" }
-  // В userApiClient.ts
   createSpecializationDirect: async (data: { name: string }) => {
-    // Лог для перевірки у вашій консолі браузера
     console.log("Відправка на бекенд:", data.name);
-
     return apiClient.post('/admin/specialization', {
       name: data.name.trim(),
-      description: "Створено адміністратором" // Бекенд вимагав description
+      description: "Створено адміністратором"
     });
   },
+
   // 3. Підтвердити запит на створення
   approveSpecialization: async (requestId: string) =>
     apiClient.post(`/admin/${requestId}/approve-specialization`, {}),

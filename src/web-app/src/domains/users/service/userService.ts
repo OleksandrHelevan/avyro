@@ -5,9 +5,8 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   Specialization, ScheduleRequest, ScheduleResponse,
   AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
-  AdminScheduleRequest // Переконайтеся, що ви додали цей тип у types.ts
+  DoctorListItem // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
-import {apiClient} from "../../../services/apiService.ts";
 
 export const userService = {
   // --- Auth ---
@@ -29,6 +28,14 @@ export const userService = {
   },
 
   // --- Doctors ---
+  // === НОВИЙ МЕТОД ДЛЯ ОТРИМАННЯ ВСІХ ЛІКАРІВ ===
+  getAllDoctors: async (): Promise<DoctorListItem[]> => {
+    // Якщо ваш apiClient повертає безпосередньо дані (через інтерцептор),
+    // залишаємо так. Якщо він повертає axios response, треба додати .data
+    const response = await userApiClient.getAllDoctors();
+    return (response as any).data ?? response;
+  },
+
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
     return userApiClient.getDoctorById(id);
   },
@@ -63,15 +70,21 @@ export const userService = {
   rejectRegistration: async (requestId: string, comment: string): Promise<RejectRegistrationResponse> => {
     return userApiClient.rejectRegistration(requestId, comment);
   },
-// --- АДМІН: Розклади ---
 
-  getAdminSchedules: async () =>
-    apiClient.get<AdminScheduleRequest[]>('/admin/schedules'),
+  // --- АДМІН: Розклади ---
+  getAdminSchedules: async () => {
+    return userApiClient.getAdminSchedules();
+  },
 
-  // Підтвердити розклад (за скріншотом Swagger: /admin/{id}/approve-schedule)
-  approveSchedule: async (scheduleId: string) =>
-    apiClient.post(`/admin/${scheduleId}/approve-schedule`, {}),
-// --- ADMIN: Specializations ---
+  approveSchedule: async (scheduleId: string) => {
+    return userApiClient.approveSchedule(scheduleId);
+  },
+
+  rejectSchedule: async (scheduleId: string, comment: string) => {
+    return userApiClient.rejectSchedule(scheduleId, comment);
+  },
+
+  // --- ADMIN: Specializations ---
   getAdminSpecializations: async (): Promise<any[]> => {
     return userApiClient.getAdminSpecializations();
   },
@@ -83,7 +96,4 @@ export const userService = {
   approveSpecialization: async (requestId: string): Promise<any> => {
     return userApiClient.approveSpecialization(requestId);
   },
-  // Відхилити розклад (універсальний роут: /admin/{id}/reject)
-  rejectSchedule: async (scheduleId: string, comment: string) =>
-    apiClient.post(`/admin/${scheduleId}/reject?comment=${encodeURIComponent(comment)}`, {}),
 };

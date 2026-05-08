@@ -178,3 +178,10 @@ export interface AdminScheduleRequest {
   createdAt: string;
   updatedAt?: string;
 }
+export interface DoctorListItem {
+  id: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  specializationId: string | null;
+}

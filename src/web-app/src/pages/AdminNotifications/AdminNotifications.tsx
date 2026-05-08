@@ -7,8 +7,8 @@ import {
   useApproveSpecialization,
   useCreateSpecializationDirect
 } from "../../domains/users/useSpecializationMutations/useSpecializationMutations.ts";
-import {useAdminSpecializations} from "../../domains/users/useAdminSpecializations/useAdminSpecializations.ts";
-import {useRejectSchedule} from "../../domains/users/useRejectSchedule/useRejectSchedule.ts"; // Використовуємо ті ж самі стилі для сітки карток
+import { useAdminSpecializations } from "../../domains/users/useAdminSpecializations/useAdminSpecializations.ts";
+import { useRejectSchedule } from "../../domains/users/useRejectSchedule/useRejectSchedule.ts";
 
 export default function AdminSpecializations() {
   const [newSpecName, setNewSpecName] = useState("");
@@ -36,43 +36,51 @@ export default function AdminSpecializations() {
     const comment = window.prompt("Вкажіть причину відхилення:");
     if (comment !== null) {
       if (comment.trim() === "") return toast.error("Причина є обов'язковою!");
-      rejectReq({ scheduleId: requestId, comment: comment.trim() }); // В хуку параметр називається scheduleId, але він працює як універсальний requestId
+      rejectReq({ scheduleId: requestId, comment: comment.trim() });
     }
   };
 
-  if (isLoading) return <div className="dash-page" style={{ display: 'flex', justifyContent: 'center', paddingTop: '100px' }}><Loader2 className="animate-spin" size={40} color="#4f46e5" /></div>;
-  if (isError) return <div className="dash-page"><h2 style={{ color: '#ef4444' }}>Помилка завантаження даних</h2></div>;
+  if (isLoading) {
+    return (
+      <div className="loader-container">
+        <Loader2 className="animate-spin" size={40} color="#4f46e5" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="dash-page">
+        <h2 style={{ color: '#ef4444' }}>Помилка завантаження даних</h2>
+      </div>
+    );
+  }
 
   const pendingRequests = requests?.filter((r: any) => r.status === "PENDING") || [];
 
   return (
     <div className="dash-page">
-      <h2>Управління спеціалізаціями</h2>
+      <h2 className="dash-page-title">Управління спеціалізаціями</h2>
 
       {/* БЛОК ПРЯМОГО СТВОРЕННЯ */}
-      <div className="dash-card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-        <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
-          <Tag size={20} className="text-indigo-600" />
+      <div className="create-card">
+        <h3 className="create-card-title">
+          <Tag size={20} color="#4f46e5" />
           Створити нову спеціалізацію вручну
         </h3>
-        <form onSubmit={handleDirectCreate} style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+
+        <form onSubmit={handleDirectCreate} className="create-form">
           <input
             type="text"
+            className="create-input"
             placeholder="Наприклад: Нейрохірург"
             value={newSpecName}
             onChange={(e) => setNewSpecName(e.target.value)}
-            style={{
-              flex: 1, padding: '10px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem'
-            }}
           />
           <button
             type="submit"
+            className="create-btn"
             disabled={isCreating}
-            style={{
-              padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px',
-              fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: isCreating ? 'not-allowed' : 'pointer',
-              opacity: isCreating ? 0.7 : 1
-            }}
           >
             {isCreating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
             Створити
@@ -81,10 +89,12 @@ export default function AdminSpecializations() {
       </div>
 
       {/* БЛОК ЗАПИТІВ ВІД ЛІКАРІВ */}
-      <h3 style={{ color: '#334155', marginBottom: '1rem' }}>Запити від лікарів ({pendingRequests.length})</h3>
+      <h3 className="section-title">Запити від лікарів ({pendingRequests.length})</h3>
 
       {pendingRequests.length === 0 ? (
-        <p style={{ color: '#64748b' }}>Немає нових запитів на додавання спеціалізацій.</p>
+        <div className="empty-state">
+          Немає нових запитів на додавання спеціалізацій.
+        </div>
       ) : (
         <div className="dash-grid">
           {pendingRequests.map((req: any) => {
@@ -97,34 +107,32 @@ export default function AdminSpecializations() {
                 <div className="dash-header">
                   <div>
                     <h3>{specName}</h3>
-                    <span style={{ color: '#94a3b8' }}>Нова спеціалізація</span>
+                    <span>Нова спеціалізація</span>
                   </div>
                   <Info size={24} color="#94a3b8" />
                 </div>
 
-                <div className="dash-metrics" style={{ padding: '1.5rem' }}>
-                  <p style={{ margin: 0, color: '#475569', fontSize: '0.9rem' }}>
+                <div className="dash-metrics">
+                  <p>
                     Лікар хоче додати спеціалізацію <strong>"{specName}"</strong>, якої наразі немає в системі.
                   </p>
                 </div>
 
-                <div className="dash-actions" style={{ display: 'flex', gap: '10px', padding: '0 1.5rem 1.5rem' }}>
+                <div className="dash-actions">
                   <button
-                    className="dash-btn"
-                    style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                    className="dash-btn btn-approve"
                     onClick={() => approveSpec(req._id || req.id)}
                     disabled={isBusy}
                   >
-                    <Check size={18}/> Прийняти
+                    <Check size={18} /> Прийняти
                   </button>
 
                   <button
-                    className="dash-btn"
-                    style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                    className="dash-btn btn-reject"
                     onClick={() => handleRejectClick(req._id || req.id)}
                     disabled={isBusy}
                   >
-                    <X size={18}/> Відхилити
+                    <X size={18} /> Відхилити
                   </button>
                 </div>
               </div>
