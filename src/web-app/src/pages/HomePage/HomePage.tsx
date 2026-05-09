@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
 
@@ -17,16 +18,17 @@ const staggerContainer = {
 };
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [activeSpec, setActiveSpec] = useState("Усі");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-  // === СТАН ДЛЯ ПОШУКУ ===
+  // Стан для текстового пошуку
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: doctors = [], isLoading: isLoadingDoctors, isError, error } = useGetDoctors();
 
-  // === ЛОГІКА ФІЛЬТРАЦІЇ ===
+  // Логіка фільтрації за кількома полями
   const filteredDoctors = doctors.filter((doc) => {
     const search = searchTerm.toLowerCase().trim();
     if (!search) return true;
@@ -80,13 +82,7 @@ const HomePage = () => {
       </div>
 
       <main className="main-content">
-
-        <motion.div
-          className="slider-container"
-          initial="hidden"
-          animate="visible"
-          variants={fadeUpVariant}
-        >
+        <motion.div className="slider-container" initial="hidden" animate="visible" variants={fadeUpVariant}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -111,26 +107,13 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* Статистика та "Як це працює" тепер вище, щоб пошук був ближче до результатів */}
-        <motion.div
-          className="stats-row"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={staggerContainer}
-        >
+        <motion.div className="stats-row" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={staggerContainer}>
           <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">500+</span> Лікарів</motion.div>
           <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">12k+</span> Пацієнтів</motion.div>
           <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">4.9</span> Середня оцінка</motion.div>
         </motion.div>
 
-        <motion.div
-          className="how-it-works"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
+        <motion.div className="how-it-works" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={staggerContainer}>
           <motion.h3 variants={fadeUpVariant} className="section-subtitle text-center">Як це працює?</motion.h3>
           <div className="steps-grid">
             {steps.map((step, i) => (
@@ -143,13 +126,7 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        <motion.div
-          className="specs-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.8 }}
-          variants={fadeUpVariant}
-        >
+        <motion.div className="specs-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.8 }} variants={fadeUpVariant}>
           <h3 className="section-subtitle">Спеціалізації</h3>
           <div className="specs-group">
             {specs.map(spec => (
@@ -164,14 +141,8 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* === ПОШУК ПЕРЕМІЩЕНО СЮДИ (ПРЯМО НАД КАРТКАМИ) === */}
-        <motion.div
-          className="search-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={fadeUpVariant}
-        >
+        {/* Секція пошуку безпосередньо над результатами */}
+        <motion.div className="search-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={fadeUpVariant}>
           <h2 className="med-title-dark">Знайдіть потрібного спеціаліста</h2>
           <div className="search-bar-white">
             <input
@@ -184,13 +155,7 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        <motion.div
-          className="results-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          variants={staggerContainer}
-        >
+        <motion.div className="results-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer}>
           <motion.h3 variants={fadeUpVariant} className="section-subtitle">
             Результати пошуку ({filteredDoctors.length})
           </motion.h3>
@@ -206,51 +171,38 @@ const HomePage = () => {
 
           <div className="doctors-grid">
             {!isLoadingDoctors && filteredDoctors.map((doc, index) => {
-              // Дістаємо всі доступні поля
               const displayName = doc.fullName || "Спеціаліст не вказав ім'я";
               const displaySpec = doc.specializationId || "Спеціалізація не вказана";
-              const displayEmail = doc.email || "Email не вказано"; // <--- ДОДАЛИ EMAIL
+              const displayEmail = doc.email || "Email не вказано";
               const hasAvatar = !!doc.avatarUrl;
 
               return (
                 <motion.div
                   key={doc.id || index}
-                  initial={{opacity: 0, y: 20}}
-                  animate={{opacity: 1, y: 0}}
-                  transition={{delay: index * 0.1, duration: 0.4}}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
                   className="doctor-card-light glass-light"
-                  whileHover={{y: -8, scale: 1.02}}
+                  whileHover={{ y: -8, scale: 1.02 }}
                 >
                   <div className="card-header">
                     <div
                       className="doctor-avatar-placeholder"
-                      style={hasAvatar ? {
-                        backgroundImage: `url(${doc.avatarUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      } : {}}
+                      style={hasAvatar ? { backgroundImage: `url(${doc.avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
                     ></div>
-
-                    {/* === ІНФОРМАЦІЯ ПРО ЛІКАРЯ === */}
                     <div className="doctor-info-dark">
                       <h4>{displayName}</h4>
                       <p className="spec-text-dark">{displaySpec}</p>
-                      {/* ВИВОДИМО EMAIL ДРІБНІШИМ ШРИФТОМ */}
-                      <p style={{
-                        fontSize: "0.85rem",
-                        color: "#6b7280",
-                        marginTop: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}>
+                      <p style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
                         ✉️ {displayEmail}
                       </p>
                     </div>
-
                     <div className="bonus-tag-light">+50 балів</div>
                   </div>
-                  <button className="btn-profile-light btn-outline">
+                  <button
+                    className="btn-profile-light btn-outline"
+                    onClick={() => navigate(`/doctor/${doc.id}`)}
+                  >
                     Переглянути профіль
                   </button>
                 </motion.div>
@@ -259,13 +211,7 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        <motion.div
-          className="reviews-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{once: true, amount: 0.2}}
-          variants={staggerContainer}
-        >
+        <motion.div className="reviews-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={staggerContainer}>
           <motion.h3 variants={fadeUpVariant} className="section-subtitle">Що кажуть наші пацієнти</motion.h3>
           <div className="reviews-grid">
             {reviews.map((rev) => (
@@ -283,36 +229,25 @@ const HomePage = () => {
             ))}
           </div>
         </motion.div>
-
       </main>
 
-      {/* Футер і кнопка допомоги залишилися без змін */}
-      <motion.footer
-        className="aero-footer glass-light"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{once: true, amount: 0.1}}
-        variants={fadeUpVariant}
-      >
+      <motion.footer className="aero-footer glass-light" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={fadeUpVariant}>
         <div className="footer-content">
           <div className="footer-col brand-col">
             <div className="logo-group">
               <div className="logo-icon-med"></div>
               <h2>MED<span className="logo-accent">.avyro</span></h2>
             </div>
-            <p>Сучасний сервіс пошуку лікарів та онлайн-консультацій. Ваше здоров'я — наш пріоритет.</p>
+            <p>Сучасний сервіс пошуку лікарів та онлайн-консультацій.</p>
           </div>
           <div className="footer-col">
             <h4>Пацієнтам</h4>
             <a href="#">Лікарі</a>
             <a href="#">Клініки</a>
-            <a href="#">Аналізи</a>
           </div>
           <div className="footer-col">
             <h4>Партнерам</h4>
             <a href="#">Реєстрація лікаря</a>
-            <a href="#">Для клінік</a>
-            <a href="#">Реклама</a>
           </div>
           <div className="footer-col">
             <h4>Завантажити</h4>
@@ -336,32 +271,17 @@ const HomePage = () => {
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               className="glass-light"
               style={{
-                position: 'absolute',
-                bottom: '80px',
-                right: '0',
-                width: '320px',
-                padding: '1.5rem',
-                borderRadius: '1rem',
-                background: 'rgba(255, 255, 255, 0.95)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                color: '#111827',
-                border: '1px solid rgba(255, 255, 255, 0.6)'
+                position: 'absolute', bottom: '80px', right: '0', width: '320px', padding: '1.5rem', borderRadius: '1rem',
+                background: 'rgba(255, 255, 255, 0.95)', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', color: '#111827', border: '1px solid rgba(255, 255, 255, 0.6)'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#7b51b3' }}>Як це працює?</h3>
-                <button
-                  onClick={() => setIsHelpOpen(false)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#6b7280' }}
-                >
-                  ✕
-                </button>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#7b51b3' }}>Допомога</h3>
+                <button onClick={() => setIsHelpOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#6b7280' }}>✕</button>
               </div>
               <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '0.9rem', color: '#4b5563' }}>
-                <li><strong>1. Знайдіть лікаря:</strong> Використовуйте пошук або фільтри за спеціалізацією.</li>
-                <li><strong>2. Запишіться:</strong> Оберіть зручний слот у профілі лікаря.</li>
-                <li><strong>3. Кабінет:</strong> Перейдіть у "Мій кабінет", щоб заповнити дані для швидкого прийому.</li>
-                <li><strong>4. Бонуси:</strong> Отримуйте бейджі та знижки за здорові звички!</li>
+                <li><strong>1. Пошук:</strong> Використовуйте фільтри або рядок пошуку.</li>
+                <li><strong>2. Профіль:</strong> Переглядайте детальний розклад лікаря.</li>
               </ul>
             </motion.div>
           )}
@@ -374,19 +294,14 @@ const HomePage = () => {
           animate={{ scale: 1 }}
           transition={{ delay: 1, type: "spring", stiffness: 200 }}
           style={{
-            width: '60px', height: '60px', borderRadius: '50%',
-            border: 'none', background: '#7b51b3', color: 'white',
-            fontSize: '1.8rem', cursor: 'pointer', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(123, 81, 179, 0.4)',
-            position: 'absolute', bottom: '0', right: '0'
+            width: '60px', height: '60px', borderRadius: '50%', border: 'none', background: '#7b51b3', color: 'white',
+            fontSize: '1.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(123, 81, 179, 0.4)', position: 'absolute', bottom: '0', right: '0'
           }}
         >
-          <span className="pulse-ring"></span>
           {isHelpOpen ? '✕' : '❓'}
         </motion.button>
       </div>
-
     </div>
   );
 };
