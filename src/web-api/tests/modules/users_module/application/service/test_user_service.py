@@ -27,12 +27,25 @@ def mock_reward_repository():
     return Mock()
 
 
+# ДОДАНО: Фікстура для нового репозиторію
 @pytest.fixture
-def user_service(mock_user_repository, mock_request_repository, mock_reward_repository):
+def mock_specialization_repository():
+    return Mock()
+
+
+# ВИПРАВЛЕНО: Додано mock_specialization_repository в параметри та конструктор
+@pytest.fixture
+def user_service(
+    mock_user_repository,
+    mock_request_repository,
+    mock_reward_repository,
+    mock_specialization_repository
+):
     return PatientService(
         user_repository=mock_user_repository,
         request_repository=mock_request_repository,
-        reward_repository=mock_reward_repository
+        reward_repository=mock_reward_repository,
+        specialization_repository=mock_specialization_repository
     )
 
 

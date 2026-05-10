@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from config.dependencies import get_doctor_service, get_patient_service
 from config.security import get_current_user
 
-from typing import Optional, List, Any
+from typing import List
 from config.logging_config import logger
+from modules.users_module.application.dto.DoctorListItemResponse import DoctorListItemResponse
 
 from modules.users_module.application.services.DoctorService import DoctorService
 from modules.users_module.application.dto.DoctorProfile import (
@@ -45,10 +46,9 @@ def patch_doctor_profile(
 
     return service.patch_doctor_profile(user_id, profile_data)
 
-@router.get("", response_model=List[Any])
+@router.get("", response_model=List[DoctorListItemResponse])
 def get_doctors(
-    specialization: Optional[str] = Query(None, description="Filter doctors by specialization ID"),
     service=Depends(get_patient_service)
 ):
-    logger.info(f"Fetching doctors list. Specialization filter: {specialization}")
-    return service.get_doctors_list(specialization)
+    logger.info("Fetching doctors list.")
+    return service.get_doctors_list()

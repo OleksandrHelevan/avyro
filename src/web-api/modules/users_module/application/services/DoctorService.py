@@ -13,9 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 class DoctorService:
-    def __init__(self, user_repository: UserRepository, spec_repository: SpecializationRepository):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        spec_repository: SpecializationRepository,
+        schedule_repository
+    ):
         self.user_repository = user_repository
         self.spec_repository = spec_repository
+        self.schedule_repository = schedule_repository
 
     def patch_doctor_profile(self, user_id: str, profile_data: DoctorProfileUpdateRequest) -> dict:
         try:
@@ -29,7 +35,6 @@ class DoctorService:
         if not user:
             raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-        # Тести вимагають 403 помилку для не-лікарів
         if str(user.role) != "DOCTOR" and str(user.role) != "Role.DOCTOR":
             raise HTTPException(status_code=403, detail="Користувач не є лікарем")
 
@@ -38,7 +43,6 @@ class DoctorService:
         if not specialization:
             raise HTTPException(status_code=404, detail="Спеціалізацію не знайдено")
 
-        # ... далі твій старий код (оновлення профілю і збереження) ...
         profile_update = {
             "fullName": profile_data.fullName,
             "phone": profile_data.phone,
@@ -56,14 +60,13 @@ class DoctorService:
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
-        # Завжди беремо свіжий об'єкт користувача з репозиторію
         user = self.user_repository.get_by_id(user_oid)
         if not user:
             raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-            # ДОДАЙ ОЦІ ДВА РЯДКИ:
         if str(user.role) != "DOCTOR" and str(user.role) != "Role.DOCTOR":
             raise HTTPException(status_code=400, detail="Користувач не є лікарем")
+
         profile_obj = getattr(user, "profile", None)
 
         def get_attr(obj, attr_name, default=None):
@@ -86,6 +89,40 @@ class DoctorService:
             except Exception as e:
                 logger.error(f"Error fetching specialization name: {e}")
 
+        formatted_schedules = []
+        try:
+            raw_schedules = self.schedule_repository.get_all_by_doctor_id(user_oid)
+
+            for sched in raw_schedules:
+                formatted_slots = []
+                for slot in sched.get("slots", []):
+                    app_id = slot.get("appointmentId")
+                    formatted_slots.append({
+                        "slotId": str(slot.get("slotId", slot.get("_id", ""))),
+                        "from": slot.get("from"),
+                        "to": slot.get("to"),
+                        "type": slot.get("type"),
+                        "appointmentId": str(app_id) if app_id else None
+                    })
+
+                # Обробка самого розкладу
+                formatted_schedules.append({
+                    "id": str(sched.get("_id")),
+                    "doctorId": str(sched.get("doctorId")),
+                    "month": sched.get("month"),
+                    "year": sched.get("year"),
+                    "title": sched.get("title", ""),
+                    "isRepeated": sched.get("isRepeated", False),
+                    "repeating": sched.get("repeating", {}),
+                    "status": sched.get("status", "PENDING"),
+                    "slots": formatted_slots,
+                    "createdAt": sched.get("createdAt"),
+                    "updatedAt": sched.get("updatedAt")
+                })
+        except Exception as e:
+            logger.error(f"Error fetching schedule for doctor {user_id}: {e}")
+
+
         return {
             "_id": str(user.id),
             "email": user.email,
@@ -96,5 +133,6 @@ class DoctorService:
             "specializationId": spec_id_str,
             "specializationName": specialization_name,
             "createdAt": getattr(user, "created_at", None),
-            "lastLoginAt": getattr(user, "last_login_at", None)
+            "lastLoginAt": getattr(user, "last_login_at", None),
+            "schedule": formatted_schedules
         }

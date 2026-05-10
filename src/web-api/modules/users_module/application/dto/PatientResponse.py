@@ -1,12 +1,21 @@
+from typing import  List
+
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 
+
 class RewardItemResponse(BaseModel):
-    id: str
-    title: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(alias="_id")
+    title: Optional[str] = None
+
+    type: str
+    points: int
+    source: str
     description: Optional[str] = None
-    issued_at: Optional[str] = None
+    createdAt: datetime
 
 class PatientResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
