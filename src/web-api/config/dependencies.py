@@ -14,7 +14,10 @@ from modules.users_module.infrastructure.persistence.UserRepository import UserR
 
 
 def get_auth_service() -> AuthService:
-    return AuthService(UserRepository(db["Users"]))
+    return AuthService(
+        user_repository=UserRepository(db["Users"]),
+        request_repository=RequestRepository(db["Requests"])
+    )
 
 
 def get_patient_service() -> PatientService:

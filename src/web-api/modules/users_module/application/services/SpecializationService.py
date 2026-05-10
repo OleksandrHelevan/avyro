@@ -1,6 +1,4 @@
 import logging
-
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
@@ -11,13 +9,11 @@ from modules.requests_module.domains.Request import (
     RequestStatus
 )
 
-from modules.users_module.infrastructure.persistence.SpecializationRepository import (
-    SpecializationRepository
-)
-
 from modules.users_module.application.dto.SpecializationDto import (
     CreateSpecializationRequest
 )
+
+from modules.users_module.domains.specialization.Specialization import Specialization
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +23,7 @@ class SpecializationService:
         self.repository = repository
         self.request_repository = request_repository
 
-    # === 1. НОВИЙ МЕТОД ДЛЯ АДМІНА ===
     def create_specialization_direct(self, request: CreateSpecializationRequest) -> dict:
-        # Перевірка на унікальність імені в головній БД
         existing_spec = self.repository.get_by_name(request.name)
         if existing_spec:
             raise HTTPException(
@@ -37,7 +31,14 @@ class SpecializationService:
                 detail=f"Спеціалізація з ім'ям '{request.name}' вже існує"
             )
 
-        created_spec = self.repository.create(request)
+        # === ФІКС ТУТ: Перетворюємо DTO на Доменну модель ===
+        new_specialization = Specialization(
+            name=request.name,
+            description=request.description
+        )
+
+        # Тепер репозиторій отримує саме те, що очікує, і зможе додати .id
+        created_spec = self.repository.create(new_specialization)
 
         return {
             "_id": str(created_spec.id),

@@ -78,3 +78,18 @@ class RequestRepository:
         })
 
         return Request.from_dict(data) if data else None
+
+    def get_pending_request_by_email_and_type(
+        self,
+        email: str,
+        request_type: str | RequestType
+    ) -> Optional[Request]:
+        req_type_value = request_type.value if hasattr(request_type, "value") else request_type
+
+        data = self.collection.find_one({
+            "type": req_type_value,
+            "status": RequestStatus.PENDING.value,
+            "payload.email": email
+        })
+
+        return Request.from_dict(data) if data else None
