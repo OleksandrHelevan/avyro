@@ -11,8 +11,16 @@ def mock_user_repository():
 
 
 @pytest.fixture
-def auth_service(mock_user_repository):
-    return AuthService(user_repository=mock_user_repository)
+def mock_request_repository():
+    return Mock()
+
+
+@pytest.fixture
+def auth_service(mock_user_repository, mock_request_repository):
+    return AuthService(
+        user_repository=mock_user_repository,
+        request_repository=mock_request_repository
+    )
 
 
 @patch("modules.users_module.application.services.AuthService.create_access_token")

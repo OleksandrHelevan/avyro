@@ -2,12 +2,16 @@ from datetime import datetime, timezone
 from modules.users_module.api.exception.exceptions import InvalidCredentialsException
 from modules.users_module.application.dto.LoginRequest import LoginRequest
 from modules.users_module.application.dto.LoginResponse import LoginResponse
-from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from config.security import verify_password, create_access_token
 
+from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+from modules.requests_module.infrastructure.persistence.RequestRepository import RequestRepository # Додайте імпорт
+
 class AuthService:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(self, user_repository: UserRepository, request_repository: RequestRepository):
         self.user_repository = user_repository
+        self.request_repository = request_repository
+
 
     def login(self, request: LoginRequest) -> LoginResponse:
         user = self.user_repository.get_by_email(request.email)
@@ -35,15 +39,12 @@ class AuthService:
         )
 
     def check_doctor_status(self, email: str) -> dict:
-        # 1. Перевіряємо наявність у базі Users
         user = self.user_repository.get_by_email(email)
         is_authenticated = user is not None
 
-        # 2. Перевіряємо наявність заявки у базі Requests
-        # Припускаємо, що у request_repository є відповідний метод
         pending_request = self.request_repository.get_pending_request_by_email_and_type(
             email=email,
-            request_type="DOCTOR_REGISTRATIONS"  # Або використання Enum, якщо він є
+            request_type="DOCTOR_REGISTRATION"
         )
         is_pending = pending_request is not None
 
