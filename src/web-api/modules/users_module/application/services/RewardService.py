@@ -5,7 +5,6 @@ from pymongo.errors import PyMongoError
 from modules.users_module.application.dto.ProfileDto import ProfileUpdateRequest, ProfileUpdateResponse
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
-# Припускаю, що у вас є репозиторій для прогресу, або його треба створити:
 from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
 
 logger = logging.getLogger(__name__)

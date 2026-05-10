@@ -50,7 +50,7 @@ class PatientService:
                 "points": r.points,
                 "source": r.source.value if getattr(r, "source", None) else None,
                 "description": r.description,
-                "issued_at": r.createdAt.isoformat() if getattr(r, "createdAt", None) else None
+                "createdAt": r.createdAt
             } for r in user_rewards
         ]
 
