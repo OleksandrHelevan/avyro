@@ -7,9 +7,6 @@ from fastapi import HTTPException, status
 from modules.users_module.application.services.DoctorService import DoctorService
 
 
-# Якщо DTO - це Pydantic модель, краще її імпортувати, або обійтися Mock, як нижче.
-# from modules.users_module.application.dto.DoctorProfile import DoctorProfileUpdateRequest
-
 @pytest.fixture
 def mock_user_repo():
     return Mock()
@@ -20,9 +17,23 @@ def mock_spec_repo():
     return Mock()
 
 
+# ДОДАНО: Фікстура для репозиторію розкладів
 @pytest.fixture
-def doctor_service(mock_user_repo, mock_spec_repo):
-    return DoctorService(user_repository=mock_user_repo, spec_repository=mock_spec_repo)
+def mock_schedule_repo():
+    repo = Mock()
+    # За замовчуванням повертаємо порожній список розкладів, щоб не ламати інші тести
+    repo.get_all_by_doctor_id.return_value = []
+    return repo
+
+
+# ВИПРАВЛЕНО: Додано mock_schedule_repo у сервіс
+@pytest.fixture
+def doctor_service(mock_user_repo, mock_spec_repo, mock_schedule_repo):
+    return DoctorService(
+        user_repository=mock_user_repo,
+        spec_repository=mock_spec_repo,
+        schedule_repository=mock_schedule_repo
+    )
 
 
 @pytest.fixture
@@ -64,6 +75,7 @@ def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_
     # Імітуємо користувача після оновлення
     updated_user = Mock(id=user_oid, role="DOCTOR", email="house@gmail.com", is_active=True, created_at="2023-01-01",
                         last_login_at="2023-01-02")
+
     # Створюємо надійний об'єкт-заглушку для профілю
     class FakeProfile:
         pass
@@ -76,7 +88,6 @@ def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_
 
     updated_user.profile = profile_mock
 
-    updated_user.profile = profile_mock
     # get_by_id викликається двічі: до оновлення і після
     mock_user_repo.get_by_id.side_effect = [initial_user, updated_user]
 
@@ -89,11 +100,13 @@ def test_patch_doctor_profile_success(doctor_service, mock_user_repo, mock_spec_
     assert result["fullName"] == "Dr. Gregory House"
     assert result["phone"] == "+380991234567"
     assert result["avatarUrl"] == "http://example.com/avatar.jpg"
+    assert "schedule" in result  # Перевіряємо, що поле розкладу теж є
 
     mock_user_repo.update_profile.assert_called_once()
     args, kwargs = mock_user_repo.update_profile.call_args
     assert args[0] == user_oid
     assert args[1]["specialization_id"] == ObjectId(mock_profile_request.specialization_id)
+
 
 def test_patch_doctor_profile_invalid_id(doctor_service, mock_profile_request):
     # Act & Assert
@@ -111,11 +124,11 @@ def test_patch_doctor_profile_spec_not_found(doctor_service, mock_spec_repo, moc
     mock_user_repo.get_by_id.return_value = Mock(role="DOCTOR")
 
     # Act & Assert
-
     with pytest.raises(HTTPException) as exc_info:
         doctor_service.patch_doctor_profile(valid_user_id, mock_profile_request)
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
     assert "Спеціалізацію не знайдено" in exc_info.value.detail
+
 
 def test_patch_doctor_profile_user_not_found(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
                                              mock_profile_request):
@@ -129,13 +142,13 @@ def test_patch_doctor_profile_user_not_found(doctor_service, mock_user_repo, moc
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
     assert exc_info.value.detail == "Користувача не знайдено"
 
+
 def test_patch_doctor_profile_not_a_doctor(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id,
                                            mock_profile_request):
     # Arrange
-    # Заміни створення user_not_doctor на це:
     user_not_doctor = Mock()
     user_not_doctor.role = "PATIENT"
-    user_not_doctor.profile = None  # Тепер це точно None!
+    user_not_doctor.profile = None
     mock_user_repo.get_by_id.return_value = user_not_doctor
 
     # Act & Assert
@@ -145,13 +158,12 @@ def test_patch_doctor_profile_not_a_doctor(doctor_service, mock_user_repo, mock_
     assert exc_info.value.detail == "Користувач не є лікарем"
 
 
-
-
 # ==========================================
 # ТЕСТИ ДЛЯ GET_DOCTOR_BY_ID
 # ==========================================
 
-def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id, valid_spec_id):
+def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo, mock_schedule_repo, valid_user_id,
+                                  valid_spec_id):
     # Arrange
     mock_user = Mock(id=ObjectId(valid_user_id), role="DOCTOR", email="doc@mail.com", is_active=True)
     mock_user.profile = {
@@ -168,6 +180,27 @@ def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo
     mock_spec.name = "Хірург"
     mock_spec_repo.get_by_id.return_value = mock_spec
 
+    # ДОДАНО: Імітуємо повернення розкладу з БД
+    fake_schedule_id = ObjectId()
+    fake_slot_id = ObjectId()
+    mock_schedule_repo.get_all_by_doctor_id.return_value = [
+        {
+            "_id": fake_schedule_id,
+            "doctorId": ObjectId(valid_user_id),
+            "month": 5,
+            "year": 2026,
+            "status": "APPROVED",
+            "slots": [
+                {
+                    "slotId": fake_slot_id,
+                    "from": "09:00",
+                    "to": "10:00",
+                    "type": "AVAILABLE"
+                }
+            ]
+        }
+    ]
+
     # Act
     result = doctor_service.get_doctor_by_id(valid_user_id)
 
@@ -176,6 +209,12 @@ def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo
     assert result["email"] == "doc@mail.com"
     assert result["fullName"] == "Dr. Smith"
     assert result["specializationName"] == "Хірург"
+
+    # ДОДАНО: Перевіряємо форматування розкладу
+    assert len(result["schedule"]) == 1
+    assert result["schedule"][0]["id"] == str(fake_schedule_id)
+    assert result["schedule"][0]["status"] == "APPROVED"
+    assert result["schedule"][0]["slots"][0]["slotId"] == str(fake_slot_id)
 
 
 def test_get_doctor_by_id_invalid_id(doctor_service):
@@ -198,17 +237,13 @@ def test_get_doctor_by_id_user_not_found(doctor_service, mock_user_repo, valid_u
 def test_get_doctor_by_id_not_a_doctor(doctor_service, mock_user_repo, valid_user_id):
     # Arrange
     mock_user_repo.get_by_id.return_value = Mock(role="ADMIN", profile=None)
+
     # Act & Assert
     with pytest.raises(HTTPException) as exc_info:
         doctor_service.get_doctor_by_id(valid_user_id)
-    # Зверніть увагу: у вашому коді get_doctor_by_id повертає 400, а patch - 403. Тест відповідає коду.
+
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert exc_info.value.detail == "Користувач не є лікарем"
-
-    user_not_doctor = Mock()
-    user_not_doctor.role = "PATIENT"
-    user_not_doctor.profile = None  # Тепер це точно None!
-    mock_user_repo.get_by_id.return_value = user_not_doctor
 
 
 def test_get_doctor_by_id_no_specialization(doctor_service, mock_user_repo, mock_spec_repo, valid_user_id):
@@ -224,4 +259,5 @@ def test_get_doctor_by_id_no_specialization(doctor_service, mock_user_repo, mock
 
     # Assert
     assert result["specializationName"] is None
+    assert result["schedule"] == []
     mock_spec_repo.get_by_id.assert_not_called()

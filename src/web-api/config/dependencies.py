@@ -24,14 +24,21 @@ def get_patient_service() -> PatientService:
     return PatientService(
         user_repository=UserRepository(db["Users"]),
         request_repository=RequestRepository(db["Requests"]),
-        reward_repository=RewardRepository(db["Rewards"])
+        reward_repository=RewardRepository(db["Rewards"]),
+        specialization_repository=SpecializationRepository(db["Specializations"])
     )
 
 
 def get_doctor_service() -> DoctorService:
     user_repo = UserRepository(db["Users"])
     spec_repo = SpecializationRepository(db["Specializations"])
-    return DoctorService(user_repository=user_repo, spec_repository=spec_repo)
+    schedule_repo = ScheduleRepository(db["Schedules"])
+
+    return DoctorService(
+        user_repository=user_repo,
+        spec_repository=spec_repo,
+        schedule_repository=schedule_repo
+    )
 
 
 def get_schedule_service() -> ScheduleService:
@@ -55,11 +62,7 @@ def get_admin_request_service() -> AdminRequestService:
     schedule_service = get_schedule_service()
     spec_service = get_specialization_service()
 
-    user_service = PatientService(
-        user_repo,
-        request_repo,
-        reward_repo
-    )
+    user_service = get_patient_service()
 
     return AdminRequestService(
         request_repo=request_repo,
