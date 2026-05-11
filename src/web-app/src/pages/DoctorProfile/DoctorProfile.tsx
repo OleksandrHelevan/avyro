@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Stethoscope,
@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 
 // Прямі імпорти ваших хуків
-import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useSpecializations } from "../../domains/users/useSpecializations/useSpecializations";
-import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
+import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
+import {useSpecializations} from "../../domains/users/useSpecializations/useSpecializations";
+import {useUpdateDoctor} from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
 
 import "./DoctorProfile.css";
 
@@ -22,9 +22,9 @@ export default function DoctorProfile() {
   const navigate = useNavigate();
 
   // --- ХУКИ ---
-  const { data: doctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
-  const { data: specializations, isLoading: isSpecsLoading } = useSpecializations();
-  const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
+  const {data: doctor, isLoading: isDoctorLoading} = useDoctor(CURRENT_USER_ID);
+  const {data: specializations, isLoading: isSpecsLoading} = useSpecializations();
+  const {mutate: updateDoctor, isPending: isUpdating} = useUpdateDoctor();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -36,7 +36,7 @@ export default function DoctorProfile() {
 
   useEffect(() => {
     if (doctor) {
-      const rawName = (doctor as any).fullName || (doctor as any).full_name || "";
+      const rawName = (doctor as any).fullName || (doctor as any).fullame || "";
       const nameParts = rawName.trim().split(/\s+/);
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
@@ -61,7 +61,7 @@ export default function DoctorProfile() {
     updateDoctor({
       id: CURRENT_USER_ID,
       data: {
-        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
         specialization_id: formData.specializationId,
         phone: formData.phone,
         avatarUrl: formData.avatarUrl,
@@ -90,7 +90,7 @@ export default function DoctorProfile() {
           <aside className="sidebar">
             <div className="sidebar-menu glass-light">
               <button className="menu-item active">
-                <LayoutDashboard size={18} />
+                <LayoutDashboard size={18}/>
                 <span>Кабінет лікаря</span>
               </button>
             </div>
@@ -115,7 +115,7 @@ export default function DoctorProfile() {
                 <div className="avatar-info">
                   <h2>{formData.firstName} {formData.lastName}</h2>
                   <span className="status-badge doc-badge">
-                      {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
+                    {doctor?.specializationName || "Спеціалізація не обрана"}
                     </span>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function DoctorProfile() {
                   <div className="form-group">
                     <label>Ім'я</label>
                     <div className="input-wrapper">
-                      <UserCircle className="input-icon-svg" size={18} />
+                      <UserCircle className="input-icon-svg" size={18}/>
                       <input
                         type="text"
                         placeholder="Ваше ім'я"
@@ -156,7 +156,7 @@ export default function DoctorProfile() {
                   <div className="form-group">
                     <label>Прізвище</label>
                     <div className="input-wrapper">
-                      <UserCircle className="input-icon-svg" size={18} />
+                      <UserCircle className="input-icon-svg" size={18}/>
                       <input
                         type="text"
                         placeholder="Ваше прізвище"
@@ -167,10 +167,10 @@ export default function DoctorProfile() {
                     </div>
                   </div>
 
-                  <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+                  <div className="form-group" style={{gridColumn: "1 / -1"}}>
                     <label>Спеціалізація</label>
                     <div className="input-wrapper">
-                      <Stethoscope className="input-icon-svg" size={18} />
+                      <Stethoscope className="input-icon-svg" size={18}/>
                       <select
                         value={formData.specializationId}
                         onChange={(e) => setFormData({...formData, specializationId: e.target.value})}
@@ -191,8 +191,9 @@ export default function DoctorProfile() {
                 </div>
 
                 {/* ОНОВЛЕНИЙ БЛОК КНОПОК */}
-                <div className="form-actions" style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px' }}>
-                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{ flex: 1 }}>
+                <div className="form-actions"
+                     style={{display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px'}}>
+                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{flex: 1}}>
                     {isUpdating ? "Збереження..." : "Зберегти зміни"}
                   </button>
 
@@ -216,7 +217,7 @@ export default function DoctorProfile() {
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ffe4e6'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff1f2'}
                   >
-                    <LogOut size={18} strokeWidth={2.5} />
+                    <LogOut size={18} strokeWidth={2.5}/>
                     Вийти
                   </button>
                 </div>

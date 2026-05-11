@@ -82,7 +82,7 @@ export interface GetDoctorResponse {
 }
 
 export interface UpdateDoctorProfileRequest {
-  full_name: string;
+  fullName: string;
   phone: string;
   avatarUrl: string;
   specialization_id: string;
@@ -97,6 +97,7 @@ export interface UpdateProfileResponse {
  avatarUrl: string;
  createdAt: Date;
  lastLoginAt: Date;
+  specializationName: string;
 }
 
 // --- Спеціалізації (додано) ---

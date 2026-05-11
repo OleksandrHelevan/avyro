@@ -47,6 +47,7 @@ export const userService = {
   // --- Specializations ---
   getAllSpecializations: async (): Promise<Specialization[]> => {
     return userApiClient.getAllSpecializations();
+
   },
 
   getSpecializationById: async (spec_id: string): Promise<Specialization> => {
