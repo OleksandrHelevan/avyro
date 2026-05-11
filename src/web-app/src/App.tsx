@@ -2,22 +2,21 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
-// Сторінки
+// --- СТОРІНКИ ---
 import HomePage from './pages/HomePage/HomePage.tsx';
 import LoginPage from './pages/LoginPage/LoginPage.tsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.tsx';
 import PatientProfile from "./pages/PatientProfile/PatientProfile.tsx";
 import DoctorProfile from "./pages/DoctorProfile/DoctorProfile.tsx";
+import DoctorProfilePage from "./pages/DoctorProfilePage/DoctorProfilePage.tsx"; // Сторінка перегляду для пацієнтів
 import ScheduleEditor from "./pages/ScheduleEditor/ScheduleEditor.tsx";
 import NotApprovedPage from "./pages/NotApprovedPage/NotApprovedPage.tsx";
 import NotFound from "./pages/NotFound/NotFound.tsx";
+import AdminSchedules from "./pages/AdminSchedules/AdminSchedules.tsx";
+import AdminRequests from "./pages/AdminRequests/AdminRequests.tsx";
+import AdminNotifications from "./pages/AdminNotifications/AdminNotifications.tsx";
 
-// Адмін-панель (імпортуйте ваші компоненти сторінок)
-// import AdminRequests from "./pages/Admin/AdminRequests.tsx";
-// import AdminNotifications from "./pages/Admin/AdminNotifications.tsx";
-// import AdminSchedules from "./pages/Admin/AdminSchedules.tsx";
-
-// Лейаут та сервіси
+// --- ЛЕЙАУТ ТА СЕРВІСИ ---
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "./services/queryClient.ts";
 import { useDoctor } from "./domains/users/useDoctor/useDoctor";
@@ -28,7 +27,7 @@ interface DoctorData {
   isActive?: boolean;
 }
 
-// --- ДИСПЕТЧЕР ПРОФІЛІВ ---
+// --- ДИСПЕТЧЕР ПРОФІЛІВ (Власний кабінет) ---
 const ProfileDispatcher = () => {
   const role = localStorage.getItem("userRole")?.replace(/"/g, '');
   const userId = localStorage.getItem("userId")?.replace(/"/g, '');
@@ -91,13 +90,10 @@ const DoctorOnlyRoute = () => {
   return <Outlet />;
 };
 
+// --- ОСНОВНИЙ КОМПОНЕНТ APP ---
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/*
-          toastOptions з limit: 1 гарантує, що не буде "драбини" з тостів.
-          Новий тост просто замінить попередній.
-      */}
       <Toaster
         position="bottom-right"
         reverseOrder={false}
@@ -121,24 +117,31 @@ export default function App() {
         <Routes>
           <Route path="/" element={<RootLayout />}>
 
+            {/* Захищені маршрути (тільки для авторизованих) */}
             <Route element={<ProtectedRoute />}>
               <Route index element={<HomePage />} />
+
+              {/* Перегляд профілю конкретного лікаря (для пацієнтів) */}
+              <Route path="doctor/:id" element={<DoctorProfilePage />} />
+
+              {/* Власний профіль (Диспетчер) */}
               <Route path="profile" element={<ProfileDispatcher />} />
 
-              {/* Маршрути для активних лікарів */}
+              {/* Маршрути тільки для активованих лікарів */}
               <Route element={<DoctorOnlyRoute />}>
                 <Route path="schedule-edit" element={<ScheduleEditor />} />
                 <Route path="patients" element={<div>Сторінка пацієнтів</div>} />
               </Route>
 
-              {/* Маршрути для адміна */}
+              {/* Маршрути тільки для адміністратора */}
               <Route element={<AdminRoute />}>
-                <Route path="admin/requests" element={<div>Сторінка запитів</div>} />
-                <Route path="admin/notifications" element={<div>Сторінка сповіщень</div>} />
-                <Route path="admin/schedules" element={<div>Сторінка розкладів</div>} />
+                <Route path="admin/requests" element={<AdminRequests />} />
+                <Route path="admin/specializations" element={<AdminNotifications />} />
+                <Route path="admin/schedules" element={<AdminSchedules />} />
               </Route>
             </Route>
 
+            {/* Публічні маршрути (тільки для неавторизованих) */}
             <Route element={<PublicRoute />}>
               <Route path="login" element={<LoginPage />} />
               <Route path="sign-up" element={<SignUpPage />} />
@@ -146,6 +149,7 @@ export default function App() {
 
           </Route>
 
+          {/* 404 сторінка */}
           <Route path="*" element={<NotFound/>}/>
         </Routes>
       </BrowserRouter>
