@@ -30,5 +30,20 @@ class PatientResponse(BaseModel):
     lastLoginAt: Optional[datetime] = None
     rewards: List[RewardItemResponse] = [] # Додаємо це поле
 
+    class RewardDTO(BaseModel):
+        id: str = Field(alias="_id")
+
+        title: str = Field(alias="source")
+
+        type: str
+        points: int
+        description: str
+        createdAt: datetime
+
+        model_config = ConfigDict(
+            populate_by_name=True,
+            from_attributes=True
+        )
+
 
 
