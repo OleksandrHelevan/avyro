@@ -77,3 +77,4 @@ class Appointment:
             updated_at=data.get("updatedAt"),
         )
 
+
