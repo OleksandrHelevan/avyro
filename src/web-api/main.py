@@ -15,6 +15,8 @@ from modules.users_module.api.SpecializationController import router as speciali
 from modules.admin_module.api.AdminController import router as admin_router
 
 
+
+
 from modules.users_module.api.exception.exception_handlers import (
     forbidden_handler,
     invalid_user_id_handler,
@@ -84,3 +86,5 @@ def db_health():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "error", "mongo": "not connected", "message": "Database is offline"}
         )
+from modules.appointments_module.api.AppointmentController import router as appointment_router
+app.include_router(appointment_router)

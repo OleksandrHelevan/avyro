@@ -16,6 +16,8 @@ async def get_doctor_schedules(
     schedule_service: ScheduleService = Depends(get_schedule_service)
 ):
      schedule_service.get_doctor_slots(doctorId)
+     return schedule_service.get_doctor_slots(doctorId)
+
 
 @router.post("/request", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def request_schedule_creation(

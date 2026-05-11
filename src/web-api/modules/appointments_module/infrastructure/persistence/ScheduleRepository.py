@@ -22,11 +22,9 @@ class ScheduleRepository:
         })
         return Schedule.from_dict(doc) if doc else None
 
-    def get_all_by_doctor_id(self, doctor_id: ObjectId) -> list:
-        """Повертає всі розклади для конкретного лікаря"""
-        # Якщо використовується PyMongo
+    def get_all_by_doctor_id(self, doctor_id: ObjectId) -> List[Schedule]:
         schedules = self.collection.find({"doctorId": doctor_id})
-        return list(schedules)
+        return [Schedule.from_dict(doc) for doc in schedules]
 
     def book_slot(self, schedule_id: ObjectId, slot_id: ObjectId, appointment_id: ObjectId) -> bool:
         """Атомарне бронювання слота всередині масиву"""
@@ -48,4 +46,8 @@ class ScheduleRepository:
 
     def get_by_id(self, schedule_id: ObjectId) -> Optional[Schedule]:
         doc = self.collection.find_one({"_id": schedule_id})
+        return Schedule.from_dict(doc) if doc else None
+
+    def get_by_slot_id(self, slot_id: ObjectId):
+        doc = self.collection.find_one({"slots.slotId": slot_id})
         return Schedule.from_dict(doc) if doc else None

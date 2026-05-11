@@ -11,6 +11,10 @@ from modules.users_module.application.services.SpecializationService import Spec
 from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
 from modules.users_module.infrastructure.persistence.SpecializationRepository import SpecializationRepository
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
+from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
+from modules.appointments_module.application.service.AppointmentService import AppointmentService
+
+
 
 
 def get_auth_service() -> AuthService:
@@ -70,3 +74,9 @@ def get_admin_request_service() -> AdminRequestService:
         schedule_service=schedule_service,
         specialization_service=spec_service
     )
+
+def get_appointment_service() -> AppointmentService:
+    appointment_repo = AppointmentRepository(db["Appointments"])
+    schedule_repo = ScheduleRepository(db["Schedules"])
+    return AppointmentService(appointment_repo, schedule_repo)
+
