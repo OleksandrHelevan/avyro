@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from config.dependencies import get_patient_service
 from config.logging_config import logger
 
-# ДОДАНО: імпорти RequestRepository та RewardRepository
 
 from modules.users_module.application.services.PatientService import PatientService
 from modules.users_module.application.dto.AddProfilePatientRequest import AddPatientProfileRequest

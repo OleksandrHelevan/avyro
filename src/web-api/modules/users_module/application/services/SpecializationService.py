@@ -45,6 +45,8 @@ class SpecializationService:
             "name": created_spec.name,
             "description": created_spec.description
         }
+    def create_specialization(self, request: CreateSpecializationRequest) -> dict:
+        return self.create_specialization_direct(request)
 
     def get_all_specializations(self) -> list[dict]:
         specs = self.repository.get_all()
@@ -123,3 +125,6 @@ class SpecializationService:
             "message": "Запит на створення спеціалізації відправлено",
             "requestId": str(created_request.id)
         }
+
+
+
