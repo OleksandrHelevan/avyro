@@ -29,7 +29,6 @@ const DoctorProfilePage = () => {
     enabled: !!id,
   });
 
-  // 2. Отримуємо розклади
   const { data: allSchedules, isLoading: isScheduleLoading } = useQuery({
     queryKey: ["admin-schedules"],
     queryFn: () => userService.getAdminSchedules(),
