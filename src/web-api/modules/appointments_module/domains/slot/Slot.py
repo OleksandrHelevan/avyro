@@ -26,11 +26,11 @@ class Slot:
 
     def to_dict(self) -> dict:
         return {
-            "slotId": self.id,  # Внутрішній ID слота в масиві
-            "from": self.from_time,
-            "to": self.to_time,
+            "slotId": str(self.id) if self.id else None,  # ✅ str()
+            "from": self.from_time.isoformat() if hasattr(self.from_time, "isoformat") else self.from_time,
+            "to": self.to_time.isoformat() if hasattr(self.to_time, "isoformat") else self.to_time,
             "type": self.slot_type.value if hasattr(self.slot_type, "value") else self.slot_type,
-            "appointmentId": self.appointment_id,
+            "appointmentId": str(self.appointment_id) if self.appointment_id else None,
         }
 
     @staticmethod

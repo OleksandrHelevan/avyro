@@ -21,8 +21,7 @@ class ScheduleService:
         year = getattr(dto, 'year', datetime.now(timezone.utc).year)
         return self.create_monthly_schedule(dto.doctorId, year, month, dto)
 
-    def get_doctor_slots(self, doctor_id: str) -> list[dict]:
-        # 1. Валідація ObjectId
+    def get_doctor_slots(self, doctor_id: str) -> list:
         try:
             doc_oid = ObjectId(doctor_id)
         except (InvalidId, TypeError):
@@ -38,13 +37,14 @@ class ScheduleService:
 
         all_slots = []
         for schedule in schedules:
-            slots = schedule.get("slots", []) if isinstance(schedule, dict) else getattr(schedule, "slots", [])
-
-
-            for slot in slots:
-                slot_dict = slot if isinstance(slot, dict) else slot.__dict__
-
-                all_slots.append(slot_dict)
+            for slot in schedule.slots:
+                all_slots.append({
+                    "slotId": str(slot.id) if slot.id else None,
+                    "from": slot.from_time.isoformat() if slot.from_time else None,
+                    "to": slot.to_time.isoformat() if slot.to_time else None,
+                    "type": slot.slot_type.value if slot.slot_type else None,
+                    "appointmentId": str(slot.appointment_id) if slot.appointment_id else None,
+                })
 
         return all_slots
 
