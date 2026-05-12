@@ -78,7 +78,7 @@ export interface GetDoctorResponse {
   createdAt: Date;
   lastLoginAt: Date;
   specializationName: string;
-
+  schedule: any[]; // Додайте це поле тут
 }
 
 export interface UpdateDoctorProfileRequest {
