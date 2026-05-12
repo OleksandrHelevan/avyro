@@ -1,4 +1,4 @@
-import { userApiClient } from "../api/userApiClient.ts";
+import {userApiClient} from "../api/userApiClient.ts";
 import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
@@ -37,6 +37,8 @@ export const userService = {
   },
 
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
+    console.log(`!!!${userApiClient.getDoctorById(id)}`);
+
     return userApiClient.getDoctorById(id);
   },
 
