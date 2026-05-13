@@ -95,30 +95,55 @@ class DoctorService:
 
             for sched in raw_schedules:
                 formatted_slots = []
-                for slot in sched.get("slots", []):
-                    app_id = slot.get("appointmentId")
-                    formatted_slots.append({
-                        "slotId": str(slot.get("slotId", slot.get("_id", ""))),
-                        "from": slot.get("from"),
-                        "to": slot.get("to"),
-                        "type": slot.get("type"),
-                        "appointmentId": str(app_id) if app_id else None
-                    })
 
-                # Обробка самого розкладу
-                formatted_schedules.append({
-                    "id": str(sched.get("_id")),
-                    "doctorId": str(sched.get("doctorId")),
-                    "month": sched.get("month"),
-                    "year": sched.get("year"),
-                    "title": sched.get("title", ""),
-                    "isRepeated": sched.get("isRepeated", False),
-                    "repeating": sched.get("repeating", {}),
-                    "status": sched.get("status", "PENDING"),
-                    "slots": formatted_slots,
-                    "createdAt": sched.get("createdAt"),
-                    "updatedAt": sched.get("updatedAt")
-                })
+                # ✅ Перевіряємо чи це dict чи об'єкт
+                if isinstance(sched, dict):
+                    slots = sched.get("slots", [])
+                    for slot in slots:
+                        app_id = slot.get("appointmentId")
+                        formatted_slots.append({
+                            "slotId": str(slot.get("slotId", "")),
+                            "from": slot.get("from"),
+                            "to": slot.get("to"),
+                            "type": slot.get("type"),
+                            "appointmentId": str(app_id) if app_id else None
+                        })
+                    formatted_schedules.append({
+                        "id": str(sched.get("_id", "")),
+                        "doctorId": str(sched.get("doctorId", "")),
+                        "month": sched.get("month"),
+                        "year": sched.get("year"),
+                        "title": sched.get("title", ""),
+                        "isRepeated": sched.get("isRepeated", False),
+                        "repeating": sched.get("repeating", {}),
+                        "status": sched.get("status", "PENDING"),
+                        "slots": formatted_slots,
+                        "createdAt": sched.get("createdAt"),
+                        "updatedAt": sched.get("updatedAt")
+                    })
+                else:
+                    for slot in getattr(sched, "slots", []):
+                        app_id = slot.appointment_id
+                        formatted_slots.append({
+                            "slotId": str(slot.id) if slot.id else None,
+                            "from": slot.from_time.isoformat() if slot.from_time else None,
+                            "to": slot.to_time.isoformat() if slot.to_time else None,
+                            "type": slot.slot_type.value if slot.slot_type else None,
+                            "appointmentId": str(app_id) if app_id else None
+                        })
+                    formatted_schedules.append({
+                        "id": str(sched.id),
+                        "doctorId": str(sched.doctor_id),
+                        "month": sched.month,
+                        "year": sched.year,
+                        "title": sched.title,
+                        "isRepeated": sched.is_repeated,
+                        "repeating": sched.repeating,
+                        "status": sched.status.value if hasattr(sched.status, "value") else str(sched.status),
+                        "slots": formatted_slots,
+                        "createdAt": sched.created_at.isoformat() if sched.created_at else None,
+                        "updatedAt": sched.updated_at.isoformat() if sched.updated_at else None
+                    })
         except Exception as e:
             logger.error(f"Error fetching schedule for doctor {user_id}: {e}")
 
