@@ -12,8 +12,12 @@
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
     transition: all 0.3s ease;
-}
 
+}
+.main-content{
+  margin-top: 100px;
+  margin-bottom: 100px;
+}
 .schedule-redirect-card:hover {
     background: rgba(255, 255, 255, 0.5);
     border-color: rgba(59, 206, 181, 0.3);

@@ -1,11 +1,12 @@
-import {motion} from "framer-motion";
-import {Link, useLocation, NavLink, useNavigate} from "react-router-dom";
-import {User, Menu, X, LogOut} from "lucide-react";
-import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
+import { motion } from "framer-motion";
+import { Link, useLocation, NavLink, useNavigate } from "react-router-dom";
+import { User, Menu, X, LogOut } from "lucide-react";
+import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
-import {useState} from "react";
+import { useState } from "react";
 
-// ІМПОРТ ЛОГОТИПУ (замініть шлях на реальний у вашому проєкті)
+// 1. ДОДАЄМО ІМПОРТ КАРТИНКИ!
+import logoImg from "./img.png";
 
 interface DoctorData {
   status?: string;
@@ -14,6 +15,7 @@ interface DoctorData {
 }
 
 export default function Header() {
+  // ... ваш існуючий код (location, navigate, role, handles і т.д.)
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function Header() {
   const isAuthenticated = !!(localStorage.getItem("accessToken") || localStorage.getItem("token"));
 
   const isDoctorRole = role === "DOCTOR";
-  const {data} = useDoctor(isDoctorRole ? userId || "" : "");
+  const { data } = useDoctor(isDoctorRole ? userId || "" : "");
   const doctor = data as DoctorData | undefined;
 
   const isApprovedDoctor = isDoctorRole && doctor?.isActive === true;
@@ -44,12 +46,11 @@ export default function Header() {
   return (
     <motion.nav
       className="white-nav"
-      initial={{y: -60, opacity: 0}}
-      animate={{y: 0, opacity: 1}}
-      transition={{duration: 0.6}}
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6 }}
     >
       <div className="nav-content">
-        {/* ОНОВЛЕНА ЛОГО-ГРУПА */}
         <Link
           to="/"
           className="logo-group"
@@ -57,22 +58,17 @@ export default function Header() {
           onClick={closeMobileMenu}
         >
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
-            overflow: 'hidden',
-            borderRadius: '8px' // Робимо невелике закруглення самому контейнеру
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '40px', height: '40px', overflow: 'hidden', borderRadius: '8px'
           }}>
+            {/* 2. ВИКОРИСТОВУЄМО ЗМІННУ logoImg ТУТ */}
             <img
-              src="/src/img.png"
+              src={logoImg}
               alt="Avyro Med Logo"
               style={{
-                height: "100%", // Заповнюємо контейнер
+                height: "100%",
                 width: "auto",
                 objectFit: "cover",
-                // Цей фільтр спробує зробити білий фон прозорим, якщо він чистий
                 mixBlendMode: "multiply",
               }}
             />
@@ -80,20 +76,21 @@ export default function Header() {
           <h1><span className="logo-accent" style={{ fontWeight: '700' }}>Avyro</span></h1>
         </Link>
 
+
         <button className="mobile-menu-btn" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-          {isMobileOpen ? <X size={28}/> : <Menu size={28}/>}
+          {isMobileOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
         <div className={`nav-links-container ${isMobileOpen ? "open" : ""}`}>
           <div className="nav-links">
             <NavLink to="/" onClick={closeMobileMenu}
-                     className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                     className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
               Знайти лікаря
             </NavLink>
 
             {isAuthenticated && role === "PATIENT" && (
               <NavLink to="/appointments" onClick={closeMobileMenu}
-                       className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                       className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Мої записи
               </NavLink>
             )}
@@ -101,11 +98,11 @@ export default function Header() {
             {isAuthenticated && isApprovedDoctor && (
               <>
                 <NavLink to="/schedule-edit" onClick={closeMobileMenu}
-                         className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                         className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Мій розклад
                 </NavLink>
                 <NavLink to="/patients" onClick={closeMobileMenu}
-                         className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                         className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Пацієнти
                 </NavLink>
               </>
@@ -114,17 +111,17 @@ export default function Header() {
             {isAuthenticated && role === "ADMIN" && (
               <>
                 <NavLink to="/admin/requests" onClick={closeMobileMenu}
-                         className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                         className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   <span>Реєстрації</span>
                 </NavLink>
 
                 <NavLink to="/admin/specializations" onClick={closeMobileMenu}
-                         className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                         className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   <span>Спеціалізації</span>
                 </NavLink>
 
                 <NavLink to="/admin/schedules" onClick={closeMobileMenu}
-                         className={({isActive}) => isActive ? "nav-link active-link" : "nav-link"}>
+                         className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   <span>Розклади</span>
                 </NavLink>
               </>
@@ -138,18 +135,18 @@ export default function Header() {
                   onClick={handleLogout}
                   className="profile-icon-btn"
                   title="Вийти"
-                  style={{border: 'none', background: 'transparent', cursor: 'pointer', color: '#e11d48'}}
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#e11d48' }}
                 >
-                  <LogOut size={32} strokeWidth={2}/>
+                  <LogOut size={32} strokeWidth={2} />
                 </button>
               ) : (
                 <NavLink
                   to="/profile"
                   onClick={closeMobileMenu}
-                  className={({isActive}) => isActive ? "profile-icon-btn active-icon" : "profile-icon-btn"}
+                  className={({ isActive }) => isActive ? "profile-icon-btn active-icon" : "profile-icon-btn"}
                   title="Мій кабінет"
                 >
-                  <User size={32} strokeWidth={2}/>
+                  <User size={32} strokeWidth={2} />
                 </NavLink>
               )}
             </div>
