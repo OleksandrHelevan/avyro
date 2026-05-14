@@ -40,8 +40,8 @@ class ScheduleService:
             for slot in schedule.slots:
                 all_slots.append({
                     "slotId": str(slot.id) if slot.id else None,
-                    "from": slot.from_time.isoformat() if slot.from_time else None,
-                    "to": slot.to_time.isoformat() if slot.to_time else None,
+                    "from": slot.from_time.isoformat() if hasattr(slot.from_time, 'isoformat') else slot.from_time,
+                    "to": slot.to_time.isoformat() if hasattr(slot.to_time, 'isoformat') else slot.to_time,
                     "type": slot.slot_type.value if slot.slot_type else None,
                     "appointmentId": str(slot.appointment_id) if slot.appointment_id else None,
                 })
