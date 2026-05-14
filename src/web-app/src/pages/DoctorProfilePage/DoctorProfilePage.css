@@ -4,7 +4,7 @@
   justify-content: center;
   font-family: 'Inter', sans-serif;
   position: relative;
-
+margin-top: 100px;
 }
 
 .decor-elements .decor-item { position: absolute; color: rgba(255,255,255,0.25); z-index: 0; pointer-events: none; }
