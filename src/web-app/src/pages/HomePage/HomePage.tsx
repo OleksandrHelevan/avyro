@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import  { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Mail, Send } from "lucide-react";
 import "./HomePage.css";
@@ -15,14 +15,6 @@ const fadeUpVariant = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
-  }
-};
-
 const HomePage = () => {
   const navigate = useNavigate();
   const [activeSpec, setActiveSpec] = useState("Усі");
@@ -34,6 +26,7 @@ const HomePage = () => {
   const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
   const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
 
+  // Список назв спеціалізацій для кнопок-фільтрів
   const displaySpecs = useMemo(() => ["Усі", ...apiSpecs.map(s => s.name)], [apiSpecs]);
 
   // Слайди для банера
@@ -43,19 +36,33 @@ const HomePage = () => {
     { title: "Сімейний лікар у смартфоні", desc: "Зв'язок 24/7 у нашому додатку", color: "linear-gradient(135deg, #38bdf8, #6366f1)" }
   ];
 
-  // Фільтрація лікарів
+  // ЛОГІКА ФІЛЬТРАЦІЇ
   const filteredDoctors = useMemo(() => {
-    return doctors.filter((doc) => {
+    // Додаємо : any ось тут:
+    const selectedSpecObj: any = apiSpecs.find(s => s.name === activeSpec);
+    const selectedSpecId = selectedSpecObj ? (selectedSpecObj.id || selectedSpecObj._id) : null;
+
+    return doctors.filter((doc: any) => {
       const search = searchTerm.toLowerCase().trim();
-      const matchesCategory = activeSpec === "Усі" || (doc.specializationId === activeSpec);
+
+      const docSpecId = doc.specializationId || doc.specialization_id;
+      const docSpecName = doc.specializationName;
+
+      const matchesCategory =
+        activeSpec === "Усі" ||
+        docSpecId === selectedSpecId ||
+        docSpecName === activeSpec;
+
+      // ВИПРАВЛЕНО: s.id || s._id
+      const specNameToSearch = docSpecName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "";
       const matchesSearch = !search ||
         doc.fullName?.toLowerCase().includes(search) ||
         doc.email?.toLowerCase().includes(search) ||
-        doc.specializationId?.toLowerCase().includes(search);
+        specNameToSearch.toLowerCase().includes(search);
 
       return matchesCategory && matchesSearch;
     });
-  }, [doctors, activeSpec, searchTerm]);
+  }, [doctors, activeSpec, searchTerm, apiSpecs]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -129,46 +136,56 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* Сітка лікарів */}
-        <motion.div className="results-section" initial="hidden" whileInView="visible" variants={staggerContainer}>
+        {/* Сітка лікарів БЕЗ анімації появи */}
+        <div className="results-section">
           <div className="doctors-grid">
             {isLoadingDoctors ? (
               <p>Завантаження спеціалістів...</p>
-            ) : filteredDoctors.map((doc, index) => (
-              <motion.div
-                key={doc.id || index}
-                variants={fadeUpVariant}
-                className="doctor-card-light glass-light"
-                whileHover={{ y: -5 }}
-              >
-                <div className="card-header">
-                  <div className="doctor-avatar-placeholder">
-                    <img
-                      src={doc.avatarUrl || DEFAULT_AVATAR}
-                      alt="doc"
-                      onError={(e) => {(e.currentTarget.src = DEFAULT_AVATAR)}}
-                    />
-                  </div>
-                  <div className="doctor-info-dark">
-                    <h4>{doc.fullName || "Спеціаліст"}</h4>
-                    <p className="spec-text-dark">{doc.specializationId || "Загальний профіль"}</p>
-                    <p className="email-hint"><Mail size={12} /> {doc.email}</p>
-                  </div>
-                  <div className="bonus-tag-light">Top Rated</div>
-                </div>
-                <button
-                  className="btn-profile-light btn-outline"
-                  onClick={() => navigate(`/doctor/${doc.id }`)}
+            ) : filteredDoctors.length === 0 ? (
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#000000' }}>
+                За вашим запитом лікарів не знайдено.
+              </p>
+            ) : filteredDoctors.map((doc: any, index) => {
+
+              const docSpecId = doc.specializationId || doc.specialization_id;
+              // ВИПРАВЛЕНО: s.id || s._id
+              const displaySpecName = doc.specializationName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "Загальний профіль";
+
+              return (
+                <motion.div
+                  key={doc.id || doc._id || index}
+                  className="doctor-card-light glass-light"
+                  whileHover={{ y: -5 }} // Анімація при наведенні мишки залишається
                 >
-                  Записатися на прийом
-                </button>
-              </motion.div>
-            ))}
+                  <div className="card-header">
+                    <div className="doctor-avatar-placeholder">
+                      <img
+                        src={doc.avatarUrl || DEFAULT_AVATAR}
+                        alt="doc"
+                        onError={(e) => {(e.currentTarget.src = DEFAULT_AVATAR)}}
+                      />
+                    </div>
+                    <div className="doctor-info-dark">
+                      <h4>{doc.fullName || "Спеціаліст"}</h4>
+                      <p className="spec-text-dark">{displaySpecName}</p>
+                      <p className="email-hint"><Mail size={12} /> {doc.email}</p>
+                    </div>
+                    <div className="bonus-tag-light">Top Rated</div>
+                  </div>
+                  <button
+                    className="btn-profile-light btn-outline"
+                    onClick={() => navigate(`/doctor/${doc.id || doc._id}`)}
+                  >
+                    Записатися на прийом
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
-        </motion.div>
+        </div>
       </main>
 
-      {/* Чоткий Футер */}
+      {/* Футер */}
       <motion.footer
         className="aero-footer glass-light"
         initial="hidden"
@@ -184,7 +201,6 @@ const HomePage = () => {
             </div>
             <p>Ваш надійний провідник у світі сучасної медицини. Записуйтесь до найкращих спеціалістів онлайн за лічені хвилини.</p>
             <div className="social-links">
-
               <a href="#" className="social-icon"><Send size={18} /></a>
             </div>
           </div>
@@ -203,8 +219,6 @@ const HomePage = () => {
             <a href="/sign-up">Реєстрація спеціаліста</a>
             <a href="#">Партнерська програма</a>
           </div>
-
-
         </div>
 
         <div className="footer-bottom">

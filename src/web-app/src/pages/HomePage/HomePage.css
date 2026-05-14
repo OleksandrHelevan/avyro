@@ -339,7 +339,8 @@
 /* СІТКА ЛІКАРІВ */
 .doctors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  /* ВИПРАВЛЕНО: auto-fill замість auto-fit */
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 30px;
 }
 
@@ -746,6 +747,8 @@
 
 /* Корекція відступу контенту через фіксований хедер */
 .main-content {
+  /* ВИПРАВЛЕНО: Повернуто padding-top, щоб контент не накладався на хедер */
+  padding-top: 110px;
 }
 
 @media (max-width: 1200px) {

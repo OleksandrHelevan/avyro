@@ -82,7 +82,7 @@ export interface GetDoctorResponse {
 }
 
 export interface UpdateDoctorProfileRequest {
-  full_name: string;
+  fullName: string;          // <-- Змінено на camelCase (як вимагає сервер)
   phone: string;
   avatarUrl: string;
   specialization_id: string;
