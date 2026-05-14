@@ -8,9 +8,12 @@ import { uk } from "date-fns/locale";
 
 import "./DoctorProfilePage.css";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 
-// Допоміжна функція для генерації годин
+// Константа для аватарки за замовчуванням
+const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
+
+// Допоміжна функція для генерації часових слотів
 const generateTimeSlots = (startTime: string, endTime: string, slotDuration: number) => {
   const slots = [];
   try {
@@ -39,45 +42,34 @@ export default function DoctorProfile() {
   // 1. Отримуємо дані доктора
   const { data: rawDoctor, isLoading: isDocLoading } = useDoctor(id || "");
 
-  // Розпаковка профілю
+  // Розпаковка профілю (враховуємо можливу вкладеність .data)
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // 2. ДІАГНОСТИКА ТА ПОШУК РОЗКЛАДУ
+  // 2. Пошук активного розкладу (APPROVED)
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
 
-    console.log("🔍 [DIAGNOSTIC] Raw Doctor:", doctor);
-    console.log("🔍 [DIAGNOSTIC] Schedules Array:", schedules);
-
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
-      console.warn("⚠️ Розклад у об'єкті доктора порожній!");
       return null;
     }
 
-    // Шукаємо APPROVED або беремо перший
-    const found = schedules.find((s: any) => s.status === "APPROVED") || schedules[0];
-    console.log("✅ [DIAGNOSTIC] Selected active schedule:", found);
-    return found;
+    // Шукаємо APPROVED або беремо перший у списку
+    return schedules.find((s: any) => s.status === "APPROVED") || schedules[0];
   }, [doctor]);
 
-  // Список дат для верхнього ряду
+  // Список дат на 14 днів вперед
   const rollingDays = useMemo(() => {
     return Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i));
   }, []);
 
-  // 3. ДІАГНОСТИКА ТА ГЕНЕРАЦІЯ ГОДИН
+  // 3. Генерація доступних годин для обраної дати
   const availableSlots = useMemo(() => {
-    // Враховуємо різну вкладеність (payload чи корінь)
     const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
-
-    console.log("⚙️ [DIAGNOSTIC] Config for slots:", scheduleData);
 
     if (!scheduleData) return [];
 
-    const currentDayIdx = getDay(selectedDate); // 0 - Sun, 1 - Mon...
+    const currentDayIdx = getDay(selectedDate); // 0 - Нд, 1 - Пн...
     const isWorkDay = scheduleData.daysOfWeek.includes(currentDayIdx);
-
-    console.log(`📅 [DIAGNOSTIC] Date: ${format(selectedDate, "dd.MM")}, Day Index: ${currentDayIdx}, WorkDay: ${isWorkDay}`);
 
     if (!isWorkDay) return [];
 
@@ -88,17 +80,15 @@ export default function DoctorProfile() {
     );
 
     const now = new Date();
-    const finalSlots = allSlots.filter(t => {
+    return allSlots.filter(t => {
+      // Якщо обрана дата сьогодні — показуємо тільки майбутні години
       if (!isSameDay(selectedDate, now)) return true;
       const slotTime = parse(t, 'HH:mm', selectedDate);
       return isAfter(slotTime, now);
     });
-
-    console.log("🕒 [DIAGNOSTIC] Final slots generated:", finalSlots);
-    return finalSlots;
   }, [selectedDate, activeSchedule]);
 
-  if (isDocLoading) return <div className="loading">Завантаження...</div>;
+  if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;
 
   return (
     <div className="booking-page">
@@ -115,10 +105,14 @@ export default function DoctorProfile() {
 
         <div className="glass-card profile-info-card">
           <div className="doctor-pfp">
-            {doctor?.avatarUrl && <img src={doctor.avatarUrl} alt="doc" />}
+            <img
+              src={doctor?.avatarUrl || doctor?.avatar_url || DEFAULT_AVATAR}
+              alt="doctor"
+              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+            />
           </div>
           <div className="doctor-details">
-            <h2>{doctor?.fullName || "Спеціаліст"}</h2>
+            <h2>{doctor?.fullName || doctor?.full_name || "Спеціаліст"}</h2>
             <p><Mail size={14} /> {doctor?.email || "doctor@avyro.com"}</p>
           </div>
         </div>
@@ -175,7 +169,7 @@ export default function DoctorProfile() {
           </div>
 
           <button className="confirm-booking-btn" disabled={!selectedTime}>
-            {selectedTime ? `Записатися на ${selectedTime}` : "Оберіть час"}
+            {selectedTime ? `Записатися на ${selectedTime}` : "Оберіть час візиту"}
           </button>
           <p className="payment-info">Оплата після підтвердження візиту</p>
         </div>

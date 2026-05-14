@@ -1,3 +1,5 @@
+/* --- ВАШІ ОРИГІНАЛЬНІ СТИЛІ (БЕЗ ЗМІН) --- */
+
 .white-nav {
   position: fixed;
   top: 0;
@@ -7,6 +9,7 @@
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
   z-index: 100;
   backdrop-filter: blur(10px);
+  margin-bottom: 110px;
 }
 
 .nav-content {
@@ -645,4 +648,281 @@
   .footer-content {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- ДОДАНІ НОВІ СТИЛІ (БЕЗ ЗМІНИ ПОПЕРЕДНІХ) --- */
+
+:root {
+  --med-purple: #7256a1;
+  --text-dark: #1f2937;
+  --text-gray: #6b7280;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+}
+
+/* Фоновий декор */
+.bright-gradient-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f0f4f9;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.light-blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  filter: blur(80px);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.blob-1 { top: -100px; right: -100px; background: #c7d2fe; }
+.blob-2 { bottom: -100px; left: -100px; background: #bae6fd; }
+
+/* Виправлення скролу спеціалізацій (в один рядок) */
+.specs-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 10px 0 20px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.specs-scroll-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.specs-group {
+  display: flex !important; /* Перевизначення для забезпечення ряду */
+  flex-wrap: nowrap !important; /* ЗАБОРОНЯЄ перенос на другий рядок */
+  gap: 12px;
+  width: max-content;
+}
+
+/* Забезпечення сталого розміру кнопок у скролі */
+.spec-tag-light {
+  flex: 0 0 auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+/* Стилізація аватарів лікарів */
+.doctor-avatar-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Додаткові допоміжні класи */
+.email-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  color: var(--text-gray);
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  border: 2px solid var(--med-purple);
+  border-radius: 50%;
+  animation: pulse_anim 2s infinite;
+}
+
+@keyframes pulse_anim {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+/* --- ВДОСКОНАЛЕНА АДАПТИВНІСТЬ (MOBILE & TABLET) --- */
+
+/* Корекція відступу контенту через фіксований хедер */
+.main-content {
+}
+
+@media (max-width: 1200px) {
+  .med-title-dark {
+    font-size: 2.4rem;
+  }
+
+  .footer-content {
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .doctors-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 85px;
+    width: 92%;
+  }
+
+  .med-title-dark {
+    font-size: 1.8rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  /* Слайдер на мобільних */
+  .slide-card {
+    padding: 2.5rem 1.5rem;
+    min-height: 220px;
+    border-radius: 20px;
+  }
+
+  .slide-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .slide-content p {
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+  }
+
+  /* Пошук */
+  .search-bar-white {
+    flex-direction: column;
+    padding: 12px;
+    border-radius: 24px;
+    gap: 10px;
+  }
+
+  .search-bar-white input {
+    width: 100%;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 1rem;
+  }
+
+  .btn-search-dark {
+    width: 100%;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  /* Секції в один стовпчик */
+  .stats-row,
+  .steps-grid,
+  .reviews-grid,
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .stat-item {
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  .step-card {
+    padding: 1.5rem;
+  }
+
+  /* Навігація мобільна */
+  .nav-links {
+    display: none; /* Ховаємо текстові лінки, залишаємо профіль */
+  }
+
+  .user-name {
+    display: none; /* Залишаємо тільки аватар на малих екранах */
+  }
+
+  /* Футер */
+  .aero-footer {
+    padding: 3rem 1.5rem 1.5rem;
+    border-radius: 30px 30px 0 0;
+  }
+
+  .footer-content {
+    text-align: center;
+  }
+
+  .brand-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .social-links, .app-buttons {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .footer-bottom-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Кнопка чат-боту (менша на мобільних) */
+  .floating-chatbot {
+    width: 50px;
+    height: 50px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .med-title-dark {
+    font-size: 1.4rem;
+  }
+
+  .section-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .doctors-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-card-light {
+    padding: 1.2rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .bonus-tag-light {
+    position: static;
+    margin: 5px auto 0;
+    display: inline-block;
+  }
+}
+
+/* Виправлення інерційного скролу для iOS */
+.specs-scroll-wrapper {
+  -webkit-overflow-scrolling: touch;
 }
