@@ -1,0 +1,229 @@
+.appointments-page {
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+.page-header-alt {
+  margin-bottom: 3rem;
+  padding-top: 120px;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--med-purple);
+}
+
+.header-text-group h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.header-text-group p {
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+/* КОНТЕЙНЕР ЗАПИСІВ */
+.appointments-container {
+  width: 100%;
+}
+
+.appointments-grid-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* КАРТКА ЗАПИСУ */
+.appt-card {
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.appt-card:hover {
+  transform: translateY(-5px);
+}
+
+.appt-card.is-upcoming {
+  border-left: 6px solid var(--med-purple);
+}
+
+.appt-card.is-past {
+  border-left: 6px solid #d1d5db;
+  opacity: 0.85;
+}
+
+.appt-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* МІНІ ПРОФІЛЬ ЛІКАРЯ */
+.doctor-mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-container img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.name-group h4 {
+  font-size: 1.25rem;
+  margin: 0 0 4px;
+  color: #111827;
+  font-weight: 700;
+}
+
+.specialty-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* БЛОК ЧАСУ */
+.time-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.text-purple { color: var(--med-purple); }
+.text-blue { color: #0284c7; }
+
+/* ФУТЕР КАРТКИ */
+.appt-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.planned {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.is-past .status-badge {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.btn-details {
+  background: none;
+  border: none;
+  color: var(--med-purple);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-details:hover {
+  text-decoration: underline;
+}
+
+/* ПОРОЖНІЙ СТАН */
+.empty-state-card {
+  padding: 4rem 2rem;
+  text-align: center;
+  border-radius: 32px;
+}
+
+.empty-icon-wrapper {
+  width: 100px;
+  height: 100px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: #d1d5db;
+}
+
+.empty-state-card h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.btn-primary-glow {
+  background: #1f2937;
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary-glow:hover {
+  background: var(--med-purple);
+  box-shadow: 0 8px 20px rgba(114, 86, 161, 0.3);
+}
+
+/* АДАПТИВНІСТЬ */
+@media (max-width: 768px) {
+  .appt-main-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-text-group h1 {
+    font-size: 2rem;
+  }
+}

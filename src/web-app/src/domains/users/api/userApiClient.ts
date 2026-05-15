@@ -6,7 +6,7 @@ import type {
   Specialization, ScheduleRequest, ScheduleResponse,
   AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
   AdminScheduleRequest,
-  DoctorListItem // ДОДАНО ІМПОРТ ТИПУ
+  DoctorListItem, AppointmentResponse // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
 
 export const userApiClient = {
@@ -75,7 +75,11 @@ export const userApiClient = {
       description: "Створено адміністратором"
     });
   },
-
+  createAppointment: async (request: { slotId: string }) =>
+    apiClient.post<AppointmentResponse>('/appointments', request),
+// Додайте це до інших методів
+  getPatientAppointments: async () =>
+    apiClient.get<AppointmentResponse[]>('/appointments'),
   // 3. Підтвердити запит на створення
   approveSpecialization: async (requestId: string) =>
     apiClient.post(`/admin/${requestId}/approve-specialization`, {}),

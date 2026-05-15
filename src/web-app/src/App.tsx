@@ -16,6 +16,9 @@ import AdminSchedules from "./pages/AdminSchedules/AdminSchedules.tsx";
 import AdminRequests from "./pages/AdminRequests/AdminRequests.tsx";
 import AdminNotifications from "./pages/AdminNotifications/AdminNotifications.tsx";
 
+// ДОДАНО: Імпорт нової сторінки записів пацієнта
+import PatientAppointmentsPage from "./pages/PatientAppointmentsPage/PatientAppointmentsPage.tsx";
+
 // --- ЛЕЙАУТ ТА СЕРВІСИ ---
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "./services/queryClient.ts";
@@ -123,6 +126,9 @@ export default function App() {
 
               {/* Перегляд профілю конкретного лікаря (для пацієнтів) */}
               <Route path="doctor/:id" element={<DoctorProfilePage />} />
+
+              {/* === НОВА СТОРІНКА: Мої записи (для пацієнтів) === */}
+              <Route path="appointments" element={<PatientAppointmentsPage />} />
 
               {/* Власний профіль (Диспетчер) */}
               <Route path="profile" element={<ProfileDispatcher />} />

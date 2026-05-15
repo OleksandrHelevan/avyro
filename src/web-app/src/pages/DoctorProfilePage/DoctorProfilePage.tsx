@@ -5,10 +5,12 @@ import {
   parse, isAfter, getDay, addDays
 } from "date-fns";
 import { uk } from "date-fns/locale";
+import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 import "./DoctorProfilePage.css";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useMemo, useState } from "react";
+import { useCreateAppointment } from "../../domains/users/useCreateAppointment/useCreateAppointment";
 
 // Константа для аватарки за замовчуванням
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
@@ -42,18 +44,16 @@ export default function DoctorProfile() {
   // 1. Отримуємо дані доктора
   const { data: rawDoctor, isLoading: isDocLoading } = useDoctor(id || "");
 
-  // Розпаковка профілю (враховуємо можливу вкладеність .data)
+  // 2. Підключаємо хук для створення запису
+  const { mutate: bookAppointment, isPending: isBooking } = useCreateAppointment();
+
+  // Розпаковка профілю
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // 2. Пошук активного розкладу (APPROVED)
+  // 3. Пошук активного розкладу
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
-
-    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
-      return null;
-    }
-
-    // Шукаємо APPROVED або беремо перший у списку
+    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return null;
     return schedules.find((s: any) => s.status === "APPROVED") || schedules[0];
   }, [doctor]);
 
@@ -62,14 +62,14 @@ export default function DoctorProfile() {
     return Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i));
   }, []);
 
-  // 3. Генерація доступних годин для обраної дати
+  // 4. Генерація доступних годин для обраної дати
   const availableSlots = useMemo(() => {
     const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
 
     if (!scheduleData) return [];
 
-    const currentDayIdx = getDay(selectedDate); // 0 - Нд, 1 - Пн...
-    const isWorkDay = scheduleData.daysOfWeek.includes(currentDayIdx);
+    const currentDayIdx = getDay(selectedDate);
+    const isWorkDay = scheduleData.daysOfWeek?.includes(currentDayIdx);
 
     if (!isWorkDay) return [];
 
@@ -81,12 +81,50 @@ export default function DoctorProfile() {
 
     const now = new Date();
     return allSlots.filter(t => {
-      // Якщо обрана дата сьогодні — показуємо тільки майбутні години
       if (!isSameDay(selectedDate, now)) return true;
       const slotTime = parse(t, 'HH:mm', selectedDate);
       return isAfter(slotTime, now);
     });
   }, [selectedDate, activeSchedule]);
+
+  // 5. ЛОГІКА ВІДПРАВКИ ЗАПИТУ (Ідеально підлаштована під бекенд)
+  const handleBooking = () => {
+    if (!selectedTime) return;
+
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd'); // напр. "2026-05-13"
+
+    // Збираємо всі слоти
+    const allPossibleSlots = [
+      ...(Array.isArray(doctor?.schedule) ? doctor.schedule : []),
+      ...(Array.isArray(activeSchedule?.slots) ? activeSchedule.slots : []),
+      ...(Array.isArray(activeSchedule?.payload?.slots) ? activeSchedule.payload.slots : [])
+    ];
+
+    // Шукаємо слот за новими правилами зі скріншота!
+    const exactSlot = allPossibleSlots.find((s: any) => {
+      const timeStr = String(s.from || ""); // Беремо поле from ("2026-05-13T17:00:00")
+
+      // Перевіряємо збіг дати, часу та статусу AVAILABLE
+      return timeStr.includes(formattedDate) &&
+        timeStr.includes(selectedTime) &&
+        s.type === "AVAILABLE";
+    });
+
+    // Дістаємо ID слота (поле slotId)
+    const slotIdToBook = exactSlot?.slotId;
+
+    if (!slotIdToBook) {
+      toast.error(`Помилка: Цей час вже зайнятий або недоступний.`);
+      return;
+    }
+
+    // Відправляємо запит з правильним ID
+    bookAppointment(slotIdToBook, {
+      onSuccess: () => {
+        setSelectedTime(null);
+      }
+    });
+  };
 
   if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;
 
@@ -129,7 +167,7 @@ export default function DoctorProfile() {
               {rollingDays.map((day) => {
                 const isSelected = isSameDay(day, selectedDate);
                 const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
-                const isWorkDay = scheduleData?.daysOfWeek.includes(getDay(day));
+                const isWorkDay = scheduleData?.daysOfWeek?.includes(getDay(day));
 
                 return (
                   <button
@@ -168,8 +206,18 @@ export default function DoctorProfile() {
             </div>
           </div>
 
-          <button className="confirm-booking-btn" disabled={!selectedTime}>
-            {selectedTime ? `Записатися на ${selectedTime}` : "Оберіть час візиту"}
+          <button
+            className="confirm-booking-btn"
+            disabled={!selectedTime || isBooking}
+            onClick={handleBooking}
+          >
+            {isBooking ? (
+              <span className="spinner">⏳ Записуємо...</span>
+            ) : selectedTime ? (
+              `Записатися на ${selectedTime}`
+            ) : (
+              "Оберіть час візиту"
+            )}
           </button>
           <p className="payment-info">Оплата після підтвердження візиту</p>
         </div>

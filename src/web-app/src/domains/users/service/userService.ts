@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   Specialization, ScheduleRequest, ScheduleResponse,
   AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
-  DoctorListItem // ДОДАНО ІМПОРТ ТИПУ
+  DoctorListItem, AppointmentResponse // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
 
 export const userService = {
@@ -97,5 +97,13 @@ export const userService = {
 
   approveSpecialization: async (requestId: string): Promise<any> => {
     return userApiClient.approveSpecialization(requestId);
+  },
+  getPatientAppointments: async (): Promise<AppointmentResponse[]> => {
+    // Якщо axios обгортає відповідь у .data, можливо знадобиться (await userApiClient.getPatientAppointments()).data
+    const res = await userApiClient.getPatientAppointments();
+    return (res as any).data ?? res;
+  },
+  createAppointment: async (slotId: string): Promise<AppointmentResponse> => {
+    return userApiClient.createAppointment({ slotId });
   },
 };
