@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, status
 from config.dependencies import get_appointment_service
-from config.permissions import RoleChecker
+from config.permissions import RoleChecker, allow_patient
 from modules.appointments_module.application.service.AppointmentService import AppointmentService
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
-allow_patient = RoleChecker(["PATIENT"])
-
+from config.permissions import RoleChecker, allow_patient
 
 class BookAppointmentRequest(BaseModel):
     slotId: str
