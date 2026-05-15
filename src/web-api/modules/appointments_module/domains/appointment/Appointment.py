@@ -29,7 +29,6 @@ class Appointment:
         self.doctor_id = doctor_id
         self.from_time = from_time
         self.to_time = to_time
-        self.status = status
         self.created_at = created_at or datetime.now(timezone.utc)
         self.updated_at = updated_at or datetime.now(timezone.utc)
         self.status = status or AppointmentStatus.PLANNED
@@ -49,13 +48,11 @@ class Appointment:
             "status": self.status.value,
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
-            "status": self.status.value,
             "paymentStatus": self.payment_status,
             "basePrice": self.base_price,
             "finalPrice": self.final_price,
             "appointmentType": self.appointment_type,
             "bookedAt": self.booked_at,
-
         }
         if self.id:
             data["_id"] = self.id
@@ -76,5 +73,3 @@ class Appointment:
             created_at=data.get("createdAt"),
             updated_at=data.get("updatedAt"),
         )
-
-

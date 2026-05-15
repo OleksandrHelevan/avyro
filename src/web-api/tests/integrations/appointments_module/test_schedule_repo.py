@@ -56,5 +56,5 @@ def test_book_slot_atomic_update(schedule_repo):
     # Перевіряємо, чи змінився слот у базі
     updated_schedule = schedule_repo.get_by_id(created.id)
     updated_slot = next(s for s in updated_schedule.slots if str(s.id) == str(slot_id))
-    assert updated_slot.slot_type == SlotType.BLOCKED
+    assert updated_slot.slot_type == SlotType.RESERVED
     assert str(updated_slot.appointment_id) == str(app_id)

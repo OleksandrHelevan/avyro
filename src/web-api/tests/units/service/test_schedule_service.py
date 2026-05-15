@@ -2,14 +2,8 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch
 from bson.objectid import ObjectId
 
-# Замініть ці імпорти на реальні шляхи у вашому проєкті, якщо вони відрізняються
 from modules.appointments_module.application.service.ScheduleService import ScheduleService
-from modules.admin_module.domains.Request import RequestType
 
-
-# ==========================================
-# ФІКСТУРИ (Налаштування моків)
-# ==========================================
 
 @pytest.fixture
 def mock_schedule_repo():
@@ -42,7 +36,6 @@ def valid_doctor_id():
 
 @pytest.fixture
 def mock_schedule_dto(valid_doctor_id):
-    """Створюємо мок DTO запиту для уникнення помилок Pydantic-валідації"""
     dto = MagicMock()
     dto.doctorId = valid_doctor_id
     dto.month = 10
@@ -50,11 +43,11 @@ def mock_schedule_dto(valid_doctor_id):
     dto.title = "Жовтень 2024"
     dto.isRepeated = True
 
-    # Мокаємо метод dict() для repeating конфігу
-    dto.repeating.dict.return_value = {"daysOfWeek": [1, 3], "startTime": "09:00", "endTime": "18:00"}
+    # Мокаємо новий метод model_dump() для repeating конфігу
+    dto.repeating.model_dump.return_value = {"daysOfWeek": [1, 3], "startTime": "09:00", "endTime": "18:00"}
 
-    # Мокаємо метод dict() для самого DTO
-    dto.dict.return_value = {
+    # Мокаємо новий метод model_dump() для самого DTO
+    dto.model_dump.return_value = {
         "doctorId": valid_doctor_id,
         "month": 10,
         "year": 2024,
@@ -62,10 +55,6 @@ def mock_schedule_dto(valid_doctor_id):
     }
     return dto
 
-
-# ==========================================
-# ТЕСТИ ДЛЯ CREATE_SCHEDULE
-# ==========================================
 
 @patch.object(ScheduleService, 'create_monthly_schedule')
 def test_create_schedule(mock_create_monthly, schedule_service, mock_schedule_dto):
@@ -87,9 +76,6 @@ def test_create_schedule(mock_create_monthly, schedule_service, mock_schedule_dt
     )
 
 
-# ==========================================
-# ТЕСТИ ДЛЯ REQUEST_SCHEDULE_CREATION
-# ==========================================
 
 # Мокаємо клас Request там, де він імпортується у ScheduleService
 @patch("modules.appointments_module.application.service.ScheduleService.Request")
@@ -120,10 +106,6 @@ def test_request_schedule_creation(mock_request_class, schedule_service, mock_re
     # Перевіряємо виклик репозиторію
     mock_request_repo.create.assert_called_once_with(mock_request_instance)
 
-
-# ==========================================
-# ТЕСТИ ДЛЯ CREATE_MONTHLY_SCHEDULE
-# ==========================================
 
 @patch("modules.appointments_module.application.service.ScheduleService.Schedule")
 @patch("modules.appointments_module.application.service.ScheduleService.ScheduleMapper")
@@ -157,15 +139,13 @@ def test_create_monthly_schedule(
     # Assert
     assert result == mapped_dto
 
-    # Перевіряємо генерацію слотів
     mock_slot_service.generate_monthly_slots.assert_called_once_with(
         doctor_id=valid_doctor_id,
         year=year,
         month=month,
-        config=mock_schedule_dto.repeating.dict()
+        config=mock_schedule_dto.repeating.model_dump()
     )
 
-    # Перевіряємо ініціалізацію об'єкта Schedule (перевіряємо основні параметри)
     mock_schedule_class.assert_called_once()
     call_kwargs = mock_schedule_class.call_args[1]
     assert call_kwargs["doctor_id"] == ObjectId(valid_doctor_id)
@@ -174,6 +154,5 @@ def test_create_monthly_schedule(
     assert call_kwargs["title"] == mock_schedule_dto.title
     assert call_kwargs["slots"] == mock_slots
 
-    # Перевіряємо виклик репозиторію та маппера
     mock_schedule_repo.create.assert_called_once_with(mock_schedule_instance)
     mock_mapper_class.to_dto.assert_called_once_with(mock_created_schedule)

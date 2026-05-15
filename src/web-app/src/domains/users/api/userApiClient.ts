@@ -33,7 +33,7 @@ export const userApiClient = {
     apiClient.patch<UpdateProfileResponse>(`/users/doctors/${id}`, request),
 
   getAllSpecializations: async () =>
-    apiClient.get<Specialization[]>('/specializations/'),
+    apiClient.get<Specialization[]>('/specializations'),
 
   getSpecializationById: async (spec_id: string) =>
     apiClient.get<Specialization>(`/specializations/${spec_id}`),
