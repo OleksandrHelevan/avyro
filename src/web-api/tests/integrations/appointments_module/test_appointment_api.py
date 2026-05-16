@@ -13,12 +13,13 @@ def test_book_appointment_not_found(client):
     не знайде розклад і має повернути 404 'Слот не знайдено'.
     """
     payload = {
+        "doctorId": FAKE_VALID_ID,  # <- Додано
         "slotId": FAKE_VALID_ID
     }
     response = client.post("/appointments", json=payload)
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Слот не знайдено"
+    assert response.json()["detail"] == "Розклад для цього лікаря не знайдено"
 
 
 def test_book_appointment_invalid_id(client):
@@ -27,6 +28,7 @@ def test_book_appointment_invalid_id(client):
     Має повернути 400 'Невалідний формат ID'.
     """
     payload = {
+        "doctorId": FAKE_VALID_ID,  # <- Додано (можна використати FAKE_VALID_ID, якщо тестуєш саме невалідний slotId)
         "slotId": INVALID_ID
     }
     response = client.post("/appointments", json=payload)

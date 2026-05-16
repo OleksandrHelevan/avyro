@@ -91,12 +91,11 @@ class DoctorService:
 
         formatted_schedules = []
         try:
-            raw_schedules = self.schedule_repository.get_all_by_doctor_id(user_oid)
+            raw_schedules = self.schedule_repository.get_by_doctor_id(user_oid)
 
             for sched in raw_schedules:
                 formatted_slots = []
 
-                # ✅ Перевіряємо чи це dict чи об'єкт
                 if isinstance(sched, dict):
                     slots = sched.get("slots", [])
                     for slot in slots:
@@ -108,6 +107,7 @@ class DoctorService:
                             "type": slot.get("type"),
                             "appointmentId": str(app_id) if app_id else None
                         })
+
                     formatted_schedules.append({
                         "id": str(sched.get("_id", "")),
                         "doctorId": str(sched.get("doctorId", "")),
@@ -123,30 +123,54 @@ class DoctorService:
                     })
                 else:
                     for slot in getattr(sched, "slots", []):
-                        app_id = slot.appointment_id
+                        app_id = getattr(slot, "appointment_id", None)
+                        slot_type = getattr(slot, "slot_type", None)
+
+                        if hasattr(slot_type, "value"):
+                            type_val = slot_type.value
+                        else:
+                            type_val = str(slot_type) if slot_type else None
+
+                        # --- БЕЗПЕЧНА ПЕРЕВІРКА ТИПІВ ДЛЯ ЧАСУ ---
+                        from_val = getattr(slot, "from_time", None)
+                        if from_val and not isinstance(from_val, str) and hasattr(from_val, "isoformat"):
+                            from_val = from_val.isoformat()
+
+                        to_val = getattr(slot, "to_time", None)
+                        if to_val and not isinstance(to_val, str) and hasattr(to_val, "isoformat"):
+                            to_val = to_val.isoformat()
+                        # ----------------------------------------
+
                         formatted_slots.append({
-                            "slotId": str(slot.id) if slot.id else None,
-                            "from": slot.from_time.isoformat() if slot.from_time else None,
-                            "to": slot.to_time.isoformat() if slot.to_time else None,
-                            "type": slot.slot_type.value if slot.slot_type else None,
+                            "slotId": str(slot.id) if hasattr(slot, "id") and slot.id else None,
+                            "from": from_val,
+                            "to": to_val,
+                            "type": type_val,
                             "appointmentId": str(app_id) if app_id else None
                         })
+
+                    status_val = getattr(sched, "status", "PENDING")
+                    if hasattr(status_val, "value"):
+                        status_val = status_val.value
+
+                    created_at = getattr(sched, "created_at", None)
+                    updated_at = getattr(sched, "updated_at", None)
+
                     formatted_schedules.append({
-                        "id": str(sched.id),
-                        "doctorId": str(sched.doctor_id),
-                        "month": sched.month,
-                        "year": sched.year,
-                        "title": sched.title,
-                        "isRepeated": sched.is_repeated,
-                        "repeating": sched.repeating,
-                        "status": sched.status.value if hasattr(sched.status, "value") else str(sched.status),
+                        "id": str(sched.id) if hasattr(sched, "id") and sched.id else None,
+                        "doctorId": str(sched.doctor_id) if hasattr(sched, "doctor_id") else None,
+                        "month": getattr(sched, "month", None),
+                        "year": getattr(sched, "year", None),
+                        "title": getattr(sched, "title", ""),
+                        "isRepeated": getattr(sched, "is_repeated", False),
+                        "repeating": getattr(sched, "repeating", {}),
+                        "status": str(status_val),
                         "slots": formatted_slots,
-                        "createdAt": sched.created_at.isoformat() if sched.created_at else None,
-                        "updatedAt": sched.updated_at.isoformat() if sched.updated_at else None
+                        "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+                        "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else updated_at
                     })
         except Exception as e:
-            logger.error(f"Error fetching schedule for doctor {user_id}: {e}")
-
+            logger.error(f"CRITICAL Error formatting schedule for doctor {user_id}: {e}", exc_info=True)
 
         return {
             "_id": str(user.id),
