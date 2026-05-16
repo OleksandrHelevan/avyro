@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   Specialization, ScheduleRequest, ScheduleResponse,
   AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
-  DoctorListItem, AppointmentResponse // ДОДАНО ІМПОРТ ТИПУ
+  DoctorListItem, AppointmentResponse, CreateAppointmentRequest // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
 
 export const userService = {
@@ -103,7 +103,9 @@ export const userService = {
     const res = await userApiClient.getPatientAppointments();
     return (res as any).data ?? res;
   },
-  createAppointment: async (slotId: string): Promise<AppointmentResponse> => {
-    return userApiClient.createAppointment({ slotId });
+  createAppointment: async (request: CreateAppointmentRequest): Promise<AppointmentResponse> => {
+    // ❌ НЕПРАВИЛЬНО: return userApiClient.createAppointment({ slotId: request });
+    // ✅ ПРАВИЛЬНО:
+    return userApiClient.createAppointment(request);
   },
 };

@@ -35,7 +35,7 @@ const generateTimeSlots = (startTime: string, endTime: string, slotDuration: num
 };
 
 export default function DoctorProfile() {
-  const { id } = useParams();
+  const { id } = useParams(); // Отримуємо ID лікаря з URL
   const navigate = useNavigate();
 
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
@@ -87,11 +87,11 @@ export default function DoctorProfile() {
     });
   }, [selectedDate, activeSchedule]);
 
-  // 5. ЛОГІКА ВІДПРАВКИ ЗАПИТУ (Ідеально підлаштована під бекенд)
+  // 5. ЛОГІКА ВІДПРАВКИ ЗАПИТУ
   const handleBooking = () => {
     if (!selectedTime) return;
 
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd'); // напр. "2026-05-13"
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
     // Збираємо всі слоти
     const allPossibleSlots = [
@@ -100,17 +100,14 @@ export default function DoctorProfile() {
       ...(Array.isArray(activeSchedule?.payload?.slots) ? activeSchedule.payload.slots : [])
     ];
 
-    // Шукаємо слот за новими правилами зі скріншота!
+    // Шукаємо слот
     const exactSlot = allPossibleSlots.find((s: any) => {
-      const timeStr = String(s.from || ""); // Беремо поле from ("2026-05-13T17:00:00")
-
-      // Перевіряємо збіг дати, часу та статусу AVAILABLE
+      const timeStr = String(s.from || "");
       return timeStr.includes(formattedDate) &&
         timeStr.includes(selectedTime) &&
         s.type === "AVAILABLE";
     });
 
-    // Дістаємо ID слота (поле slotId)
     const slotIdToBook = exactSlot?.slotId;
 
     if (!slotIdToBook) {
@@ -118,12 +115,18 @@ export default function DoctorProfile() {
       return;
     }
 
-    // Відправляємо запит з правильним ID
-    bookAppointment(slotIdToBook, {
-      onSuccess: () => {
-        setSelectedTime(null);
+// ✅ ПРАВИЛЬНИЙ ВИКЛИК
+    bookAppointment(
+      {
+        slotId: slotIdToBook,
+        doctorId: (doctor?.id || doctor?._id || id || "").toString()
+      },
+      {
+        onSuccess: () => {
+          setSelectedTime(null);
+        }
       }
-    });
+    );
   };
 
   if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;

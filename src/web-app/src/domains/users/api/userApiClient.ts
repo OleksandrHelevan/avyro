@@ -6,7 +6,7 @@ import type {
   Specialization, ScheduleRequest, ScheduleResponse,
   AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
   AdminScheduleRequest,
-  DoctorListItem, AppointmentResponse // ДОДАНО ІМПОРТ ТИПУ
+  DoctorListItem, AppointmentResponse, CreateAppointmentRequest // ДОДАНО ІМПОРТ ТИПУ
 } from "../types.ts";
 
 export const userApiClient = {
@@ -75,7 +75,10 @@ export const userApiClient = {
       description: "Створено адміністратором"
     });
   },
-  createAppointment: async (request: { slotId: string }) =>
+
+  createAppointment: async (request: CreateAppointmentRequest) =>
+    // ❌ НЕПРАВИЛЬНО: apiClient.post('/appointments', { request }) або { slotId: request }
+    // ✅ ПРАВИЛЬНО:
     apiClient.post<AppointmentResponse>('/appointments', request),
 // Додайте це до інших методів
   getPatientAppointments: async () =>
