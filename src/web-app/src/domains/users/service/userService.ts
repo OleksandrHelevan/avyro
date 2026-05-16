@@ -98,9 +98,9 @@ export const userService = {
   approveSpecialization: async (requestId: string): Promise<any> => {
     return userApiClient.approveSpecialization(requestId);
   },
-  getPatientAppointments: async (): Promise<AppointmentResponse[]> => {
-    // Якщо axios обгортає відповідь у .data, можливо знадобиться (await userApiClient.getPatientAppointments()).data
-    const res = await userApiClient.getPatientAppointments();
+// Додайте або замініть цей метод у userService.ts
+  getMyPatientAppointments: async (): Promise<AppointmentResponse[]> => {
+    const res = await userApiClient.getMyPatientAppointments();
     return (res as any).data ?? res;
   },
   createAppointment: async (request: CreateAppointmentRequest): Promise<AppointmentResponse> => {

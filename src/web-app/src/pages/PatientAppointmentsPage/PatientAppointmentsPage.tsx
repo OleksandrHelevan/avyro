@@ -12,51 +12,48 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
-// Підключаємо ваш сервіс (перевірте, чи правильний шлях до файлу!)
+// Підключаємо ваші сервіси
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors";
+import { userService } from "../../domains/users/service/userService";
 
 import "./PatientAppointmentsPage.css";
-import {userService} from "../../domains/users/service/userService.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
 export default function PatientAppointmentsPage() {
   const navigate = useNavigate();
 
-  // Дістаємо ID поточного пацієнта з локального сховища
-  const userId = localStorage.getItem("userId")?.replace(/"/g, '') || "";
-
-  // 1. Отримуємо профіль пацієнта (разом із його записами)
-  const { data: rawPatient, isLoading: isPatientLoading } = useQuery({
-    queryKey: ["patient", userId],
-    queryFn: () => userService.getPatientById(userId),
-    enabled: !!userId, // Запит піде тільки якщо є userId
+  // 1. Отримуємо масив записів через новий ендпоінт
+  // Нам більше не потрібен userId, оскільки ендпоінт /me сам розуміє, хто ми, завдяки токену
+  const { data: rawAppointments, isLoading: isApptsLoading } = useQuery({
+    queryKey: ["myAppointments"],
+    queryFn: () => userService.getMyPatientAppointments(),
   });
 
   // 2. Отримуємо список всіх лікарів
-  const { data: doctors = [], isLoading: isDocsLoading } = useGetDoctors();
+  const { data: rawDoctors = [], isLoading: isDocsLoading } = useGetDoctors();
 
-  // 3. Витягуємо записи (appointments) з об'єкта пацієнта
+  // Гарантуємо, що doctorsList - це завжди масив
+  const doctorsList = useMemo(() => {
+    if (Array.isArray(rawDoctors)) return rawDoctors;
+    return (rawDoctors as any)?.data || (rawDoctors as any)?.items || [];
+  }, [rawDoctors]);
+
+  // 3. Форматуємо отримані записи
   const appointments = useMemo(() => {
-    // Враховуємо вкладеність, якщо бекенд загортає у { data: ... }
-    const patientData = (rawPatient as any)?.data || rawPatient;
-
-    // Шукаємо масив записів (може називатися appointments, schedule або records)
-    const appts = patientData?.appointments || patientData?.schedule || patientData?.records || [];
-
+    const appts = (rawAppointments as any)?.data || (rawAppointments as any)?.items || rawAppointments || [];
     return Array.isArray(appts) ? appts : [];
-  }, [rawPatient]);
+  }, [rawAppointments]);
 
   // Сортування: Майбутні записи спочатку (від найближчих до найвіддаленіших)
   const sortedAppointments = useMemo(() => {
     return [...appointments].sort((a, b) => {
-      // Якщо немає поля from, залишаємо як є
       if (!a.from || !b.from) return 0;
       return new Date(a.from).getTime() - new Date(b.from).getTime();
     });
   }, [appointments]);
 
-  if (isPatientLoading || isDocsLoading) {
+  if (isApptsLoading || isDocsLoading) {
     return (
       <div className="loading-screen">
         <div className="spinner-box">
@@ -69,7 +66,6 @@ export default function PatientAppointmentsPage() {
 
   return (
     <div className="aero-viewport light-theme appointments-page">
-      {/* Фоновий декор */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1"></div>
         <div className="light-blob blob-2"></div>
@@ -101,10 +97,12 @@ export default function PatientAppointmentsPage() {
           ) : (
             <div className="appointments-grid-list">
               {sortedAppointments.map((appt: any, index: number) => {
-                // Знаходимо лікаря по doctorId
-                const doctor = doctors.find((d: any) => (d.id || d._id) === appt.doctorId);
+                // Надійний пошук лікаря за строковим порівнянням ID
+                const doctor = doctorsList.find((d: any) => {
+                  const dId = d.id || d._id;
+                  return dId && appt.doctorId && dId.toString() === appt.doctorId.toString();
+                });
 
-                // Якщо раптом бекенд повернув невалідну дату, захищаємо код
                 const startDate = appt.from ? parseISO(appt.from) : new Date();
                 const endDate = appt.to ? parseISO(appt.to) : new Date();
                 const isPast = appt.to ? new Date(appt.to) < new Date() : false;
@@ -124,10 +122,10 @@ export default function PatientAppointmentsPage() {
                           />
                         </div>
                         <div className="name-group">
-                          <h4>{doctor?.fullName || "Завантаження імені..."}</h4>
+                          <h4>{doctor?.fullName || "Лікар не знайдений"}</h4>
                           <span className="specialty-label">
-  {(doctor as any)?.specializationName || "Медичний спеціаліст"}
-</span>
+                            {doctor?.specializationName || (doctor as any)?.specializationId || "Медичний спеціаліст"}
+                          </span>
                         </div>
                       </div>
 
