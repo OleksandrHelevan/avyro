@@ -115,7 +115,6 @@ export default function DoctorProfile() {
       return;
     }
 
-// ✅ ПРАВИЛЬНИЙ ВИКЛИК
     bookAppointment(
       {
         slotId: slotIdToBook,
@@ -132,11 +131,18 @@ export default function DoctorProfile() {
   if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;
 
   return (
-    <div className="booking-page">
-      <div className="decor-elements">
-        <div className="decor-item heart">❤</div>
-        <div className="decor-item plus p1">+</div>
-        <div className="decor-item plus p2">+</div>
+    <div className="booking-page aero-viewport light-theme">
+
+      {/* 🚀 ФОНОВИЙ ДЕКОР З ЕМОДЖІ */}
+      <div className="bright-gradient-bg">
+        <div className="light-blob blob-1"></div>
+        <div className="light-blob blob-2"></div>
+      </div>
+
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">💙</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">👨‍⚕️</div>
       </div>
 
       <div className="booking-wrapper">
@@ -164,65 +170,90 @@ export default function DoctorProfile() {
             <h3>Запис на прийом</h3>
           </div>
 
-          <div className="date-selector-section">
-            <label>Оберіть дату</label>
-            <div className="date-scroll-container">
-              {rollingDays.map((day) => {
-                const isSelected = isSameDay(day, selectedDate);
-                const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
-                const isWorkDay = scheduleData?.daysOfWeek?.includes(getDay(day));
-
-                return (
-                  <button
-                    key={day.toString()}
-                    className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
-                    onClick={() => {
-                      setSelectedDate(day);
-                      setSelectedTime(null);
-                    }}
-                    disabled={!isWorkDay}
-                  >
-                    <span className="day-name">{format(day, "EE", { locale: uk })}</span>
-                    <span className="day-number">{format(day, "d")}</span>
-                  </button>
-                );
-              })}
+          {/* 🛑 ПЕРЕВІРКА НА РОЗКЛАД: Якщо його немає, показуємо рекомендацію */}
+          {!activeSchedule ? (
+            <div className="no-schedule-state" style={{ textAlign: "center", padding: "30px 10px" }}>
+              <p style={{ color: "#ef4444", fontWeight: "600", fontSize: "1.1rem", marginBottom: "8px" }}>
+                У цього спеціаліста наразі немає доступних годин для запису.
+              </p>
+              <p style={{ color: "#64748b", fontSize: "0.95rem", marginBottom: "24px" }}>
+                Не хвилюйтеся! У нас є інші чудові фахівці цього профілю.
+              </p>
+              <button
+                className="confirm-booking-btn"
+                style={{ background: "#7b51b3", boxShadow: "0 5px 15px rgba(123, 81, 179, 0.3)" }}
+                onClick={() => {
+                  const spec = doctor?.specializationName || "Усі";
+                  navigate(`/?spec=${encodeURIComponent(spec)}`);
+                }}
+              >
+                Знайти схожих лікарів
+              </button>
             </div>
-          </div>
+          ) : (
+            /* ✅ Якщо розклад Є, показуємо звичайний календар та години */
+            <>
+              <div className="date-selector-section">
+                <label>Оберіть дату</label>
+                <div className="date-scroll-container">
+                  {rollingDays.map((day) => {
+                    const isSelected = isSameDay(day, selectedDate);
+                    const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
+                    const isWorkDay = scheduleData?.daysOfWeek?.includes(getDay(day));
 
-          <div className="time-selector-section">
-            <label>Вільні години</label>
-            <div className="time-grid">
-              {availableSlots.length > 0 ? (
-                availableSlots.map(time => (
-                  <button
-                    key={time}
-                    className={`time-btn ${selectedTime === time ? "active" : ""}`}
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))
-              ) : (
-                <div className="no-hours">На цей день немає вільних годин</div>
-              )}
-            </div>
-          </div>
+                    return (
+                      <button
+                        key={day.toString()}
+                        className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
+                        onClick={() => {
+                          setSelectedDate(day);
+                          setSelectedTime(null);
+                        }}
+                        disabled={!isWorkDay}
+                      >
+                        <span className="day-name">{format(day, "EE", { locale: uk })}</span>
+                        <span className="day-number">{format(day, "d")}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          <button
-            className="confirm-booking-btn"
-            disabled={!selectedTime || isBooking}
-            onClick={handleBooking}
-          >
-            {isBooking ? (
-              <span className="spinner">⏳ Записуємо...</span>
-            ) : selectedTime ? (
-              `Записатися на ${selectedTime}`
-            ) : (
-              "Оберіть час візиту"
-            )}
-          </button>
-          <p className="payment-info">Оплата після підтвердження візиту</p>
+              <div className="time-selector-section">
+                <label>Вільні години</label>
+                <div className="time-grid">
+                  {availableSlots.length > 0 ? (
+                    availableSlots.map(time => (
+                      <button
+                        key={time}
+                        className={`time-btn ${selectedTime === time ? "active" : ""}`}
+                        onClick={() => setSelectedTime(time)}
+                      >
+                        {time}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="no-hours">На цей день немає вільних годин</div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className="confirm-booking-btn"
+                disabled={!selectedTime || isBooking}
+                onClick={handleBooking}
+              >
+                {isBooking ? (
+                  <span className="spinner">⏳ Записуємо...</span>
+                ) : selectedTime ? (
+                  `Записатися на ${selectedTime}`
+                ) : (
+                  "Оберіть час візиту"
+                )}
+              </button>
+              <p className="payment-info">Оплата після підтвердження візиту</p>
+            </>
+          )}
         </div>
       </div>
     </div>

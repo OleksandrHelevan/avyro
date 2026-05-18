@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom"; // ДОДАНО: useSearchParams
 import { Search, Mail, Send } from "lucide-react";
 import "./HomePage.css";
 
@@ -17,7 +17,12 @@ const fadeUpVariant = {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [activeSpec, setActiveSpec] = useState("Усі");
+  const [searchParams] = useSearchParams(); // Читаємо параметри з URL
+
+  // Якщо в URL є ?spec=Хірург, то одразу відкриваємо цю вкладку
+  const initialSpec = searchParams.get("spec") || "Усі";
+  const [activeSpec, setActiveSpec] = useState(initialSpec);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +30,12 @@ const HomePage = () => {
   // Завантаження даних
   const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
   const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
+
+  // Синхронізуємо активну вкладку, якщо URL змінився
+  useEffect(() => {
+    const specFromUrl = searchParams.get("spec");
+    if (specFromUrl) setActiveSpec(specFromUrl);
+  }, [searchParams]);
 
   // Список назв спеціалізацій для кнопок-фільтрів
   const displaySpecs = useMemo(() => ["Усі", ...apiSpecs.map(s => s.name)], [apiSpecs]);
@@ -38,23 +49,27 @@ const HomePage = () => {
 
   // ЛОГІКА ФІЛЬТРАЦІЇ
   const filteredDoctors = useMemo(() => {
-    // Додаємо : any ось тут:
     const selectedSpecObj: any = apiSpecs.find(s => s.name === activeSpec);
     const selectedSpecId = selectedSpecObj ? (selectedSpecObj.id || selectedSpecObj._id) : null;
 
     return doctors.filter((doc: any) => {
-      const search = searchTerm.toLowerCase().trim();
-
       const docSpecId = doc.specializationId || doc.specialization_id;
       const docSpecName = doc.specializationName;
+
+      // 🛑 ПРАВИЛО 1: Якщо в лікаря ВЗАГАЛІ НЕМАЄ спеціалізації – не показуємо його
+      if (!docSpecId && !docSpecName) {
+        return false;
+      }
+
+      const search = searchTerm.toLowerCase().trim();
+      const specNameToSearch = docSpecName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "";
 
       const matchesCategory =
         activeSpec === "Усі" ||
         docSpecId === selectedSpecId ||
-        docSpecName === activeSpec;
+        docSpecName === activeSpec ||
+        specNameToSearch === activeSpec;
 
-      // ВИПРАВЛЕНО: s.id || s._id
-      const specNameToSearch = docSpecName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "";
       const matchesSearch = !search ||
         doc.fullName?.toLowerCase().includes(search) ||
         doc.email?.toLowerCase().includes(search) ||
@@ -73,10 +88,18 @@ const HomePage = () => {
 
   return (
     <div className="aero-viewport light-theme">
+      {/* --- ФОН ТА ЕМОДЖІ --- */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1"></div>
         <div className="light-blob blob-2"></div>
       </div>
+
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">💙</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">👨‍⚕️</div>
+      </div>
+      {/* ----------------------- */}
 
       <main className="main-content">
         {/* Банер-слайдер */}
@@ -111,7 +134,11 @@ const HomePage = () => {
                   <button
                     key={spec}
                     className={`spec-tag-light ${activeSpec === spec ? 'spec-active' : 'glass-light'}`}
-                    onClick={() => setActiveSpec(spec)}
+                    onClick={() => {
+                      setActiveSpec(spec);
+                      // Очищаємо URL, якщо юзер сам клікає по фільтрах
+                      navigate('/', { replace: true });
+                    }}
                   >
                     {spec}
                   </button>
@@ -136,7 +163,7 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* Сітка лікарів БЕЗ анімації появи */}
+        {/* Сітка лікарів */}
         <div className="results-section">
           <div className="doctors-grid">
             {isLoadingDoctors ? (
@@ -148,14 +175,13 @@ const HomePage = () => {
             ) : filteredDoctors.map((doc: any, index) => {
 
               const docSpecId = doc.specializationId || doc.specialization_id;
-              // ВИПРАВЛЕНО: s.id || s._id
               const displaySpecName = doc.specializationName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "Загальний профіль";
 
               return (
                 <motion.div
                   key={doc.id || doc._id || index}
                   className="doctor-card-light glass-light"
-                  whileHover={{ y: -5 }} // Анімація при наведенні мишки залишається
+                  whileHover={{ y: -5 }}
                 >
                   <div className="card-header">
                     <div className="doctor-avatar-placeholder">
