@@ -1,32 +1,66 @@
 /* src/pages/Admin/AdminSchedules.css */
-.dash-page { padding: 2rem; max-width: 1200px; margin: 0 auto; background: #f8fafc; min-height: 100vh;}
-.dash-page h2 { color: #0f172a; margin-bottom: 2rem; }
+.dash-page {
+  width: 100%; /* ДОДАЙТЕ ЦЕЙ РЯДОК */
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  /* Додаємо відступи, щоб не ховалося під хедером і не прилипало до боків екрана */
+  padding: 100px 2rem 2rem 2rem;
+
+  /* Вбиваємо небажаний бекграунд */
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.dash-page h2 {
+  color: #0f172a;
+  margin-bottom: 2rem;
+  text-align: center; /* Можна вирівняти по центру для краси */
+}
 
 .dash-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  /* Жорстко задаємо 3 рівні колонки (3 в ряд) */
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
 
 .dash-card {
-  background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+
+  /* Робимо їх трохи "скляними", щоб гарно виглядали на вашому синьому фоні */
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Легкий ефект підняття картки при наведенні */
+.dash-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .dash-header {
-  background: #1e293b; /* Темний солідний заголовок */
-  color: white;
-  padding: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1.5rem 1.5rem 0; /* Додаємо відступи всередині картки */
 }
 
-.dash-header h3 { margin: 0; font-size: 1.1rem; }
-.dash-header span { font-size: 0.85rem; color: #94a3b8; }
+.dash-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.dash-header span {
+  font-size: 0.85rem;
+  color: #64748b;
+}
 
 .dash-metrics {
   display: flex;
@@ -36,18 +70,73 @@
 
 .metric-box {
   flex: 1;
-  background: #f1f5f9;
   padding: 1rem;
   border-radius: 12px;
+  background: rgba(241, 245, 249, 0.6); /* Легкий фон для метрик */
   text-align: center;
 }
 
-.metric-box span { display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;}
-.metric-box strong { font-size: 1.8rem; color: #0f172a; }
-
-.dash-actions { padding: 0 1.5rem 1.5rem; }
-.dash-btn {
-  width: 100%; padding: 12px; background: white; border: 1px solid #cbd5e1;
-  border-radius: 8px; color: #0f172a; font-weight: 600; cursor: pointer;
+.metric-box span {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
 }
-.dash-btn:hover { background: #f8fafc; }
+
+.metric-box strong {
+  font-size: 1.6rem;
+  color: #0f172a;
+}
+
+.dash-actions {
+  padding: 0 1.5rem 1.5rem;
+  display: flex;
+  gap: 10px; /* На випадок, якщо кнопок буде дві (Прийняти/Відхилити) */
+}
+
+.dash-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: transparent;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ДОДАНО: Ефект при наведенні на кнопку */
+.dash-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+
+/* =========================================
+   АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
+   ========================================= */
+
+/* Планшети і невеликі ноутбуки */
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, 1fr); /* По 2 в ряд */
+  }
+}
+
+/* Мобільні телефони */
+@media (max-width: 768px) {
+  .dash-page {
+    padding: 85px 1rem 1rem 1rem; /* Менші бокові відступи */
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr; /* 1 в ряд */
+  }
+
+  .metric-box strong {
+    font-size: 1.4rem; /* Зменшуємо шрифт цифр, щоб помістилися */
+  }
+}

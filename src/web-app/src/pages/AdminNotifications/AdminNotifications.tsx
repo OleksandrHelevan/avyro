@@ -1,8 +1,11 @@
-import React, { useState } from "react";
 import { Plus, Check, X, Loader2, Tag, Info } from "lucide-react";
 import toast from "react-hot-toast";
+import { useForm, FormProvider } from "react-hook-form"; // ДОДАНО
 
 import "./AdminNotifications.css";
+// Імпортуйте ваш кастомний інпут (ПЕРЕВІРТЕ ШЛЯХ ДО ФАЙЛУ!)
+import TextInput from "../../components/TextInput/TextInput";
+
 import {
   useApproveSpecialization,
   useCreateSpecializationDirect
@@ -11,27 +14,30 @@ import { useAdminSpecializations } from "../../domains/users/useAdminSpecializat
 import { useRejectSchedule } from "../../domains/users/useRejectSchedule/useRejectSchedule.ts";
 
 export default function AdminSpecializations() {
-  const [newSpecName, setNewSpecName] = useState("");
+  // 1. Ініціалізуємо react-hook-form замість useState
+  const methods = useForm({
+    defaultValues: {
+      specName: "",
+    },
+  });
 
-  // Queries & Mutations
   const { data: requests, isLoading, isError } = useAdminSpecializations();
   const { mutate: createDirect, isPending: isCreating } = useCreateSpecializationDirect();
   const { mutate: approveSpec, isPending: isApproving } = useApproveSpecialization();
   const { mutate: rejectReq, isPending: isRejecting } = useRejectSchedule();
 
-  // Обробка прямого створення
-  const handleDirectCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSpecName.trim()) {
-      toast.error("Введіть назву спеціалізації");
-      return;
-    }
-    createDirect({ name: newSpecName.trim() }, {
-      onSuccess: () => setNewSpecName("") // Очищаємо поле після успіху
-    });
+  // 2. Обробка форми тепер приймає дані з react-hook-form
+  const onSubmit = (data: { specName: string }) => {
+    createDirect(
+      { name: data.specName.trim() },
+      {
+        onSuccess: () => {
+          methods.reset(); // Очищаємо поле після успіху
+        },
+      }
+    );
   };
 
-  // Обробка відхилення запиту
   const handleRejectClick = (requestId: string) => {
     const comment = window.prompt("Вкажіть причину відхилення:");
     if (comment !== null) {
@@ -69,23 +75,32 @@ export default function AdminSpecializations() {
           Створити нову спеціалізацію вручну
         </h3>
 
-        <form onSubmit={handleDirectCreate} className="create-form">
-          <input
-            type="text"
-            className="create-input"
-            placeholder="Наприклад: Нейрохірург"
-            value={newSpecName}
-            onChange={(e) => setNewSpecName(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="create-btn"
-            disabled={isCreating}
-          >
-            {isCreating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
-            Створити
-          </button>
-        </form>
+        {/* 3. Обгортаємо форму в FormProvider */}
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="create-form">
+
+            <div style={{ flex: 1 }}> {/* Обгортка, щоб інпут розтягнувся */}
+              {/* ВИКОРИСТОВУЄМО ВАШ TextInput */}
+              <TextInput
+                name="specName"
+                label="" // Можна залишити пустим, якщо не треба текст над інпутом
+                placeholder="Наприклад: Нейрохірург"
+                rules={{ required: "Введіть назву спеціалізації" }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="create-btn"
+              disabled={isCreating}
+              style={{ marginTop: methods.formState.errors.specName ? '0' : 'auto', marginBottom: 'auto' }}
+              // Вирівнюємо кнопку по центру відносно інпута
+            >
+              {isCreating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
+              Створити
+            </button>
+          </form>
+        </FormProvider>
       </div>
 
       {/* БЛОК ЗАПИТІВ ВІД ЛІКАРІВ */}
@@ -98,7 +113,7 @@ export default function AdminSpecializations() {
       ) : (
         <div className="dash-grid">
           {pendingRequests.map((req: any) => {
-            const data = req.payload || req; // Дістаємо дані
+            const data = req.payload || req;
             const specName = data.name || data.specializationName || "?";
             const isBusy = isApproving || isRejecting;
 

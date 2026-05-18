@@ -15,7 +15,6 @@ interface DoctorData {
 }
 
 export default function Header() {
-  // ... ваш існуючий код (location, navigate, role, handles і т.д.)
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -83,10 +82,14 @@ export default function Header() {
 
         <div className={`nav-links-container ${isMobileOpen ? "open" : ""}`}>
           <div className="nav-links">
-            <NavLink to="/" onClick={closeMobileMenu}
-                     className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-              Знайти лікаря
-            </NavLink>
+
+            {/* Ховаємо "Знайти лікаря", якщо роль ADMIN */}
+            {role !== "ADMIN" && (
+              <NavLink to="/" onClick={closeMobileMenu}
+                       className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                Знайти лікаря
+              </NavLink>
+            )}
 
             {isAuthenticated && role === "PATIENT" && (
               <NavLink to="/appointments" onClick={closeMobileMenu}

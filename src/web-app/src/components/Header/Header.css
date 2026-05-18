@@ -1,4 +1,13 @@
-
+.white-nav {
+  position: fixed; /* або sticky, щоб не випадати з потоку */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px; /* Жорстко задаємо висоту, на яку спирається мобільне меню */
+  background-color: #ffffff;
+  z-index: 100; /* Має бути більше, ніж у мобільного випадаючого меню (99) */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Легка тінь для відділення від контенту */
+}
 .nav-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -6,6 +15,9 @@
   justify-content: space-between;
   align-items: center;
 
+  /* ДОДАЙТЕ ЦІ 2 РЯДКИ: */
+  height: 100%;       /* Щоб контент розтягнувся на всі 70px хедера і став чітко по центру */
+  padding: 0 20px;    /* Щоб на планшетах логотип і кнопки не прилипали до самих країв екрана */
 }
 
 .logo-group {
