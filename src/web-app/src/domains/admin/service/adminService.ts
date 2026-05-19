@@ -1,21 +1,20 @@
 import {adminApiClient} from "../api/adminApiClient.ts";
 import type {AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse} from "../types.ts";
-import {userApiClient} from "../../users/api/userApiClient.ts";
 
 
 export const adminService = {
 
 
   getAdminRegistrations: async (): Promise<AdminRegistration[]> => {
-    return userApiClient.getAdminRegistrations();
+    return adminApiClient.getAdminRegistrations();
   },
 
   approveRegistration: async (requestId: string): Promise<ApproveRegistrationResponse> => {
-    return userApiClient.approveRegistration(requestId);
+    return adminApiClient.approveRegistration(requestId);
   },
 
   rejectRegistration: async (requestId: string, comment: string): Promise<RejectRegistrationResponse> => {
-    return userApiClient.rejectRegistration(requestId, comment);
+    return adminApiClient.rejectRegistration(requestId, comment);
   },
 
   getAdminSchedules: async () => {
