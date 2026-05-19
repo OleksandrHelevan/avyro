@@ -22,6 +22,10 @@ class AppointmentRepository:
         cursor = self.collection.find({"patientId": patient_id})
         return [Appointment.from_dict(doc) for doc in cursor]
 
+    def get_by_doctor_id(self, doctor_id: ObjectId) -> List[Appointment]:
+        cursor = self.collection.find({"doctorId": doctor_id})
+        return [Appointment.from_dict(doc) for doc in cursor]
+
     def get_by_slot_id(self, slot_id: ObjectId) -> Optional[Appointment]:
         doc = self.collection.find_one({"slotId": slot_id})
         return Appointment.from_dict(doc) if doc else None
