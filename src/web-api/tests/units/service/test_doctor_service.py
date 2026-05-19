@@ -183,7 +183,7 @@ def test_get_doctor_by_id_success(doctor_service, mock_user_repo, mock_spec_repo
     # ДОДАНО: Імітуємо повернення розкладу з БД
     fake_schedule_id = ObjectId()
     fake_slot_id = ObjectId()
-    mock_schedule_repo.get_all_by_doctor_id.return_value = [
+    mock_schedule_repo.get_by_doctor_id.return_value = [
         {
             "_id": fake_schedule_id,
             "doctorId": ObjectId(valid_user_id),

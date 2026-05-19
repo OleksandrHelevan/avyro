@@ -6,6 +6,7 @@ from enum import Enum
 
 class SlotType(Enum):
     AVAILABLE = "AVAILABLE"
+    RESERVED = "RESERVED"
     BLOCKED = "BLOCKED"
 
 

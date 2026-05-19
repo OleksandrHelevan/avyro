@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Any
-from config.dependencies import get_schedule_service
 from config.permissions import RoleChecker
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from config.dependencies import get_schedule_service
@@ -12,7 +11,7 @@ allow_doctor = RoleChecker(["DOCTOR"])
 
 @router.get("", response_model=List[Any])
 async def get_doctor_schedules(
-    doctorId: str,  # FastAPI автоматично дістане це з query-параметрів (?doctorId=...)
+    doctorId: str,
     schedule_service: ScheduleService = Depends(get_schedule_service)
 ):
      schedule_service.get_doctor_slots(doctorId)

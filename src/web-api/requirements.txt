@@ -8,3 +8,5 @@ pydantic[email]
 pytest
 pytest-env
 pytest-asyncio
+httpx
+mongomock

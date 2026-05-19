@@ -4,6 +4,7 @@ from bson import ObjectId
 from pymongo.collection import Collection
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 
+
 class ScheduleRepository:
     def __init__(self, collection: Collection):
         self.collection = collection
@@ -22,26 +23,49 @@ class ScheduleRepository:
         })
         return Schedule.from_dict(doc) if doc else None
 
-    def get_all_by_doctor_id(self, doctor_id: ObjectId) -> List[Schedule]:
-        schedules = self.collection.find({"doctorId": doctor_id})
-        return [Schedule.from_dict(doc) for doc in schedules]
-
     def book_slot(self, schedule_id: ObjectId, slot_id: ObjectId, appointment_id: ObjectId) -> bool:
-        """Атомарне бронювання слота всередині масиву"""
-        result = self.collection.update_one(
-            {
+        query = {
+            "_id": schedule_id,
+            "slots": {
+                "$elemMatch": {
+                    "slotId": slot_id,
+                    "type": "AVAILABLE"
+                }
+            }
+        }
+
+        update_query = {
+            "$set": {
+                "slots.$.type": "RESERVED",
+                "slots.$.appointmentId": appointment_id,
+                "updatedAt": datetime.now(timezone.utc)
+            }
+        }
+
+        result = self.collection.update_one(query, update_query)
+
+        if result.modified_count == 0:
+            query_string = {
                 "_id": schedule_id,
-                "slots.slotId": slot_id,
-                "slots.type": "AVAILABLE" # Перевірка availability для запобігання Race Condition
-            },
-            {
+                "slots": {
+                    "$elemMatch": {
+                        "slotId": str(slot_id),
+                        "type": "AVAILABLE"
+                    }
+                }
+            }
+            update_query_string = {
                 "$set": {
-                    "slots.$.type": "BLOCKED",
-                    "slots.$.appointmentId": appointment_id,
+                    "slots.$.type": "RESERVED",
+                    "slots.$.appointmentId": str(appointment_id),
                     "updatedAt": datetime.now(timezone.utc)
                 }
             }
-        )
+            result = self.collection.update_one(query_string, update_query_string)
+
+        if result.modified_count == 0:
+            print(f"⚠️ УВАГА: Не вдалося оновити слот! Слот з ID {slot_id} не знайдено або він вже зайнятий.")
+
         return result.modified_count > 0
 
     def get_by_id(self, schedule_id: ObjectId) -> Optional[Schedule]:
@@ -51,3 +75,11 @@ class ScheduleRepository:
     def get_by_slot_id(self, slot_id: ObjectId):
         doc = self.collection.find_one({"slots.slotId": slot_id})
         return Schedule.from_dict(doc) if doc else None
+
+    def get_by_doctor_id(self, doctor_id: ObjectId) -> List[Schedule]:
+        docs = list(self.collection.find({"doctorId": doctor_id}))
+
+        if not docs:
+            docs = list(self.collection.find({"doctorId": str(doctor_id)}))
+
+        return [Schedule.from_dict(doc) for doc in docs]
