@@ -1,4 +1,4 @@
-import {createContext, useContext, useState, useEffect, type ReactNode} from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 // Допоміжна функція для розшифровки JWT токена
 const parseJwt = (token: string) => {
@@ -18,54 +18,86 @@ interface AuthContextType {
   token: string | null;
   role: string | null;
   userId: string | null;
-  login: (newToken: string, role?: string, userId?: string) => void;
-  logout: () => void;
+  isAuthLoading: boolean; // 🚀 ДОДАНО: стан завантаження
+  login: (newToken: string, role?: string, userId?: string) => Promise<void>; // 🚀 ДОДАНО: Promise
+  logout: () => Promise<void>; // 🚀 ДОДАНО: Promise
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // При завантаженні беремо токен зі стореджу
-  const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken") || localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // Стан для відстеження первинної ініціалізації
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+
+  // 1. АСИНХРОННА ІНІЦІАЛІЗАЦІЯ ПРИ ЗАВАНТАЖЕННІ
   useEffect(() => {
-    if (token) {
-      localStorage.setItem("accessToken", token);
+    const initAuth = async () => {
+      try {
+        const storedToken = localStorage.getItem("accessToken") || localStorage.getItem("token");
 
-      // Розшифровуємо токен, щоб дістати роль та ID при оновленні сторінки
-      const decoded = parseJwt(token);
-      if (decoded) {
-        // Увага: перевірте, як саме називаються поля у вашому токені (може бути просто role, або userRole)
-        setRole(decoded.role || decoded.userRole || null);
-        setUserId(decoded.id || decoded.userId || decoded.sub || null);
+        if (storedToken) {
+          setToken(storedToken);
+          const decoded = parseJwt(storedToken);
+
+          if (decoded) {
+            setRole(decoded.role || decoded.userRole || null);
+            setUserId(decoded.id || decoded.userId || decoded.sub || null);
+          }
+        }
+      } catch (error) {
+        console.error("Помилка ініціалізації авторизації:", error);
+      } finally {
+        setIsAuthLoading(false); // Ініціалізація завершена
       }
-    } else {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("token");
-      setRole(null);
-      setUserId(null);
-    }
-  }, [token]);
+    };
 
-  // Функція логіну (викликається в LoginPage)
-  const login = (newToken: string, newRole?: string, newUserId?: string) => {
-    setToken(newToken);
-    if (newRole) setRole(newRole);
-    if (newUserId) setUserId(newUserId);
+    initAuth();
+  }, []);
+
+  // 2. АСИНХРОННА СИНХРОНІЗАЦІЯ ТОКЕНА З STORAGE
+  useEffect(() => {
+    if (isAuthLoading) return; // Не записуємо нічого, поки йде перше завантаження
+
+    const syncStorage = async () => {
+      if (token) {
+        localStorage.setItem("accessToken", token);
+      } else {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("token");
+      }
+    };
+
+    syncStorage();
+  }, [token, isAuthLoading]);
+
+  // 3. АСИНХРОННИЙ ЛОГІН
+  const login = async (newToken: string, newRole?: string, newUserId?: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setToken(newToken);
+      if (newRole) setRole(newRole);
+      if (newUserId) setUserId(newUserId);
+      resolve();
+    });
   };
 
-  // Функція логауту (викликається в Навбарі або Профілі)
-  const logout = () => {
-    setToken(null);
-    setRole(null);
-    setUserId(null);
-    localStorage.clear(); // Про всяк випадок чистимо сміття
+  // 4. АСИНХРОННИЙ ЛОГАУТ
+  const logout = async (): Promise<void> => {
+    return new Promise((resolve) => {
+      setToken(null);
+      setRole(null);
+      setUserId(null);
+      localStorage.clear();
+      resolve();
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, userId, login, logout }}>
+    <AuthContext.Provider value={{ token, role, userId, isAuthLoading, login, logout }}>
+      {/* Можна додати глобальний лоадер тут: if (isAuthLoading) return <Loader /> */}
       {children}
     </AuthContext.Provider>
   );

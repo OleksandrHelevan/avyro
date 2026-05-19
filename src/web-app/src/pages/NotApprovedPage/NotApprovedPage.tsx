@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw, LogOut } from 'lucide-react';
+import { useAuth } from '../../AuthContext.tsx'; // ДОДАНО ІМПОРТ
 import './NotApprovedPage.css';
 
 export default function NotApprovedPage() {
   const navigate = useNavigate();
+  const { logout } = useAuth(); // Беремо метод з контексту
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout(); // Очищаємо стан контексту та токени
     navigate('/login');
   };
 
@@ -22,7 +24,7 @@ export default function NotApprovedPage() {
             <Clock size={80} className="pulse-icon-teal" />
           </div>
 
-          <h1 className="status-title">Ваш аккаунт на перевірці</h1>
+          <h1 className="status-title">Ваш акаунт на перевірці</h1>
           <p className="status-description">
             Доступ до кабінету лікаря з'явиться одразу після того, як адміністратор
             підтвердить вашу кваліфікацію. Зазвичай це займає до 24 годин.
@@ -42,7 +44,7 @@ export default function NotApprovedPage() {
               className="btn-logout-minimal"
             >
               <LogOut size={16} />
-              Вийти з аккаунту
+              Вийти з акауну
             </button>
           </div>
         </div>

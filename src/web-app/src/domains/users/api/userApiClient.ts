@@ -34,4 +34,7 @@ export const userApiClient = {
   requestSchedule: async (request: ScheduleRequest) =>
     apiClient.post<ScheduleResponse>('/schedules/request', request),
 
+  checkDoctorStatus: async (email: string) => {
+    return apiClient.get<any>(`/doctors?email=${encodeURIComponent(email)}`);
+  },
 }

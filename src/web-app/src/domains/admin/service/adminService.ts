@@ -1,9 +1,7 @@
 import {adminApiClient} from "../api/adminApiClient.ts";
 import type {AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse} from "../types.ts";
 
-
 export const adminService = {
-
 
   getAdminRegistrations: async (): Promise<AdminRegistration[]> => {
     return adminApiClient.getAdminRegistrations();
@@ -37,5 +35,8 @@ export const adminService = {
     return adminApiClient.createSpecializationDirect(data);
   },
 
+  approveSpecialization: async (requestId: string): Promise<any> => {
+    return adminApiClient.approveSpecialization(requestId);
+  },
 
 };

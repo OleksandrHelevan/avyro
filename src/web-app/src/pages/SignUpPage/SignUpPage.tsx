@@ -9,9 +9,11 @@ import {
   type RadioOption,
   RadioSelector,
 } from "../../components/RadioSelector/RadioSelector.tsx";
-import "./SignUpPage.css";
 import Checkbox from "../../components/Checkbox/Checkbox.tsx";
 import toast from "react-hot-toast";
+
+import "./SignUpPage.css";
+import { setInStorage } from "../../utils/localStorageUtil.ts";
 
 interface SignUpFormValues {
   email: string;
@@ -41,7 +43,7 @@ export default function SignUpPage() {
       email: data.email,
       password: data.password,
       role: selectedRole,
-      isActive: true,
+      isActive: selectedRole === "PATIENT",
       profile: {
         fullName: "",
         phone: "",
@@ -53,7 +55,18 @@ export default function SignUpPage() {
     mutate(requestData, {
       onSuccess: () => {
         toast.success("Акаунт створено!");
-        navigate("/login");
+
+        if (selectedRole === "DOCTOR") {
+          // 1. Зберігаємо email в LocalStorage для майбутньої автопідстановки
+          setInStorage("savedDoctorEmail", data.email);
+
+          // 2. Лікар щойно зареєструвався, тому він 100% PENDING.
+          // Ніяких перевірок бекенду — одразу кидаємо на сторінку очікування!
+          navigate("/not-approved");
+        } else {
+          // Якщо це Пацієнт — звичайно ведемо на сторінку входу
+          navigate("/login");
+        }
       },
       onError: () => {
         toast.error("Помилка реєстрації");

@@ -1,9 +1,5 @@
-import {apiClient} from "../../../services/apiService.ts";
-import type {
-
-  Specialization,
-
-} from "../types.ts";
+import { apiClient } from "../../../services/apiService.ts";
+import type { Specialization } from "../types.ts";
 
 export const specializationsApiClient = {
 
@@ -13,11 +9,11 @@ export const specializationsApiClient = {
   getSpecializationById: async (spec_id: string) =>
     apiClient.get<Specialization>(`/specializations/${spec_id}`),
 
-  createSpecializationDirect: async (data: { name: string }) => {
-    console.log("Відправка на бекенд:", data.name);
-    return apiClient.post('/admin/specialization', {
+  // 🚀 Перейменували: тепер це просто звичайне створення
+  createSpecialization: async (data: { name: string }) => {
+    return apiClient.post('/specializations', {
       name: data.name.trim(),
-      description: "Створено адміністратором"
+      description: "Запропоновано лікарем"
     });
   },
-}
+};
