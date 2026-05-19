@@ -19,11 +19,11 @@ def get_patient_profile(
     logger.info(f"Fetching patient profile for ID: {user_id}")
     return service.get_patient_profile(user_id)
 
-@router.patch("/patients/{user_id}", response_model=PatientResponse)
+@router.patch("/patient", response_model=PatientResponse)
 def patch_patient_profile(
-    user_id: str,
     request: AddPatientProfileRequest,
-    _=Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     service: PatientService = Depends(get_patient_service),
 ):
+    user_id = current_user.get("sub")
     return service.patch_patient_profile(user_id, request)

@@ -13,6 +13,13 @@ from modules.users_module.api.AuthController import router as auth_router
 from modules.appointments_module.api.ScheduleController import router as schedule_router
 from modules.users_module.api.SpecializationController import router as specialization_router
 from modules.admin_module.api.AdminController import router as admin_router
+from modules.appointments_module.application.service.SlotCleanerScheduler import start_slot_cleaner
+from modules.notifications_module.api.NotificationController import router as notification_router
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+
 
 
 
@@ -34,7 +41,13 @@ from modules.users_module.api.exception.exceptions import (
     InvalidCredentialsException
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_slot_cleaner()
+    yield
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Avyro — Health Journey API",
     version="1.0.0",
     description=(
@@ -73,7 +86,7 @@ app.include_router(user_router)
 app.include_router(doctor_router)
 app.include_router(specialization_router)
 app.include_router(schedule_router)
-
+app.include_router(notification_router)
 
 @app.get("/health", tags=["General"], summary="Health Status")
 def db_health():
