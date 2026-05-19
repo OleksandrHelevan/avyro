@@ -5,10 +5,12 @@ import {
   parse, isAfter, getDay, addDays
 } from "date-fns";
 import { uk } from "date-fns/locale";
+import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 import "./DoctorProfilePage.css";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useMemo, useState } from "react";
+import { useCreateAppointment } from "../../domains/appointments/useCreateAppointment/useCreateAppointment";
 
 // Константа для аватарки за замовчуванням
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
@@ -33,7 +35,7 @@ const generateTimeSlots = (startTime: string, endTime: string, slotDuration: num
 };
 
 export default function DoctorProfile() {
-  const { id } = useParams();
+  const { id } = useParams(); // Отримуємо ID лікаря з URL
   const navigate = useNavigate();
 
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
@@ -42,18 +44,16 @@ export default function DoctorProfile() {
   // 1. Отримуємо дані доктора
   const { data: rawDoctor, isLoading: isDocLoading } = useDoctor(id || "");
 
-  // Розпаковка профілю (враховуємо можливу вкладеність .data)
+  // 2. Підключаємо хук для створення запису
+  const { mutate: bookAppointment, isPending: isBooking } = useCreateAppointment();
+
+  // Розпаковка профілю
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // 2. Пошук активного розкладу (APPROVED)
+  // 3. Пошук активного розкладу
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
-
-    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
-      return null;
-    }
-
-    // Шукаємо APPROVED або беремо перший у списку
+    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return null;
     return schedules.find((s: any) => s.status === "APPROVED") || schedules[0];
   }, [doctor]);
 
@@ -62,14 +62,14 @@ export default function DoctorProfile() {
     return Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i));
   }, []);
 
-  // 3. Генерація доступних годин для обраної дати
+  // 4. Генерація доступних годин для обраної дати
   const availableSlots = useMemo(() => {
     const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
 
     if (!scheduleData) return [];
 
-    const currentDayIdx = getDay(selectedDate); // 0 - Нд, 1 - Пн...
-    const isWorkDay = scheduleData.daysOfWeek.includes(currentDayIdx);
+    const currentDayIdx = getDay(selectedDate);
+    const isWorkDay = scheduleData.daysOfWeek?.includes(currentDayIdx);
 
     if (!isWorkDay) return [];
 
@@ -81,21 +81,68 @@ export default function DoctorProfile() {
 
     const now = new Date();
     return allSlots.filter(t => {
-      // Якщо обрана дата сьогодні — показуємо тільки майбутні години
       if (!isSameDay(selectedDate, now)) return true;
       const slotTime = parse(t, 'HH:mm', selectedDate);
       return isAfter(slotTime, now);
     });
   }, [selectedDate, activeSchedule]);
 
+  // 5. ЛОГІКА ВІДПРАВКИ ЗАПИТУ
+  const handleBooking = () => {
+    if (!selectedTime) return;
+
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+
+    // Збираємо всі слоти
+    const allPossibleSlots = [
+      ...(Array.isArray(doctor?.schedule) ? doctor.schedule : []),
+      ...(Array.isArray(activeSchedule?.slots) ? activeSchedule.slots : []),
+      ...(Array.isArray(activeSchedule?.payload?.slots) ? activeSchedule.payload.slots : [])
+    ];
+
+    // Шукаємо слот
+    const exactSlot = allPossibleSlots.find((s: any) => {
+      const timeStr = String(s.from || "");
+      return timeStr.includes(formattedDate) &&
+        timeStr.includes(selectedTime) &&
+        s.type === "AVAILABLE";
+    });
+
+    const slotIdToBook = exactSlot?.slotId;
+
+    if (!slotIdToBook) {
+      toast.error(`Помилка: Цей час вже зайнятий або недоступний.`);
+      return;
+    }
+
+    bookAppointment(
+      {
+        slotId: slotIdToBook,
+        doctorId: (doctor?.id || doctor?._id || id || "").toString()
+      },
+      {
+        onSuccess: () => {
+          setSelectedTime(null);
+        }
+      }
+    );
+  };
+
   if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;
 
   return (
-    <div className="booking-page">
-      <div className="decor-elements">
-        <div className="decor-item heart">❤</div>
-        <div className="decor-item plus p1">+</div>
-        <div className="decor-item plus p2">+</div>
+    <div className="booking-page aero-viewport light-theme">
+
+      {/* 🚀 ФОНОВИЙ ДЕКОР З ЕМОДЖІ */}
+      <div className="bright-gradient-bg">
+        <div className="light-blob blob-1"></div>
+        <div className="light-blob blob-2"></div>
+      </div>
+
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">💙</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">👨‍⚕️</div>
       </div>
 
       <div className="booking-wrapper">
@@ -123,55 +170,90 @@ export default function DoctorProfile() {
             <h3>Запис на прийом</h3>
           </div>
 
-          <div className="date-selector-section">
-            <label>Оберіть дату</label>
-            <div className="date-scroll-container">
-              {rollingDays.map((day) => {
-                const isSelected = isSameDay(day, selectedDate);
-                const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
-                const isWorkDay = scheduleData?.daysOfWeek.includes(getDay(day));
-
-                return (
-                  <button
-                    key={day.toString()}
-                    className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
-                    onClick={() => {
-                      setSelectedDate(day);
-                      setSelectedTime(null);
-                    }}
-                    disabled={!isWorkDay}
-                  >
-                    <span className="day-name">{format(day, "EE", { locale: uk })}</span>
-                    <span className="day-number">{format(day, "d")}</span>
-                  </button>
-                );
-              })}
+          {/* 🛑 ПЕРЕВІРКА НА РОЗКЛАД: Якщо його немає, показуємо рекомендацію */}
+          {!activeSchedule ? (
+            <div className="no-schedule-state" style={{ textAlign: "center", padding: "30px 10px" }}>
+              <p style={{ color: "#ef4444", fontWeight: "600", fontSize: "1.1rem", marginBottom: "8px" }}>
+                У цього спеціаліста наразі немає доступних годин для запису.
+              </p>
+              <p style={{ color: "#64748b", fontSize: "0.95rem", marginBottom: "24px" }}>
+                Не хвилюйтеся! У нас є інші чудові фахівці цього профілю.
+              </p>
+              <button
+                className="confirm-booking-btn"
+                style={{ background: "#7b51b3", boxShadow: "0 5px 15px rgba(123, 81, 179, 0.3)" }}
+                onClick={() => {
+                  const spec = doctor?.specializationName || "Усі";
+                  navigate(`/?spec=${encodeURIComponent(spec)}`);
+                }}
+              >
+                Знайти схожих лікарів
+              </button>
             </div>
-          </div>
+          ) : (
+            /* ✅ Якщо розклад Є, показуємо звичайний календар та години */
+            <>
+              <div className="date-selector-section">
+                <label>Оберіть дату</label>
+                <div className="date-scroll-container">
+                  {rollingDays.map((day) => {
+                    const isSelected = isSameDay(day, selectedDate);
+                    const scheduleData = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
+                    const isWorkDay = scheduleData?.daysOfWeek?.includes(getDay(day));
 
-          <div className="time-selector-section">
-            <label>Вільні години</label>
-            <div className="time-grid">
-              {availableSlots.length > 0 ? (
-                availableSlots.map(time => (
-                  <button
-                    key={time}
-                    className={`time-btn ${selectedTime === time ? "active" : ""}`}
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))
-              ) : (
-                <div className="no-hours">На цей день немає вільних годин</div>
-              )}
-            </div>
-          </div>
+                    return (
+                      <button
+                        key={day.toString()}
+                        className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
+                        onClick={() => {
+                          setSelectedDate(day);
+                          setSelectedTime(null);
+                        }}
+                        disabled={!isWorkDay}
+                      >
+                        <span className="day-name">{format(day, "EE", { locale: uk })}</span>
+                        <span className="day-number">{format(day, "d")}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          <button className="confirm-booking-btn" disabled={!selectedTime}>
-            {selectedTime ? `Записатися на ${selectedTime}` : "Оберіть час візиту"}
-          </button>
-          <p className="payment-info">Оплата після підтвердження візиту</p>
+              <div className="time-selector-section">
+                <label>Вільні години</label>
+                <div className="time-grid">
+                  {availableSlots.length > 0 ? (
+                    availableSlots.map(time => (
+                      <button
+                        key={time}
+                        className={`time-btn ${selectedTime === time ? "active" : ""}`}
+                        onClick={() => setSelectedTime(time)}
+                      >
+                        {time}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="no-hours">На цей день немає вільних годин</div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className="confirm-booking-btn"
+                disabled={!selectedTime || isBooking}
+                onClick={handleBooking}
+              >
+                {isBooking ? (
+                  <span className="spinner">⏳ Записуємо...</span>
+                ) : selectedTime ? (
+                  `Записатися на ${selectedTime}`
+                ) : (
+                  "Оберіть час візиту"
+                )}
+              </button>
+              <p className="payment-info">Оплата після підтвердження візиту</p>
+            </>
+          )}
         </div>
       </div>
     </div>

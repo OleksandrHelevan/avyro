@@ -2,14 +2,14 @@
 
 /* --- ОСНОВНИЙ ФОН: Ефект м'якого Mesh-градієнта --- */
 .dash-page {
-  padding: 2.5rem;
+  /* ДОДАНО: Бокові відступи (1.5rem), щоб на планшетах контент не прилипав до країв */
+  padding: 100px 1.5rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 
   /* Той самий красивий фон з м'якими кольоровими плямами */
-  background-color: #f8fafc;
   background-image:
     radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
     radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
@@ -127,7 +127,6 @@
 
 /* --- КАРТКА ЗАПИТУ --- */
 .dash-card {
-  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-radius: 24px;
   overflow: hidden;
@@ -144,7 +143,6 @@
   border-color: #e0e7ff;
 }
 
-/* Заголовок картки тепер світлий і сучасний */
 .dash-header {
   background: transparent;
   padding: 1.5rem 1.5rem 0.5rem;
@@ -260,5 +258,71 @@
   justify-content: center;
   padding-top: 150px;
   min-height: 100vh;
-  background: #f8fafc;
+  background: transparent !important;
+}
+
+/* =========================================
+   АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
+   ========================================= */
+
+/* Планшети (Tablet) */
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Мобільні пристрої (Mobile) */
+@media (max-width: 768px) {
+  .dash-page {
+    padding-top: 90px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .dash-page-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .section-title {
+    text-align: center;
+  }
+
+  /* Перебудовуємо форму створення у колонку */
+  .create-card {
+    padding: 1.5rem;
+  }
+
+  .create-card-title {
+    font-size: 1.1rem;
+    justify-content: center;
+  }
+
+  .create-form {
+    flex-direction: column; /* Інпут і кнопка один під одним */
+    gap: 1rem;
+  }
+
+  .create-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Картки стають рівно в одну колонку на всю ширину */
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-header > div h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Якщо на малих екранах кнопки дій не вміщаються, ставимо їх одна під одною */
+  .dash-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

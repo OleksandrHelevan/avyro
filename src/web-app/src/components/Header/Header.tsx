@@ -4,9 +4,10 @@ import { User, Menu, X, LogOut } from "lucide-react";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
 import { useState } from "react";
-
-// 1. ДОДАЄМО ІМПОРТ КАРТИНКИ!
 import logoImg from "./img.png";
+import {useAuth} from "../../AuthContext.tsx";
+
+// ДОДАНО: Імпорт нашого контексту
 
 interface DoctorData {
   status?: string;
@@ -15,16 +16,16 @@ interface DoctorData {
 }
 
 export default function Header() {
-  // ... ваш існуючий код (location, navigate, role, handles і т.д.)
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const role = localStorage.getItem("userRole")?.replace(/"/g, '');
-  const userId = localStorage.getItem("userId")?.replace(/"/g, '');
-  const isAuthenticated = !!(localStorage.getItem("accessToken") || localStorage.getItem("token"));
+  // ВИКОРИСТОВУЄМО КОНТЕКСТ ЗАМІСТЬ LOCAL STORAGE
+  const { token, role, userId, logout } = useAuth();
 
+  const isAuthenticated = !!token;
   const isDoctorRole = role === "DOCTOR";
+
   const { data } = useDoctor(isDoctorRole ? userId || "" : "");
   const doctor = data as DoctorData | undefined;
 
@@ -33,8 +34,9 @@ export default function Header() {
 
   const closeMobileMenu = () => setIsMobileOpen(false);
 
+  // Функція виходу тепер використовує logout() з контексту
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     closeMobileMenu();
     navigate("/login");
   };
@@ -61,7 +63,6 @@ export default function Header() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: '40px', height: '40px', overflow: 'hidden', borderRadius: '8px'
           }}>
-            {/* 2. ВИКОРИСТОВУЄМО ЗМІННУ logoImg ТУТ */}
             <img
               src={logoImg}
               alt="Avyro Med Logo"
@@ -83,10 +84,14 @@ export default function Header() {
 
         <div className={`nav-links-container ${isMobileOpen ? "open" : ""}`}>
           <div className="nav-links">
-            <NavLink to="/" onClick={closeMobileMenu}
-                     className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-              Знайти лікаря
-            </NavLink>
+
+            {/* Ховаємо "Знайти лікаря", якщо роль ADMIN */}
+            {role !== "ADMIN" && (
+              <NavLink to="/" onClick={closeMobileMenu}
+                       className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                Знайти лікаря
+              </NavLink>
+            )}
 
             {isAuthenticated && role === "PATIENT" && (
               <NavLink to="/appointments" onClick={closeMobileMenu}

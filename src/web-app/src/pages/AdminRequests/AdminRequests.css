@@ -1,7 +1,7 @@
 .req-page {
-  padding: 2rem;
   max-width: 1400px; /* Трохи розширив для 3-х колонок */
   margin: 0 auto;
+  padding-top: 100px;
 }
 
 .req-page h2 {

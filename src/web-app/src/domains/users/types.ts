@@ -54,6 +54,7 @@ export interface PatchPatientRequest {
   fullName: string;
   phone: string;
   avatarUrl: string;
+  address: string;
 }
 
 export interface PatchPatientResponse {
@@ -82,7 +83,7 @@ export interface GetDoctorResponse {
 }
 
 export interface UpdateDoctorProfileRequest {
-  full_name: string;
+  fullName: string;
   phone: string;
   avatarUrl: string;
   specialization_id: string;
@@ -99,85 +100,28 @@ export interface UpdateProfileResponse {
  lastLoginAt: Date;
 }
 
-// --- Спеціалізації (додано) ---
-export interface Specialization {
-  id: string;
-  name: string;
-  description: string;
-}
 
-// --- Розклад ---
 
 export interface RepeatingConfig {
-  type: "WEEKLY" | "DAILY" | "MONTHLY" | string; // Можна розширити за потреби
-  daysOfWeek: number[];                          // Масив днів тижня (наприклад, 1=Пн, 3=Ср)
-  startTime: string;                             // Формат "HH:mm" (наприклад, "09:00")
-  endTime: string;                               // Формат "HH:mm" (наприклад, "18:00")
-  slotDuration: number;                          // Тривалість слота у хвилинах
-  timezone: string;                              // Наприклад, "UTC" або "Europe/Kyiv"
+  type: "WEEKLY" | "DAILY" | "MONTHLY" | string;
+  daysOfWeek: number[];
+  startTime: string;
+  endTime: string;
+  slotDuration: number;
+  timezone: string;
 }
 
 export interface ScheduleRequest {
-  doctorId: string;              // Зверніть увагу: camelCase (doctorId), а не doctor_id
+  doctorId: string;
   month: number;
   year: number;
   title: string;
   isRepeated: boolean;
-  repeating?: RepeatingConfig;   // Робимо необов'язковим (?), якщо isRepeated = false
+  repeating?: RepeatingConfig;
 }
 
 export type ScheduleResponse = Record<string, any>;
-export interface AdminRegistrationPayload {
-  email: string;
-  password?: string;
-  role: string;
-  isActive: boolean;
-  profile: any | null;
-}
 
-export interface AdminRegistration {
-  _id: string;
-  creatorId: string | null;
-  type: string;
-  status: string;
-  payload: AdminRegistrationPayload;
-  adminComment: string | null;
-  createdAt: string;
-  updatedAt: string;
-  processedAt: string | null;
-  processedBy: string | null;
-}
-export interface ApproveRegistrationResponse {
-  _id: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  profile: any | null;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt: string | null;
-}
-export interface RejectRegistrationResponse {
-  status: string;
-}
-// Очікувана структура даних всередині розкладу
-export interface AdminSchedulePayload {
-  doctorId?: string;
-  startDate?: string;
-  endDate?: string;
-  slotsCount?: number;
-  [key: string]: any; // Дозволяє будь-які інші поля, поки ми не побачимо реальні дані
-}
-
-// Сама картка запиту, яка приходить з бекенду
-export interface AdminScheduleRequest {
-  _id: string;
-  type: string;
-  status: string;
-  payload: AdminSchedulePayload;
-  createdAt: string;
-  updatedAt?: string;
-}
 export interface DoctorListItem {
   id: string;
   email: string;

@@ -1,12 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import  { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Mail, Send } from "lucide-react";
 import "./HomePage.css";
 
 // Хуки та сервіси
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
-import { useSpecializations } from "../../domains/users/useSpecializations/useSpecializations.ts";
+import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
@@ -15,25 +15,34 @@ const fadeUpVariant = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
-  }
-};
-
 const HomePage = () => {
   const navigate = useNavigate();
-  const [activeSpec, setActiveSpec] = useState("Усі");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // 1. Ініціалізуємо стани зі значень в URL (або дефолтних)
+  const initialSpec = searchParams.get("spec") || "Усі";
+  const initialSearch = searchParams.get("search") || "";
+
+  const [activeSpec, setActiveSpec] = useState(initialSpec);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Завантаження даних
   const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
   const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
 
+  // 2. Синхронізуємо URL, якщо змінилися локальні стани
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeSpec !== "Усі") params.set("spec", activeSpec);
+    if (searchTerm.trim() !== "") params.set("search", searchTerm);
+
+    setSearchParams(params, { replace: true });
+  }, [activeSpec, searchTerm, setSearchParams]);
+
+  // Список назв спеціалізацій для кнопок-фільтрів
   const displaySpecs = useMemo(() => ["Усі", ...apiSpecs.map(s => s.name)], [apiSpecs]);
 
   // Слайди для банера
@@ -43,19 +52,38 @@ const HomePage = () => {
     { title: "Сімейний лікар у смартфоні", desc: "Зв'язок 24/7 у нашому додатку", color: "linear-gradient(135deg, #38bdf8, #6366f1)" }
   ];
 
-  // Фільтрація лікарів
+  // ЛОГІКА ФІЛЬТРАЦІЇ
   const filteredDoctors = useMemo(() => {
-    return doctors.filter((doc) => {
+    const selectedSpecObj: any = apiSpecs.find(s => s.name === activeSpec);
+    const selectedSpecId = selectedSpecObj ? (selectedSpecObj.id || selectedSpecObj._id) : null;
+
+    return doctors.filter((doc: any) => {
+      const docSpecId = doc.specializationId || doc.specialization_id;
+      const docSpecName = doc.specializationName;
+
+      // 🛑 ПРАВИЛО 1: Якщо в лікаря ВЗАГАЛІ НЕМАЄ спеціалізації – не показуємо його
+      if (!docSpecId && !docSpecName) {
+        return false;
+      }
+
       const search = searchTerm.toLowerCase().trim();
-      const matchesCategory = activeSpec === "Усі" || (doc.specializationId === activeSpec);
+      const specNameToSearch = docSpecName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "";
+
+      const matchesCategory =
+        activeSpec === "Усі" ||
+        docSpecId === selectedSpecId ||
+        docSpecName === activeSpec ||
+        specNameToSearch === activeSpec;
+
+      // Шукаємо по імені, пошті та спеціалізації
       const matchesSearch = !search ||
         doc.fullName?.toLowerCase().includes(search) ||
         doc.email?.toLowerCase().includes(search) ||
-        doc.specializationId?.toLowerCase().includes(search);
+        specNameToSearch.toLowerCase().includes(search);
 
       return matchesCategory && matchesSearch;
     });
-  }, [doctors, activeSpec, searchTerm]);
+  }, [doctors, activeSpec, searchTerm, apiSpecs]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,10 +94,18 @@ const HomePage = () => {
 
   return (
     <div className="aero-viewport light-theme">
+      {/* --- ФОН ТА ЕМОДЖІ --- */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1"></div>
         <div className="light-blob blob-2"></div>
       </div>
+
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">💙</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">👨‍⚕️</div>
+      </div>
+      {/* ----------------------- */}
 
       <main className="main-content">
         {/* Банер-слайдер */}
@@ -125,50 +161,60 @@ const HomePage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {/* Кнопка тепер просто декоративна, оскільки пошук відбувається миттєво */}
             <button className="btn-search-dark">Знайти</button>
           </div>
         </motion.div>
 
         {/* Сітка лікарів */}
-        <motion.div className="results-section" initial="hidden" whileInView="visible" variants={staggerContainer}>
+        <div className="results-section">
           <div className="doctors-grid">
             {isLoadingDoctors ? (
               <p>Завантаження спеціалістів...</p>
-            ) : filteredDoctors.map((doc, index) => (
-              <motion.div
-                key={doc.id || index}
-                variants={fadeUpVariant}
-                className="doctor-card-light glass-light"
-                whileHover={{ y: -5 }}
-              >
-                <div className="card-header">
-                  <div className="doctor-avatar-placeholder">
-                    <img
-                      src={doc.avatarUrl || DEFAULT_AVATAR}
-                      alt="doc"
-                      onError={(e) => {(e.currentTarget.src = DEFAULT_AVATAR)}}
-                    />
-                  </div>
-                  <div className="doctor-info-dark">
-                    <h4>{doc.fullName || "Спеціаліст"}</h4>
-                    <p className="spec-text-dark">{doc.specializationId || "Загальний профіль"}</p>
-                    <p className="email-hint"><Mail size={12} /> {doc.email}</p>
-                  </div>
-                  <div className="bonus-tag-light">Top Rated</div>
-                </div>
-                <button
-                  className="btn-profile-light btn-outline"
-                  onClick={() => navigate(`/doctor/${doc.id }`)}
+            ) : filteredDoctors.length === 0 ? (
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#000000' }}>
+                За вашим запитом лікарів не знайдено.
+              </p>
+            ) : filteredDoctors.map((doc: any, index) => {
+
+              const docSpecId = doc.specializationId || doc.specialization_id;
+              const displaySpecName = doc.specializationName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "Загальний профіль";
+
+              return (
+                <motion.div
+                  key={doc.id || doc._id || index}
+                  className="doctor-card-light glass-light"
+                  whileHover={{ y: -5 }}
                 >
-                  Записатися на прийом
-                </button>
-              </motion.div>
-            ))}
+                  <div className="card-header">
+                    <div className="doctor-avatar-placeholder">
+                      <img
+                        src={doc.avatarUrl || DEFAULT_AVATAR}
+                        alt="doc"
+                        onError={(e) => {(e.currentTarget.src = DEFAULT_AVATAR)}}
+                      />
+                    </div>
+                    <div className="doctor-info-dark">
+                      <h4>{doc.fullName || "Спеціаліст"}</h4>
+                      <p className="spec-text-dark">{displaySpecName}</p>
+                      <p className="email-hint"><Mail size={12} /> {doc.email}</p>
+                    </div>
+                    <div className="bonus-tag-light">Top Rated</div>
+                  </div>
+                  <button
+                    className="btn-profile-light btn-outline"
+                    onClick={() => navigate(`/doctor/${doc.id || doc._id}`)}
+                  >
+                    Записатися на прийом
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
-        </motion.div>
+        </div>
       </main>
 
-      {/* Чоткий Футер */}
+      {/* Футер */}
       <motion.footer
         className="aero-footer glass-light"
         initial="hidden"
@@ -184,7 +230,6 @@ const HomePage = () => {
             </div>
             <p>Ваш надійний провідник у світі сучасної медицини. Записуйтесь до найкращих спеціалістів онлайн за лічені хвилини.</p>
             <div className="social-links">
-
               <a href="#" className="social-icon"><Send size={18} /></a>
             </div>
           </div>
@@ -203,8 +248,6 @@ const HomePage = () => {
             <a href="/sign-up">Реєстрація спеціаліста</a>
             <a href="#">Партнерська програма</a>
           </div>
-
-
         </div>
 
         <div className="footer-bottom">

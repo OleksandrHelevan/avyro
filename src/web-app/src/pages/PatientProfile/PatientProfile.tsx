@@ -2,15 +2,21 @@ import React, { useEffect, useState, useRef } from "react";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast"; // Рекомендується для виводу помилок валідації
+import toast from "react-hot-toast";
 import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
 import "./PatientProfile.css";
+import {useAuth} from "../../AuthContext.tsx";
 
-const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
+// ДОДАНО: Імпортуємо наш контекст авторизації
 
 export default function PatientProfile() {
   const navigate = useNavigate();
-  const { data: patientResponse, isLoading, error } = usePatient(CURRENT_USER_ID);
+
+  // ДОДАНО: Беремо userId та функцію logout з контексту замість localStorage
+  const { userId, logout } = useAuth();
+
+  // Використовуємо userId з контексту
+  const { data: patientResponse, isLoading, error } = usePatient(userId || "");
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,17 +42,13 @@ export default function PatientProfile() {
     }
   }, [patientResponse]);
 
-  // Валідація та завантаження фото
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // ПЕРЕВІРКА: Тільки типи зображень
       if (!file.type.startsWith("image/")) {
         toast.error("Будь ласка, завантажте тільки файл зображення");
         return;
       }
-
-      // Обмеження розміру (наприклад, 2МБ)
       if (file.size > 2 * 1024 * 1024) {
         toast.error("Файл занадто великий (макс. 2МБ)");
         return;
@@ -67,9 +69,6 @@ export default function PatientProfile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // ВАЛІДАЦІЯ НОМЕРА ТЕЛЕФОНУ
-    // Допускає формати: +380..., 0..., а також пробіли та дужки
     const phoneRegex = /^(\+?\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{2}[-.\s]?\d{2}$/;
 
     if (formData.phone && !phoneRegex.test(formData.phone)) {
@@ -81,11 +80,12 @@ export default function PatientProfile() {
       fullName: `${formData.firstName} ${formData.lastName}`.trim(),
       phone: formData.phone,
       avatarUrl: formData.avatarUrl,
+      address:formData.phone
     });
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout(); // ВИКОРИСТОВУЄМО ФУНКЦІЮ З КОНТЕКСТУ
     navigate("/login");
   };
 
@@ -95,7 +95,7 @@ export default function PatientProfile() {
     </div>
   );
 
-  if (error || !CURRENT_USER_ID) return <div className="error-message">Не вдалося завантажити профіль</div>;
+  if (error || !userId) return <div className="error-message">Не вдалося завантажити профіль</div>;
 
   return (
     <div className="aero-viewport light-theme profile-page" style={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}>
@@ -103,16 +103,24 @@ export default function PatientProfile() {
         type="file"
         ref={fileInputRef}
         style={{ display: "none" }}
-        accept="image/*" // Обмеження у вікні вибору файлу
+        accept="image/*"
         onChange={handleFileChange}
       />
 
+      {/* ФОНОВИЙ ДЕКОР */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1"></div>
         <div className="light-blob blob-2"></div>
       </div>
 
-      <div className="main-content" style={{ height: '100%' }}>
+      {/* ПЛАВАЮЧІ ЕМОДЖІ */}
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">💙</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">❤️</div>
+      </div>
+
+      <div className="main-content" style={{ height: '100%', position: 'relative', zIndex: 1 }}>
         <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
 
           <aside className="sidebar">
