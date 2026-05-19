@@ -25,26 +25,28 @@ def require_doctor_role(user: dict = Depends(get_current_user)) -> dict:
 @router.get("/{user_id}", response_model=DoctorProfileResponse)
 def get_doctor_by_id(
     user_id: str,
+    current_user: dict = Depends(get_current_user),
     service: DoctorService = Depends(get_doctor_service)
 ):
     return service.get_doctor_by_id(user_id)
 
-@router.patch("/{user_id}", response_model=DoctorProfileResponse)
+@router.get("", response_model=List[DoctorListItemResponse])
+def get_doctors(
+    current_user: dict = Depends(get_current_user), # Додано сюди теж
+    service=Depends(get_patient_service)
+):
+    logger.info("Fetching doctors list.")
+    return service.get_doctors_list()
+
+@router.patch("", response_model=DoctorProfileResponse)
 def patch_doctor_profile(
-    user_id: str,
     profile_data: DoctorProfileUpdateRequest,
     current_user: dict = Depends(require_doctor_role),
     service: DoctorService = Depends(get_doctor_service)
 ):
-    token_user_id = current_user.get("sub")
-
-    if not token_user_id or str(token_user_id) != str(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Ви можете редагувати лише власний профіль"
-        )
-
+    user_id = current_user.get("sub")
     return service.patch_doctor_profile(user_id, profile_data)
+
 
 @router.get("", response_model=List[DoctorListItemResponse])
 def get_doctors(
