@@ -13,16 +13,3 @@ export const useCreateSpecializationDirect = () => {
     onError: () => toast.error("Помилка створення спеціалізації"),
   });
 };
-
-export const useApproveSpecialization = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (requestId: string) => specializationService.approveSpecialization(requestId),
-    onSuccess: () => {
-      toast.success("Запит на спеціалізацію підтверджено!");
-      queryClient.invalidateQueries({ queryKey: ["adminSpecializations"] });
-      queryClient.invalidateQueries({ queryKey: ["specializations"] });
-    },
-    onError: () => toast.error("Помилка підтвердження"),
-  });
-};

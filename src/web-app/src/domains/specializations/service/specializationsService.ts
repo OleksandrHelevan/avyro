@@ -3,7 +3,6 @@ import type {
 
 } from "../types.ts";
 import {specializationsApiClient} from "../api/specializationsApiClient.ts";
-import {userApiClient} from "../../users/api/userApiClient.ts";
 
 export const specializationService = {
 
@@ -18,9 +17,6 @@ export const specializationService = {
 
   createSpecializationDirect: async (data: { name: string }): Promise<any> => {
     return specializationsApiClient.createSpecializationDirect(data);
-  },
-  approveSpecialization: async (requestId: string): Promise<any> => {
-    return userApiClient.approveSpecialization(requestId);
   },
 
 };
