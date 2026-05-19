@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import {userService} from "../service/userService.ts";
+import {adminService} from "../service/adminService.ts";
 
 export const useAdminSpecializations = () => {
   return useQuery({
     queryKey: ["adminSpecializations"],
-    queryFn: () => userService.getAdminSpecializations(),
+    queryFn: () => adminService.getAdminSpecializations(),
   });
 };

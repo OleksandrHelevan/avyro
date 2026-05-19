@@ -1,12 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom"; // ДОДАНО: useSearchParams
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Mail, Send } from "lucide-react";
 import "./HomePage.css";
 
 // Хуки та сервіси
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
-import { useSpecializations } from "../../domains/users/useSpecializations/useSpecializations.ts";
+import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
@@ -17,25 +17,30 @@ const fadeUpVariant = {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // Читаємо параметри з URL
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Якщо в URL є ?spec=Хірург, то одразу відкриваємо цю вкладку
+  // 1. Ініціалізуємо стани зі значень в URL (або дефолтних)
   const initialSpec = searchParams.get("spec") || "Усі";
+  const initialSearch = searchParams.get("search") || "";
+
   const [activeSpec, setActiveSpec] = useState(initialSpec);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Завантаження даних
   const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
   const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
 
-  // Синхронізуємо активну вкладку, якщо URL змінився
+  // 2. Синхронізуємо URL, якщо змінилися локальні стани
   useEffect(() => {
-    const specFromUrl = searchParams.get("spec");
-    if (specFromUrl) setActiveSpec(specFromUrl);
-  }, [searchParams]);
+    const params = new URLSearchParams();
+    if (activeSpec !== "Усі") params.set("spec", activeSpec);
+    if (searchTerm.trim() !== "") params.set("search", searchTerm);
+
+    setSearchParams(params, { replace: true });
+  }, [activeSpec, searchTerm, setSearchParams]);
 
   // Список назв спеціалізацій для кнопок-фільтрів
   const displaySpecs = useMemo(() => ["Усі", ...apiSpecs.map(s => s.name)], [apiSpecs]);
@@ -70,6 +75,7 @@ const HomePage = () => {
         docSpecName === activeSpec ||
         specNameToSearch === activeSpec;
 
+      // Шукаємо по імені, пошті та спеціалізації
       const matchesSearch = !search ||
         doc.fullName?.toLowerCase().includes(search) ||
         doc.email?.toLowerCase().includes(search) ||
@@ -134,11 +140,7 @@ const HomePage = () => {
                   <button
                     key={spec}
                     className={`spec-tag-light ${activeSpec === spec ? 'spec-active' : 'glass-light'}`}
-                    onClick={() => {
-                      setActiveSpec(spec);
-                      // Очищаємо URL, якщо юзер сам клікає по фільтрах
-                      navigate('/', { replace: true });
-                    }}
+                    onClick={() => setActiveSpec(spec)}
                   >
                     {spec}
                   </button>
@@ -159,6 +161,7 @@ const HomePage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {/* Кнопка тепер просто декоративна, оскільки пошук відбувається миттєво */}
             <button className="btn-search-dark">Знайти</button>
           </div>
         </motion.div>

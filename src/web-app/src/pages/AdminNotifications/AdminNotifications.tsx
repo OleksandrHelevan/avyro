@@ -9,9 +9,9 @@ import TextInput from "../../components/TextInput/TextInput";
 import {
   useApproveSpecialization,
   useCreateSpecializationDirect
-} from "../../domains/users/useSpecializationMutations/useSpecializationMutations.ts";
-import { useAdminSpecializations } from "../../domains/users/useAdminSpecializations/useAdminSpecializations.ts";
-import { useRejectSchedule } from "../../domains/users/useRejectSchedule/useRejectSchedule.ts";
+} from "../../domains/specializations/useSpecializationMutations/useSpecializationMutations.ts";
+import { useAdminSpecializations } from "../../domains/admin/useAdminSpecializations/useAdminSpecializations.ts";
+import { useRejectSchedule } from "../../domains/admin/useRejectSchedule/useRejectSchedule.ts";
 
 export default function AdminSpecializations() {
   // 1. Ініціалізуємо react-hook-form замість useState

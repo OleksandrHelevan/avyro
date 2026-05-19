@@ -3,10 +3,9 @@ import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
-  Specialization, ScheduleRequest, ScheduleResponse,
-  AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse,
-  AdminScheduleRequest,
-  DoctorListItem, AppointmentResponse, CreateAppointmentRequest // ДОДАНО ІМПОРТ ТИПУ
+   ScheduleRequest, ScheduleResponse,
+
+  DoctorListItem
 } from "../types.ts";
 
 export const userApiClient = {
@@ -19,72 +18,20 @@ export const userApiClient = {
   getPatientById: async (id: string) =>
     apiClient.get<GetPatientResponse>(`/users/patients/${id}`),
 
-  patchPatient: async (id: string, request: PatchPatientRequest) =>
-    apiClient.patch<PatchPatientResponse>(`/users/patients/${id}`, request),
+  patchPatient: async (request: PatchPatientRequest) =>
+    apiClient.patch<PatchPatientResponse>('/users/patient', request),
 
-  // === НОВИЙ МЕТОД ДЛЯ ОТРИМАННЯ ВСІХ ЛІКАРІВ ===
   getAllDoctors: async () =>
     apiClient.get<DoctorListItem[]>('/users/doctors'),
 
   getDoctorById: async (id: string) =>
     apiClient.get<GetDoctorResponse>(`/users/doctors/${id}`),
 
-  patchDoctor: async (id: string, request: UpdateDoctorProfileRequest) =>
-    apiClient.patch<UpdateProfileResponse>(`/users/doctors/${id}`, request),
+  patchDoctor: async ( request: UpdateDoctorProfileRequest) =>
+    apiClient.patch<UpdateProfileResponse>(`/users/doctors`, request),
 
-  getAllSpecializations: async () =>
-    apiClient.get<Specialization[]>('/specializations/'),
-
-  getSpecializationById: async (spec_id: string) =>
-    apiClient.get<Specialization>(`/specializations/${spec_id}`),
 
   requestSchedule: async (request: ScheduleRequest) =>
     apiClient.post<ScheduleResponse>('/schedules/request', request),
 
-  approveRegistration: async (request_id: string) =>
-    apiClient.post<ApproveRegistrationResponse>(`/admin/${request_id}/approve-registration`, {}),
-
-  rejectRegistration: async (request_id: string, comment: string) =>
-    apiClient.post<RejectRegistrationResponse>(`/admin/${request_id}/reject?comment=${encodeURIComponent(comment)}`, {}),
-
-  getAdminRegistrations: async () =>
-    apiClient.get<AdminRegistration[]>('/admin/registrations'),
-
-  // Отримати всі запити на створення розкладів
-  getAdminSchedules: async () =>
-    apiClient.get<AdminScheduleRequest[]>('/admin/schedules'),
-
-// Підтвердити розклад
-  approveSchedule: async (schedule_id: string) =>
-    apiClient.post(`/admin/${schedule_id}/approve-schedule`, {}), // повернули старий правильний роут
-
-  // Відхилити розклад
-  rejectSchedule: async (schedule_id: string, comment: string) =>
-    apiClient.post(`/admin/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`, {}), // прибрали /schedules/
-  // --- АДМІН: Спеціалізації ---
-
-  // 1. Отримати всі запити на спеціалізації
-  getAdminSpecializations: async () =>
-    apiClient.get<any[]>('/admin/specializations'),
-
-  // 2. Створити спеціалізацію напряму
-  createSpecializationDirect: async (data: { name: string }) => {
-    console.log("Відправка на бекенд:", data.name);
-    return apiClient.post('/admin/specialization', {
-      name: data.name.trim(),
-      description: "Створено адміністратором"
-    });
-  },
-
-  createAppointment: async (request: CreateAppointmentRequest) =>
-    // ❌ НЕПРАВИЛЬНО: apiClient.post('/appointments', { request }) або { slotId: request }
-    // ✅ ПРАВИЛЬНО:
-    apiClient.post<AppointmentResponse>('/appointments', request),
-// Додайте це до інших методів
-  // Додайте або замініть цей метод у userApiClient.ts
-  getMyPatientAppointments: async () =>
-    apiClient.get<AppointmentResponse[]>('/appointments/patient/me'),
-  // 3. Підтвердити запит на створення
-  approveSpecialization: async (requestId: string) =>
-    apiClient.post(`/admin/${requestId}/approve-specialization`, {}),
 }

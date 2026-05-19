@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { userService } from "../service/userService";
+import {appointmentsService} from "../service/appointmentsService.ts";
 
 export const usePatientAppointments = () => {
   return useQuery({
     queryKey: ["appointments", "patient"],
-    queryFn: () => userService.getPatientAppointments(),
+    queryFn: () => appointmentsService.getMyPatientAppointments(),
   });
 };

@@ -10,21 +10,23 @@ import {
 } from "lucide-react";
 
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useSpecializations } from "../../domains/users/useSpecializations/useSpecializations";
+import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations";
 import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
+import { useAuth } from "../../AuthContext.tsx";
 
 import "./DoctorProfile.css";
-
-const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
 
-  // 1. Отримуємо дані доктора та список спеціалізацій
-  const { data: doctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
+  // Беремо дані користувача та централізований логаут з нашого реактивного контексту
+  const { userId, logout } = useAuth();
+
+  // 1. Отримуємо дані доктора та список спеціалізацій за допомогою ID з контексту
+  const { data: doctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
   const { data: specializations, isLoading: isSpecsLoading } = useSpecializations();
 
-  // 2. Хук оновлення (важливо, щоб він інвалідував запит "doctor")
+  // 2. Хук оновлення даних лікаря
   const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
 
   const [formData, setFormData] = useState({
@@ -37,24 +39,23 @@ export default function DoctorProfile() {
 
   // 3. Синхронізація стану форми з даними з API
   useEffect(() => {
-    // Чекаємо, поки завантажиться і профіль лікаря, і список спеціалізацій
     if (doctor && specializations) {
       const doc = doctor as any;
 
-      // Розбираємо повне ім'я
+      // Розбираємо повне ім'я на Ім'я та Прізвище
       const rawName = doc.fullName || doc.full_name || "";
       const nameParts = rawName.trim().split(/\s+/);
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
 
-      // Отримуємо ID спеціалізації (перевіряємо прямі ID)
+      // Перевіряємо наявність ID спеціалізації безпосередньо в об'єкті лікаря
       let specId = doc.specializationId || doc.specialization_id || "";
 
-      // ВАЖЛИВО: Якщо ID немає, але є specializationName, шукаємо відповідний ID
+      // ✅ СТАНЕ (Приводимо foundSpec до типу any):
       if (!specId && doc.specializationName) {
         const foundSpec = specializations.find((s: any) => s.name === doc.specializationName);
         if (foundSpec) {
-          specId = foundSpec.id || foundSpec.id;
+          specId = (foundSpec as any)._id || (foundSpec as any).id || "";
         }
       }
 
@@ -66,30 +67,30 @@ export default function DoctorProfile() {
         avatarUrl: doc.avatarUrl || "",
       });
     }
-  }, [doctor, specializations]); // Додано specializations у залежності
+  }, [doctor, specializations]);
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!CURRENT_USER_ID) {
+    if (!userId) {
       toast.error("Помилка: ID користувача не знайдено");
       return;
     }
 
-    // 4. ВІДПРАВКА: Використовуємо ключі, які вимагає бекенд (fullName та specialization_id)
+    // ✅ ВИПРАВЛЕНО: Додаємо знак "!" після userId, щоб TS не сварився на null
     updateDoctor({
-      id: CURRENT_USER_ID,
       data: {
         fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-        specialization_id: formData.specializationId, // Важливо: snake_case для ID
+        specialization_id: formData.specializationId,
         phone: formData.phone,
         avatarUrl: formData.avatarUrl,
       } as any
     });
   };
 
+  // Викликаємо реактивний вихід із системи через Context API
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     navigate("/login");
   };
 
@@ -97,9 +98,17 @@ export default function DoctorProfile() {
 
   return (
     <div className="aero-viewport light-theme profile-page doctor-theme">
+      {/* ФОНОВИЙ ДЕКОР */}
       <div className="bright-gradient-bg">
-        <div className="light-blob blob-1" style={{background: 'rgba(59, 206, 181, 0.3)'}}></div>
-        <div className="light-blob blob-2" style={{background: 'rgba(59, 130, 246, 0.3)'}}></div>
+        <div className="light-blob blob-1" style={{ background: 'rgba(59, 206, 181, 0.3)' }}></div>
+        <div className="light-blob blob-2" style={{ background: 'rgba(59, 130, 246, 0.3)' }}></div>
+      </div>
+
+      {/* Плаваючі іконки на задньому плані */}
+      <div className="floating-icons-container">
+        <div className="floating-icon icon-1">🩺</div>
+        <div className="floating-icon icon-2">✨</div>
+        <div className="floating-icon icon-3">💙</div>
       </div>
 
       <div className="main-content">
@@ -131,8 +140,8 @@ export default function DoctorProfile() {
                 <div className="avatar-info">
                   <h2>{formData.firstName} {formData.lastName}</h2>
                   <span className="status-badge doc-badge">
-                      {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
-                    </span>
+                    {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
+                  </span>
                 </div>
               </div>
 
@@ -146,7 +155,7 @@ export default function DoctorProfile() {
                   className="btn-redirect-schedule"
                   onClick={() => navigate("/schedule-edit")}
                 >
-                  <CalendarIcon size={20} strokeWidth={2.5}/>
+                  <CalendarIcon size={20} strokeWidth={2.5} />
                   <span>Мій графік</span>
                 </button>
               </div>
@@ -160,7 +169,7 @@ export default function DoctorProfile() {
                       <input
                         type="text"
                         value={formData.firstName}
-                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                         required
                       />
                     </div>
@@ -173,7 +182,7 @@ export default function DoctorProfile() {
                       <input
                         type="text"
                         value={formData.lastName}
-                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                         required
                       />
                     </div>
@@ -185,7 +194,7 @@ export default function DoctorProfile() {
                       <Stethoscope className="input-icon-svg" size={18} />
                       <select
                         value={formData.specializationId}
-                        onChange={(e) => setFormData({...formData, specializationId: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, specializationId: e.target.value })}
                         className="custom-select"
                         required
                       >

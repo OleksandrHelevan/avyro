@@ -5,12 +5,17 @@ import TextInput from "../../components/TextInput/TextInput.tsx";
 import Button from "../../components/Button/Button.tsx";
 import Form from "../../components/Form/Form.tsx";
 import toast from "react-hot-toast";
-import { setInStorage } from "../../utils/localStorageUtil";
+
+// ДОДАНО: Імпорт AuthContext замість setInStorage
 import "./LoginPage.css";
+import {useAuth} from "../../AuthContext.tsx";
 
 export default function LoginPage() {
   const { mutate, isPending } = useLogin();
   const navigate = useNavigate();
+
+  // ДОДАНО: беремо функцию login з контексту
+  const { login } = useAuth();
 
   const onSubmit = (data: LoginRequest) => {
     mutate(data, {
@@ -18,10 +23,8 @@ export default function LoginPage() {
         const token = response?.accessToken || response?.token;
 
         if (token) {
-          setInStorage("accessToken", token);
-          setInStorage("userRole", response?.role);
-          setInStorage("userId", response?.userId || response?.id);
-
+          // ВИКОРИСТОВУЄМО КОНТЕКСТ ДЛЯ ЗБЕРЕЖЕННЯ
+          login(token, response?.role, response?.userId || response?.id);
           navigate("/");
         }
       },

@@ -2,9 +2,9 @@ import { UserCheck, UserX, UserCircle, Calendar, Loader2 } from "lucide-react";
 import toast from "react-hot-toast"; // Додано для сповіщень
 import type { AdminRegistration } from "../../domains/users/types";
 import "./AdminRequests.css";
-import {useApproveRegistration} from "../../domains/users/useApproveRegistration/useApproveRegistration.ts";
-import {useAdminRegistrations} from "../../domains/users/useAdminRegistrations/useAdminRegistrations.ts";
-import {useRejectRegistration} from "../../domains/users/useRejectRegistration/useRejectRegistration.ts";
+import {useApproveRegistration} from "../../domains/admin/useApproveRegistration/useApproveRegistration.ts";
+import {useAdminRegistrations} from "../../domains/admin/useAdminRegistrations/useAdminRegistrations.ts";
+import {useRejectRegistration} from "../../domains/admin/useRejectRegistration/useRejectRegistration.ts";
 
 const RegistrationRequestCard = ({
                                    request,

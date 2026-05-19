@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { userService } from "../service/userService";
-// Якщо у вас є CreateAppointmentRequest в types.ts, імпортуйте його.
-// Або просто опишіть тип прямо тут:
+import {appointmentsService} from "../service/appointmentsService.ts";
 
 interface AppointmentPayload {
   slotId: string;
@@ -13,8 +11,7 @@ export const useCreateAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // Явно вказуємо, що mutationFn приймає об'єкт AppointmentPayload з двома полями
-    mutationFn: (data: AppointmentPayload) => userService.createAppointment(data),
+    mutationFn: (data: AppointmentPayload) => appointmentsService.createAppointment(data),
 
     onSuccess: () => {
       toast.success("Ви успішно записані на прийом! 🎉");

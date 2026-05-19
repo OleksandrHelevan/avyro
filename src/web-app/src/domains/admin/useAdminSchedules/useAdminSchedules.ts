@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import {userService} from "../service/userService.ts";
+import {adminService} from "../service/adminService.ts";
 
 export const useAdminSchedules = () => {
   return useQuery({
     queryKey: ["adminSchedules"],
-    queryFn: () => userService.getAdminSchedules(),
+    queryFn: () => adminService.getAdminSchedules(),
   });
 };

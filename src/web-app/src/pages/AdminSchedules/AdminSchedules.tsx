@@ -4,9 +4,9 @@ import { useMemo } from "react";
 
 // Ваші стилі
 import "./AdminSchedule.css";
-import { useRejectSchedule } from "../../domains/users/useRejectSchedule/useRejectSchedule.ts";
-import { useAdminSchedules } from "../../domains/users/useAdminSchedules/useAdminSchedules.ts";
-import { useApproveSchedule } from "../../domains/users/useApproveSchedule/useApproveSchedule.ts";
+import { useRejectSchedule } from "../../domains/admin/useRejectSchedule/useRejectSchedule.ts";
+import { useAdminSchedules } from "../../domains/admin/useAdminSchedules/useAdminSchedules.ts";
+import { useApproveSchedule } from "../../domains/admin/useApproveSchedule/useApproveSchedule.ts";
 // Хук лікарів
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors";
 

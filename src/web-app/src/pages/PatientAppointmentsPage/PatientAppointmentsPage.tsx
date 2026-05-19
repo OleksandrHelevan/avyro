@@ -14,9 +14,9 @@ import { useQuery } from "@tanstack/react-query";
 
 // Підключаємо ваші сервіси
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors";
-import { userService } from "../../domains/users/service/userService";
 
 import "./PatientAppointmentsPage.css";
+import {appointmentsService} from "../../domains/appointments/service/appointmentsService.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
@@ -27,7 +27,7 @@ export default function PatientAppointmentsPage() {
   // Нам більше не потрібен userId, оскільки ендпоінт /me сам розуміє, хто ми, завдяки токену
   const { data: rawAppointments, isLoading: isApptsLoading } = useQuery({
     queryKey: ["myAppointments"],
-    queryFn: () => userService.getMyPatientAppointments(),
+    queryFn: () => appointmentsService.getMyPatientAppointments(),
   });
 
   // 2. Отримуємо список всіх лікарів

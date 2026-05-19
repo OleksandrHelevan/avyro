@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 import "./DoctorProfilePage.css";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useCreateAppointment } from "../../domains/users/useCreateAppointment/useCreateAppointment";
+import { useCreateAppointment } from "../../domains/appointments/useCreateAppointment/useCreateAppointment";
 
 // Константа для аватарки за замовчуванням
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";

@@ -5,12 +5,18 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
 import "./PatientProfile.css";
+import {useAuth} from "../../AuthContext.tsx";
 
-const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
+// ДОДАНО: Імпортуємо наш контекст авторизації
 
 export default function PatientProfile() {
   const navigate = useNavigate();
-  const { data: patientResponse, isLoading, error } = usePatient(CURRENT_USER_ID);
+
+  // ДОДАНО: Беремо userId та функцію logout з контексту замість localStorage
+  const { userId, logout } = useAuth();
+
+  // Використовуємо userId з контексту
+  const { data: patientResponse, isLoading, error } = usePatient(userId || "");
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,11 +80,12 @@ export default function PatientProfile() {
       fullName: `${formData.firstName} ${formData.lastName}`.trim(),
       phone: formData.phone,
       avatarUrl: formData.avatarUrl,
+      address:formData.phone
     });
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout(); // ВИКОРИСТОВУЄМО ФУНКЦІЮ З КОНТЕКСТУ
     navigate("/login");
   };
 
@@ -88,7 +95,7 @@ export default function PatientProfile() {
     </div>
   );
 
-  if (error || !CURRENT_USER_ID) return <div className="error-message">Не вдалося завантажити профіль</div>;
+  if (error || !userId) return <div className="error-message">Не вдалося завантажити профіль</div>;
 
   return (
     <div className="aero-viewport light-theme profile-page" style={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}>
