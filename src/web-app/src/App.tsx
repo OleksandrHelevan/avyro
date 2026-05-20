@@ -21,9 +21,7 @@ import PatientAppointmentsPage from "./pages/PatientAppointmentsPage/PatientAppo
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "./services/queryClient.ts";
 import { useDoctor } from "./domains/users/useDoctor/useDoctor";
-import {AuthProvider, useAuth} from "./AuthContext.tsx";
-
-// ДОДАНО: Імпорт нашого контексту
+import { AuthProvider, useAuth } from "./AuthContext.tsx";
 
 interface DoctorData {
   status?: string;
@@ -31,9 +29,17 @@ interface DoctorData {
   isActive?: boolean;
 }
 
-// --- ДИСПЕТЧЕР ПРОФІЛІВ ---
+const checkIsDoctorApproved = (doctor: DoctorData | undefined): boolean => {
+  if (!doctor) return false;
+  return (
+    doctor.isActive === true ||
+    doctor.status?.toUpperCase() === "APPROVED" ||
+    doctor.isApproved === true
+  );
+};
+
 const ProfileDispatcher = () => {
-  const { role, userId } = useAuth(); // Беремо з контексту, а не локал стореджу
+  const { role, userId } = useAuth();
   const isDoctorRole = role === "DOCTOR";
 
   const { data, isLoading } = useDoctor(isDoctorRole ? userId || "" : "");
@@ -42,17 +48,13 @@ const ProfileDispatcher = () => {
   if (!isDoctorRole) return <PatientProfile />;
   if (isLoading) return <div className="loading-screen">Завантаження профілю...</div>;
 
-  const isApproved =
-    doctor?.isActive === true ||
-    doctor?.status?.toUpperCase() === "APPROVED" ||
-    doctor?.isApproved === true;
-
-  if (!isApproved) return <NotApprovedPage />;
+  if (!checkIsDoctorApproved(doctor)) {
+    return <NotApprovedPage />;
+  }
 
   return <DoctorProfile />;
 };
 
-// --- ЗАХИСТ МАРШРУТІВ ---
 const ProtectedRoute = () => {
   const { token } = useAuth();
   if (!token) return <Navigate to="/login" replace />;
@@ -79,19 +81,15 @@ const DoctorOnlyRoute = () => {
   const doctor = data as DoctorData | undefined;
 
   if (!isDoctorRole) return <Navigate to="/profile" replace />;
-  if (isLoading) return null;
+  if (isLoading) return <div className="loading-screen">Перевірка доступу...</div>;
 
-  const isApproved =
-    doctor?.isActive === true ||
-    doctor?.status?.toUpperCase() === "APPROVED" ||
-    doctor?.isApproved === true;
-
-  if (!isApproved) return <Navigate to="/profile" replace />;
+  if (!checkIsDoctorApproved(doctor)) {
+    return <Navigate to="/profile" replace />;
+  }
 
   return <Outlet />;
 };
 
-// --- ОСНОВНИЙ КОМПОНЕНТ APP ---
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -103,11 +101,14 @@ export default function App() {
         }}
       />
 
-      {/* ОГОРТАЄМО ДОДАТОК В AUTH PROVIDER */}
       <AuthProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<RootLayout />}>
+
+              {/* 🚀 ДОДАНО: Відкритий роут для непідтверджених лікарів без токена */}
+              <Route path="not-approved" element={<NotApprovedPage />} />
+
               <Route element={<ProtectedRoute />}>
                 <Route index element={<HomePage />} />
                 <Route path="doctor/:id" element={<DoctorProfilePage />} />
@@ -132,10 +133,10 @@ export default function App() {
               </Route>
             </Route>
 
-            <Route path="*" element={<NotFound/>}/>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }

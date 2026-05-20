@@ -6,7 +6,10 @@ import {
   Calendar as CalendarIcon,
   UserCircle,
   LayoutDashboard,
-  LogOut
+  LogOut,
+  PlusCircle,
+  Send,
+  X
 } from "lucide-react";
 
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
@@ -15,19 +18,22 @@ import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDo
 import { useAuth } from "../../AuthContext.tsx";
 
 import "./DoctorProfile.css";
+import {
+  useCreateSpecialization
+} from "../../domains/specializations/useCreateSpecialization/useCreateSpecialization.ts";
+
+// 🚀 ОНОВЛЕНО: Імпортуємо звичайний хук замість Direct
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
-
-  // Беремо дані користувача та централізований логаут з нашого реактивного контексту
   const { userId, logout } = useAuth();
 
-  // 1. Отримуємо дані доктора та список спеціалізацій за допомогою ID з контексту
   const { data: doctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
   const { data: specializations, isLoading: isSpecsLoading } = useSpecializations();
-
-  // 2. Хук оновлення даних лікаря
   const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
+
+  // 🚀 ОНОВЛЕНО: Використовуємо звичайний хук
+  const { mutate: suggestSpec, isPending: isSuggesting } = useCreateSpecialization();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -37,21 +43,20 @@ export default function DoctorProfile() {
     avatarUrl: "",
   });
 
-  // 3. Синхронізація стану форми з даними з API
+  const [showSpecInput, setShowSpecInput] = useState(false);
+  const [newSpecName, setNewSpecName] = useState("");
+
   useEffect(() => {
     if (doctor && specializations) {
       const doc = doctor as any;
 
-      // Розбираємо повне ім'я на Ім'я та Прізвище
       const rawName = doc.fullName || doc.full_name || "";
       const nameParts = rawName.trim().split(/\s+/);
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
 
-      // Перевіряємо наявність ID спеціалізації безпосередньо в об'єкті лікаря
       let specId = doc.specializationId || doc.specialization_id || "";
 
-      // ✅ СТАНЕ (Приводимо foundSpec до типу any):
       if (!specId && doc.specializationName) {
         const foundSpec = specializations.find((s: any) => s.name === doc.specializationName);
         if (foundSpec) {
@@ -77,7 +82,6 @@ export default function DoctorProfile() {
       return;
     }
 
-    // ✅ ВИПРАВЛЕНО: Додаємо знак "!" після userId, щоб TS не сварився на null
     updateDoctor({
       data: {
         fullName: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -88,7 +92,24 @@ export default function DoctorProfile() {
     });
   };
 
-  // Викликаємо реактивний вихід із системи через Context API
+  const handleSuggestSpec = () => {
+    if (!newSpecName.trim()) {
+      toast.error("Введіть назву спеціалізації");
+      return;
+    }
+
+    suggestSpec(
+      { name: newSpecName },
+      {
+        onSuccess: () => {
+          toast.success("Запит на нову спеціалізацію відправлено адміну!");
+          setNewSpecName("");
+          setShowSpecInput(false);
+        },
+      }
+    );
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -98,13 +119,11 @@ export default function DoctorProfile() {
 
   return (
     <div className="aero-viewport light-theme profile-page doctor-theme">
-      {/* ФОНОВИЙ ДЕКОР */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1" style={{ background: 'rgba(59, 206, 181, 0.3)' }}></div>
         <div className="light-blob blob-2" style={{ background: 'rgba(59, 130, 246, 0.3)' }}></div>
       </div>
 
-      {/* Плаваючі іконки на задньому плані */}
       <div className="floating-icons-container">
         <div className="floating-icon icon-1">🩺</div>
         <div className="floating-icon icon-2">✨</div>
@@ -206,7 +225,98 @@ export default function DoctorProfile() {
                         ))}
                       </select>
                     </div>
+
+                    {!showSpecInput ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowSpecInput(true)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#3b82f6',
+                          fontSize: '13px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginTop: '8px',
+                          cursor: 'pointer',
+                          fontWeight: '500'
+                        }}
+                      >
+                        <PlusCircle size={14} />
+                        Не знайшли свою? Запропонувати нову
+                      </button>
+                    ) : (
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '12px',
+                        background: 'rgba(59, 130, 246, 0.05)',
+                        border: '1px dashed #bfdbfe',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px'
+                      }}>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                          Після перевірки адміністратором вона з'явиться у списку.
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input
+                            type="text"
+                            value={newSpecName}
+                            onChange={(e) => setNewSpecName(e.target.value)}
+                            placeholder="Назва спеціалізації (напр. Офтальмолог)"
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontSize: '14px'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSuggestSpec}
+                            disabled={isSuggesting || !newSpecName.trim()}
+                            style={{
+                              background: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '0 16px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              opacity: isSuggesting ? 0.7 : 1
+                            }}
+                          >
+                            {isSuggesting ? "..." : <Send size={16} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowSpecInput(false);
+                              setNewSpecName("");
+                            }}
+                            style={{
+                              background: '#f1f5f9',
+                              color: '#64748b',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '6px',
+                              padding: '0 12px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
                 </div>
 
                 <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>

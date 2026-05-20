@@ -1,8 +1,5 @@
-import type {
-  Specialization
-
-} from "../types.ts";
-import {specializationsApiClient} from "../api/specializationsApiClient.ts";
+import type { Specialization } from "../types.ts";
+import { specializationsApiClient } from "../api/specializationsApiClient.ts";
 
 export const specializationService = {
 
@@ -14,9 +11,9 @@ export const specializationService = {
     return specializationsApiClient.getSpecializationById(spec_id);
   },
 
-
-  createSpecializationDirect: async (data: { name: string }): Promise<any> => {
-    return specializationsApiClient.createSpecializationDirect(data);
+  // 🚀 Перейменували тут теж
+  createSpecialization: async (data: { name: string }): Promise<any> => {
+    return specializationsApiClient.createSpecialization(data);
   },
 
 };
