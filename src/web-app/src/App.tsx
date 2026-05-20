@@ -20,39 +20,36 @@ import PatientAppointmentsPage from "./pages/PatientAppointmentsPage/PatientAppo
 // --- ЛЕЙАУТ ТА СЕРВІСИ ---
 import RootLayout from "./layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "./services/queryClient.ts";
-import { useDoctor } from "./domains/users/useDoctor/useDoctor";
+import { useCheckDoctorStatus } from "./domains/users/useCheckDoctorStatus/useCheckDoctorStatus.tsx";
 import { AuthProvider, useAuth } from "./AuthContext.tsx";
+import Loader from "./components/Loader/Loader.tsx";
 
-interface DoctorData {
-  status?: string;
-  isApproved?: boolean;
-  isActive?: boolean;
-}
+const MainApprovalInterceptor = () => {
+  const { token } = useAuth();
 
-const checkIsDoctorApproved = (doctor: DoctorData | undefined): boolean => {
-  if (!doctor) return false;
-  return (
-    doctor.isActive === true ||
-    doctor.status?.toUpperCase() === "APPROVED" ||
-    doctor.isApproved === true
-  );
-};
+  const savedEmail = !token ? localStorage.getItem("savedDoctorEmail") : null;
 
-const ProfileDispatcher = () => {
-  const { role, userId } = useAuth();
-  const isDoctorRole = role === "DOCTOR";
+  const { data: statusResponse, isLoading } = useCheckDoctorStatus(savedEmail);
 
-  const { data, isLoading } = useDoctor(isDoctorRole ? userId || "" : "");
-  const doctor = data as DoctorData | undefined;
-
-  if (!isDoctorRole) return <PatientProfile />;
-  if (isLoading) return <div className="loading-screen">Завантаження профілю...</div>;
-
-  if (!checkIsDoctorApproved(doctor)) {
-    return <NotApprovedPage />;
+  if (savedEmail && isLoading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Loader />
+      </div>
+    );
   }
 
-  return <DoctorProfile />;
+  if (!token && savedEmail) {
+    if (statusResponse?.isPending === true) {
+      return <Navigate to="/not-approved" replace />;
+    }
+
+    if (statusResponse?.isPending === false || statusResponse?.isAuthenticated === true) {
+      return <Outlet />;
+    }
+  }
+
+  return <Outlet />;
 };
 
 const ProtectedRoute = () => {
@@ -69,70 +66,44 @@ const PublicRoute = () => {
 
 const AdminRoute = () => {
   const { role } = useAuth();
-  if (role !== "ADMIN") return <Navigate to="/" replace />;
+  if (role !== "ADMIN") return <Navigate to="/login" replace />;
   return <Outlet />;
 };
 
-const DoctorOnlyRoute = () => {
-  const { role, userId } = useAuth();
-  const isDoctorRole = role === "DOCTOR";
-
-  const { data, isLoading } = useDoctor(isDoctorRole ? userId || "" : "");
-  const doctor = data as DoctorData | undefined;
-
-  if (!isDoctorRole) return <Navigate to="/profile" replace />;
-  if (isLoading) return <div className="loading-screen">Перевірка доступу...</div>;
-
-  if (!checkIsDoctorApproved(doctor)) {
-    return <Navigate to="/profile" replace />;
-  }
-
-  return <Outlet />;
+const ProfileDispatcher = () => {
+  const { isDoctor } = useAuth();
+  return isDoctor ? <DoctorProfile /> : <PatientProfile />;
 };
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          duration: 3000,
-          style: { background: '#fff', color: '#363636' },
-        }}
-      />
-
+      <Toaster position="bottom-right" />
       <AuthProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<RootLayout />}>
-
-              {/* 🚀 ДОДАНО: Відкритий роут для непідтверджених лікарів без токена */}
               <Route path="not-approved" element={<NotApprovedPage />} />
-
-              <Route element={<ProtectedRoute />}>
-                <Route index element={<HomePage />} />
-                <Route path="doctor/:id" element={<DoctorProfilePage />} />
-                <Route path="appointments" element={<PatientAppointmentsPage />} />
-                <Route path="profile" element={<ProfileDispatcher />} />
-
-                <Route element={<DoctorOnlyRoute />}>
+              <Route element={<MainApprovalInterceptor />}>
+                <Route element={<PublicRoute />}>
+                  <Route path="login" element={<LoginPage />} />
+                  <Route path="sign-up" element={<SignUpPage />} />
+                </Route>
+                <Route element={<ProtectedRoute />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="doctor/:id" element={<DoctorProfilePage />} />
+                  <Route path="appointments" element={<PatientAppointmentsPage />} />
+                  <Route path="profile" element={<ProfileDispatcher />} />
                   <Route path="schedule-edit" element={<ScheduleEditor />} />
                   <Route path="patients" element={<div>Сторінка пацієнтів</div>} />
+                  <Route element={<AdminRoute />}>
+                    <Route path="admin/requests" element={<AdminRequests />} />
+                    <Route path="admin/specializations" element={<AdminNotifications />} />
+                    <Route path="admin/schedules" element={<AdminSchedules />} />
+                  </Route>
                 </Route>
-
-                <Route element={<AdminRoute />}>
-                  <Route path="admin/requests" element={<AdminRequests />} />
-                  <Route path="admin/specializations" element={<AdminNotifications />} />
-                  <Route path="admin/schedules" element={<AdminSchedules />} />
-                </Route>
-              </Route>
-
-              <Route element={<PublicRoute />}>
-                <Route path="login" element={<LoginPage />} />
-                <Route path="sign-up" element={<SignUpPage />} />
               </Route>
             </Route>
-
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -1,14 +1,34 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw, LogOut } from 'lucide-react';
-import { useAuth } from '../../AuthContext.tsx'; // ДОДАНО ІМПОРТ
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '../../AuthContext.tsx';
+import { useCheckDoctorStatus } from "../../domains/users/useCheckDoctorStatus/useCheckDoctorStatus.tsx";
 import './NotApprovedPage.css';
 
 export default function NotApprovedPage() {
   const navigate = useNavigate();
-  const { logout } = useAuth(); // Беремо метод з контексту
+  const { logout } = useAuth();
+  const queryClient = useQueryClient();
+
+  const savedEmail = localStorage.getItem("savedDoctorEmail");
+  const { data: statusResponse } = useCheckDoctorStatus(savedEmail);
+
+  useEffect(() => {
+    const isApproved = statusResponse?.isPending === false || statusResponse?.isAuthenticated === true;
+
+    if (savedEmail && isApproved) {
+      navigate('/login', { replace: true });
+    }
+  }, [statusResponse, savedEmail, navigate]);
+
+  const handleCheckStatus = () => {
+    queryClient.invalidateQueries({ queryKey: ["doctorStatus"] });
+    window.location.reload();
+  };
 
   const handleLogout = () => {
-    logout(); // Очищаємо стан контексту та токени
+    logout();
     navigate('/login');
   };
 
@@ -32,7 +52,7 @@ export default function NotApprovedPage() {
 
           <div className="status-actions">
             <button
-              onClick={() => window.location.reload()}
+              onClick={handleCheckStatus}
               className="btn-check-status glow-effect"
             >
               <RefreshCw size={18} />
@@ -44,7 +64,7 @@ export default function NotApprovedPage() {
               className="btn-logout-minimal"
             >
               <LogOut size={16} />
-              Вийти з акауну
+              Вийти з акаунту
             </button>
           </div>
         </div>

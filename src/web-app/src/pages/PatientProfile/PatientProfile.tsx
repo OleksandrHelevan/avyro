@@ -107,19 +107,6 @@ export default function PatientProfile() {
         onChange={handleFileChange}
       />
 
-      {/* ФОНОВИЙ ДЕКОР */}
-      <div className="bright-gradient-bg">
-        <div className="light-blob blob-1"></div>
-        <div className="light-blob blob-2"></div>
-      </div>
-
-      {/* ПЛАВАЮЧІ ЕМОДЖІ */}
-      <div className="floating-icons-container">
-        <div className="floating-icon icon-1">💙</div>
-        <div className="floating-icon icon-2">✨</div>
-        <div className="floating-icon icon-3">❤️</div>
-      </div>
-
       <div className="main-content" style={{ height: '100%', position: 'relative', zIndex: 1 }}>
         <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
 

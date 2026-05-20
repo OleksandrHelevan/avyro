@@ -1,25 +1,24 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Mail, Send } from "lucide-react";
+import {motion, AnimatePresence} from "framer-motion";
+import {useState, useEffect, useMemo} from "react";
+import {useNavigate, useSearchParams} from "react-router-dom";
+import {Search, Mail, Send} from "lucide-react";
 import "./HomePage.css";
 
-// Хуки та сервіси
-import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
-import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations.ts";
+import {useGetDoctors} from "../../domains/users/useGetDoctors/useGetDoctors.ts";
+import {useSpecializations} from "../../domains/specializations/useSpecializations/useSpecializations.ts";
+import Loader from "../../components/Loader/Loader.tsx";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
 const fadeUpVariant = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  hidden: {opacity: 0, y: 40},
+  visible: {opacity: 1, y: 0, transition: {duration: 0.6, ease: "easeOut"}}
 };
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // 1. Ініціалізуємо стани зі значень в URL (або дефолтних)
   const initialSpec = searchParams.get("spec") || "Усі";
   const initialSearch = searchParams.get("search") || "";
 
@@ -30,8 +29,8 @@ const HomePage = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Завантаження даних
-  const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
-  const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
+  const {data: doctors = [], isLoading: isLoadingDoctors} = useGetDoctors();
+  const {data: apiSpecs = [], isLoading: isLoadingSpecs} = useSpecializations();
 
   // 2. Синхронізуємо URL, якщо змінилися локальні стани
   useEffect(() => {
@@ -39,7 +38,7 @@ const HomePage = () => {
     if (activeSpec !== "Усі") params.set("spec", activeSpec);
     if (searchTerm.trim() !== "") params.set("search", searchTerm);
 
-    setSearchParams(params, { replace: true });
+    setSearchParams(params, {replace: true});
   }, [activeSpec, searchTerm, setSearchParams]);
 
   // Список назв спеціалізацій для кнопок-фільтрів
@@ -47,9 +46,21 @@ const HomePage = () => {
 
   // Слайди для банера
   const slides = [
-    { title: "Безкоштовна онлайн-консультація", desc: "Для нових пацієнтів до кінця місяця", color: "linear-gradient(135deg, #18c0c4, #7256a1)" },
-    { title: "Комплексний чекап організму", desc: "Знижка 20% на всі аналізи", color: "linear-gradient(135deg, #7256a1, #18c0c4)" },
-    { title: "Сімейний лікар у смартфоні", desc: "Зв'язок 24/7 у нашому додатку", color: "linear-gradient(135deg, #38bdf8, #6366f1)" }
+    {
+      title: "Безкоштовна онлайн-консультація",
+      desc: "Для нових пацієнтів до кінця місяця",
+      color: "linear-gradient(135deg, #18c0c4, #7256a1)"
+    },
+    {
+      title: "Комплексний чекап організму",
+      desc: "Знижка 20% на всі аналізи",
+      color: "linear-gradient(135deg, #7256a1, #18c0c4)"
+    },
+    {
+      title: "Сімейний лікар у смартфоні",
+      desc: "Зв'язок 24/7 у нашому додатку",
+      color: "linear-gradient(135deg, #38bdf8, #6366f1)"
+    }
   ];
 
   // ЛОГІКА ФІЛЬТРАЦІЇ
@@ -93,20 +104,7 @@ const HomePage = () => {
   }, [slides.length]);
 
   return (
-    <div className="aero-viewport light-theme">
-      {/* --- ФОН ТА ЕМОДЖІ --- */}
-      <div className="bright-gradient-bg">
-        <div className="light-blob blob-1"></div>
-        <div className="light-blob blob-2"></div>
-      </div>
-
-      <div className="floating-icons-container">
-        <div className="floating-icon icon-1">💙</div>
-        <div className="floating-icon icon-2">✨</div>
-        <div className="floating-icon icon-3">👨‍⚕️</div>
-      </div>
-      {/* ----------------------- */}
-
+    <>
       <main className="main-content">
         {/* Банер-слайдер */}
         <motion.div className="slider-container" initial="hidden" animate="visible" variants={fadeUpVariant}>
@@ -114,10 +112,10 @@ const HomePage = () => {
             <motion.div
               key={currentSlide}
               className="slide-card glass-light"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              style={{ background: slides[currentSlide].color }}
+              initial={{opacity: 0, x: 20}}
+              animate={{opacity: 1, x: 0}}
+              exit={{opacity: 0, x: -20}}
+              style={{background: slides[currentSlide].color}}
             >
               <div className="slide-content">
                 <h2>{slides[currentSlide].title}</h2>
@@ -129,12 +127,13 @@ const HomePage = () => {
         </motion.div>
 
         {/* Скрол-секція спеціалізацій */}
-        <motion.div className="specs-section" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
+        <motion.div className="specs-section" initial="hidden" whileInView="visible" viewport={{once: true}}
+                    variants={fadeUpVariant}>
           <h3 className="section-subtitle">Спеціалізації</h3>
           <div className="specs-scroll-wrapper">
             <div className="specs-group">
               {isLoadingSpecs ? (
-                <div className="loading-dots">...</div>
+                <Loader/>
               ) : (
                 displaySpecs.map(spec => (
                   <button
@@ -154,7 +153,7 @@ const HomePage = () => {
         <motion.div className="search-section" initial="hidden" whileInView="visible" variants={fadeUpVariant}>
           <h2 className="med-title-dark">Знайдіть свого лікаря</h2>
           <div className="search-bar-white">
-            <Search size={20} color="#6b7280" />
+            <Search size={20} color="#6b7280"/>
             <input
               type="text"
               placeholder="Ім'я, спеціальність або пошта..."
@@ -170,9 +169,9 @@ const HomePage = () => {
         <div className="results-section">
           <div className="doctors-grid">
             {isLoadingDoctors ? (
-              <p>Завантаження спеціалістів...</p>
+              <Loader/>
             ) : filteredDoctors.length === 0 ? (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#000000' }}>
+              <p style={{gridColumn: '1 / -1', textAlign: 'center', color: '#000000'}}>
                 За вашим запитом лікарів не знайдено.
               </p>
             ) : filteredDoctors.map((doc: any, index) => {
@@ -184,20 +183,22 @@ const HomePage = () => {
                 <motion.div
                   key={doc.id || doc._id || index}
                   className="doctor-card-light glass-light"
-                  whileHover={{ y: -5 }}
+                  whileHover={{y: -5}}
                 >
                   <div className="card-header">
                     <div className="doctor-avatar-placeholder">
                       <img
                         src={doc.avatarUrl || DEFAULT_AVATAR}
                         alt="doc"
-                        onError={(e) => {(e.currentTarget.src = DEFAULT_AVATAR)}}
+                        onError={(e) => {
+                          (e.currentTarget.src = DEFAULT_AVATAR)
+                        }}
                       />
                     </div>
                     <div className="doctor-info-dark">
                       <h4>{doc.fullName || "Спеціаліст"}</h4>
                       <p className="spec-text-dark">{displaySpecName}</p>
-                      <p className="email-hint"><Mail size={12} /> {doc.email}</p>
+                      <p className="email-hint"><Mail size={12}/> {doc.email}</p>
                     </div>
                     <div className="bonus-tag-light">Top Rated</div>
                   </div>
@@ -219,7 +220,7 @@ const HomePage = () => {
         className="aero-footer glass-light"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        viewport={{once: true, amount: 0.1}}
         variants={fadeUpVariant}
       >
         <div className="footer-content">
@@ -228,9 +229,10 @@ const HomePage = () => {
               <div className="logo-icon-med"></div>
               <h2>MED<span className="logo-accent">.avyro</span></h2>
             </div>
-            <p>Ваш надійний провідник у світі сучасної медицини. Записуйтесь до найкращих спеціалістів онлайн за лічені хвилини.</p>
+            <p>Ваш надійний провідник у світі сучасної медицини. Записуйтесь до найкращих спеціалістів онлайн за лічені
+              хвилини.</p>
             <div className="social-links">
-              <a href="#" className="social-icon"><Send size={18} /></a>
+              <a href="#" className="social-icon"><Send size={18}/></a>
             </div>
           </div>
 
@@ -261,14 +263,13 @@ const HomePage = () => {
         </div>
       </motion.footer>
 
-      {/* Плаваюча кнопка допомоги */}
       <div className="help-fab-container">
         <button className="floating-chatbot" onClick={() => setIsHelpOpen(!isHelpOpen)}>
           {isHelpOpen ? "✕" : "?"}
           <div className="pulse-ring"></div>
         </button>
       </div>
-    </div>
+    </>
   );
 };
 
