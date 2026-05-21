@@ -5,18 +5,15 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
 import "./PatientProfile.css";
-import {useAuth} from "../../context/auth/useAuth.tsx";
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
-
-// ДОДАНО: Імпортуємо наш контекст авторизації
+import BadgeUnlockToast from "../GamificationPage/components/BadgeUnlockToast.tsx";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
 
-  // ДОДАНО: Беремо userId та функцію logout з контексту замість localStorage
   const { userId, logout } = useAuth();
 
-  // Використовуємо userId з контексту
   const { data: patientResponse, isLoading, error } = usePatient(userId || "");
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,16 +74,53 @@ export default function PatientProfile() {
       return;
     }
 
-    updatePatient({
-      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-      phone: formData.phone,
-      avatarUrl: formData.avatarUrl,
-      address:formData.phone
-    });
+    updatePatient(
+      {
+        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone,
+        avatarUrl: formData.avatarUrl,
+        address: formData.phone
+      },
+      {
+        // 🚀 ОНОВЛЕНО: Тепер приймаємо response від бекенду
+        onSuccess: (response) => {
+
+          // Логіка перевірки заповненості профілю
+          const isFullyFilled = !!(
+            formData.firstName.trim() &&
+            formData.lastName.trim() &&
+            formData.phone.trim() &&
+            formData.avatarUrl.trim()
+          );
+
+          if (isFullyFilled) {
+            // 🚀 ОНОВЛЕНО: Шукаємо реальну кількість балів у масиві rewards
+            const profileReward = response?.rewards?.find(
+              (r: any) => r.source === 'PROFILE_BONUS'
+            );
+
+            // Беремо бали від бекенду (якщо знайшли), інакше ставимо дефолтні 50
+            const earnedPoints = profileReward ? profileReward.points : 50;
+
+            // Викликаємо кастомний тост в правому нижньому куті
+            toast.custom(
+              (t) => (
+                <BadgeUnlockToast
+                  t={t}
+                  title="Заповнення профілю"
+                  points={earnedPoints} // Передаємо динамічні бали
+                />
+              ),
+              { position: 'bottom-right', duration: 4000 }
+            );
+          }
+        }
+      }
+    );
   };
 
   const handleLogout = () => {
-    logout(); // ВИКОРИСТОВУЄМО ФУНКЦІЮ З КОНТЕКСТУ
+    logout();
     navigate("/login");
   };
 

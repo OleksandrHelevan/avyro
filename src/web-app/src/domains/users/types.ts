@@ -1,3 +1,5 @@
+import type {Reward} from "../rewards/type.ts";
+
 export type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
 
 export interface LoginRequest {
@@ -48,6 +50,7 @@ export interface GetPatientResponse {
   avatarUrl: string;
   createdAt: Date;
   lastLoginAt: Date;
+  rewards:Reward;
 }
 
 export interface PatchPatientRequest {
@@ -66,6 +69,7 @@ export interface PatchPatientResponse {
   avatarUrl: string;
   createdAt: Date;
   lastLoginAt: Date;
+  rewards: Reward;
 }
 
 // --- Доктор ---
