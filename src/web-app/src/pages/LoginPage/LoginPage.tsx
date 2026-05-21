@@ -8,9 +8,9 @@ import Form from "../../components/Form/Form.tsx";
 import toast from "react-hot-toast";
 
 import "./LoginPage.css";
-import { useAuth } from "../../AuthContext.tsx";
 import { apiClient } from "../../services/apiClient.ts";
 import { clearFromStorage, getFromStorage, setInStorage } from "../../utils/localStorageUtil.ts";
+import {useAuth} from "../../context/auth/useAuth.tsx";
 
 export default function LoginPage() {
   const { mutate, isPending } = useLogin();

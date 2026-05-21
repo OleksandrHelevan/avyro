@@ -5,7 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
 import "./PatientProfile.css";
-import {useAuth} from "../../AuthContext.tsx";
+import {useAuth} from "../../context/auth/useAuth.tsx";
+import Loader from "../../components/Loader/Loader.tsx";
 
 // ДОДАНО: Імпортуємо наш контекст авторизації
 
@@ -91,7 +92,7 @@ export default function PatientProfile() {
 
   if (isLoading) return (
     <div className="loading-screen">
-      <div className="aero-loader"><div className="loader-ring"></div><div className="loader-core"></div></div>
+      <Loader/>
     </div>
   );
 

@@ -1,7 +1,7 @@
 import { useFormContext, useFormState } from "react-hook-form";
-import { useEffect, useState } from "react";
+import {type ReactNode, useEffect, useState} from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import "./TextInput.css";
-import {EyeIcon, EyeOffIcon} from "lucide-react";
 
 interface TextInputProps {
   name: string;
@@ -10,6 +10,7 @@ interface TextInputProps {
   placeholder?: string;
   rules?: object;
   hint?: string;
+  icon?: ReactNode;
 }
 
 export default function TextInput({
@@ -19,6 +20,7 @@ export default function TextInput({
                                     placeholder,
                                     rules,
                                     hint,
+                                    icon,
                                   }: TextInputProps) {
   const { register, control } = useFormContext();
 
@@ -31,13 +33,11 @@ export default function TextInput({
   const showError = isSubmitted && !!error;
 
   const [shake, setShake] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const isPasswordField = type === "password";
 
-  const inputType =
-    isPasswordField && showPassword ? "text" : type;
+  const inputType = isPasswordField && showPassword ? "text" : type;
 
   useEffect(() => {
     if (showError) {
@@ -56,7 +56,7 @@ export default function TextInput({
         clearTimeout(cleanup);
       };
     }
-  }, [submitCount]);
+  }, [submitCount, showError]);
 
   return (
     <div className="form-field">
@@ -66,14 +66,18 @@ export default function TextInput({
 
       <div className={shake ? "shake" : ""}>
         <div className="input-wrapper">
+          {/* Рендеримо іконку, якщо вона передана у пропси */}
+          {icon && <div className="input-icon-svg">{icon}</div>}
+
           <input
             {...register(name, rules)}
             id={name}
             type={inputType}
             placeholder={placeholder}
-            className={`form-input ${showError ? "input-error" : ""} ${
-              isPasswordField ? "password-input" : ""
-            }`}
+            /* Динамічно додаємо клас has-icon для відступу тексту */
+            className={`form-input ${icon ? "has-icon" : ""} ${
+              showError ? "input-error" : ""
+            } ${isPasswordField ? "password-input" : ""}`}
           />
 
           {isPasswordField && (
@@ -85,7 +89,6 @@ export default function TextInput({
               {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
             </button>
           )}
-
         </div>
 
         {showError && (
@@ -94,9 +97,7 @@ export default function TextInput({
           </span>
         )}
 
-        {!showError && hint && (
-          <span className="form-hint">{hint}</span>
-        )}
+        {!showError && hint && <span className="form-hint">{hint}</span>}
       </div>
     </div>
   );
