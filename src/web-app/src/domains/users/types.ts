@@ -129,3 +129,7 @@ export interface DoctorListItem {
   avatarUrl: string | null;
   specializationId: string | null;
 }
+export interface DoctorApprovalResponse {
+  isAuthenticated: boolean;
+  isPending: boolean;
+}

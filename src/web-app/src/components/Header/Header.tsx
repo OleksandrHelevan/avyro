@@ -5,9 +5,7 @@ import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
 import { useState } from "react";
 import logoImg from "./img.png";
-import {useAuth} from "../../AuthContext.tsx";
-
-// ДОДАНО: Імпорт нашого контексту
+import { useAuth } from "../../AuthContext.tsx";
 
 interface DoctorData {
   status?: string;
@@ -19,22 +17,18 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  // ВИКОРИСТОВУЄМО КОНТЕКСТ ЗАМІСТЬ LOCAL STORAGE
-  const { token, role, userId, logout } = useAuth();
+  const { token, userId, logout, isDoctor, isPatient, isAdmin } = useAuth();
 
   const isAuthenticated = !!token;
-  const isDoctorRole = role === "DOCTOR";
 
-  const { data } = useDoctor(isDoctorRole ? userId || "" : "");
+  const { data } = useDoctor(isDoctor && userId ? userId : "");
   const doctor = data as DoctorData | undefined;
 
-  const isApprovedDoctor = isDoctorRole && doctor?.isActive === true;
+  const isApprovedDoctor = isDoctor && doctor?.isActive === true;
   const hideHeaderRoutes = ["/login", "/sign-up"];
 
   const closeMobileMenu = () => setIsMobileOpen(false);
 
-  // Функція виходу тепер використовує logout() з контексту
   const handleLogout = () => {
     logout();
     closeMobileMenu();
@@ -86,14 +80,14 @@ export default function Header() {
           <div className="nav-links">
 
             {/* Ховаємо "Знайти лікаря", якщо роль ADMIN */}
-            {role !== "ADMIN" && (
+            {!isAdmin && (
               <NavLink to="/" onClick={closeMobileMenu}
                        className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Знайти лікаря
               </NavLink>
             )}
 
-            {isAuthenticated && role === "PATIENT" && (
+            {isAuthenticated && isPatient && (
               <NavLink to="/appointments" onClick={closeMobileMenu}
                        className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Мої записи
@@ -113,7 +107,7 @@ export default function Header() {
               </>
             )}
 
-            {isAuthenticated && role === "ADMIN" && (
+            {isAuthenticated && isAdmin && (
               <>
                 <NavLink to="/admin/requests" onClick={closeMobileMenu}
                          className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
@@ -135,7 +129,7 @@ export default function Header() {
 
           {isAuthenticated ? (
             <div className="auth-group">
-              {role === "ADMIN" ? (
+              {isAdmin ? (
                 <button
                   onClick={handleLogout}
                   className="profile-icon-btn"

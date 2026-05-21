@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 import "./LoginPage.css";
 import { useAuth } from "../../AuthContext.tsx";
-import { apiClient } from "../../services/apiService.ts";
-import { clearFromStorage, getFromStorage } from "../../utils/localStorageUtil.ts";
+import { apiClient } from "../../services/apiClient.ts";
+import { clearFromStorage, getFromStorage, setInStorage } from "../../utils/localStorageUtil.ts";
 
 export default function LoginPage() {
   const { mutate, isPending } = useLogin();
@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [defaultEmail, setDefaultEmail] = useState("");
 
-  // 1. АВТО-ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ (після реєстрації)
+  // 1. АВТО-ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ
   useEffect(() => {
     const checkDoctorFlow = async () => {
       const savedEmail = getFromStorage<string>("savedDoctorEmail");
@@ -35,11 +35,15 @@ export default function LoginPage() {
       try {
         const res = await apiClient.get<any>(`/doctors?email=${encodeURIComponent(savedEmail)}`);
 
-        if (res?.data?.isPending === true || res?.data?.isAuthenticated === false) {
-          toast.error("Ваш акаунт ще знаходиться на перевірці.");
-          navigate("/not-approved"); // ✅ Тут правильно
+        // 🚀 ФІКС: Витягуємо лікаря з масиву, якщо бекенд повернув масив
+        const doctorData = Array.isArray(res.data) ? res.data[0] : (res.data?.items?.[0] || res.data);
+
+        // Перевіряємо різні можливі варіанти статусу PENDING від бекенда
+        if (doctorData?.isPending === true || doctorData?.status === "PENDING" || doctorData?.status === "WAITING") {
+          navigate("/not-approved");
           return;
         }
+
       } catch (error) {
         console.log("Помилка автоперевірки", error);
       }
@@ -50,30 +54,25 @@ export default function LoginPage() {
     checkDoctorFlow();
   }, [navigate]);
 
-  // 2. ПЕРЕВІРКА ПРИ НАТИСКАННІ КНОПКИ (Якщо лікар вводить дані вручну)
+  // 2. ПЕРЕВІРКА ПРИ РУЧНОМУ ВВОДІ (кнопка "Увійти")
   const onSubmit = async (data: LoginRequest) => {
-    let isDoctorPending = false;
-    let isDoctorNotAuthenticated = false;
-
     try {
       const doctorStatusRes = await apiClient.get<any>(`/doctors?email=${encodeURIComponent(data.email)}`);
 
-      if (doctorStatusRes && doctorStatusRes.data) {
-        isDoctorPending = doctorStatusRes.data.isPending === true;
-        isDoctorNotAuthenticated = doctorStatusRes.data.isAuthenticated === false;
+      // 🚀 ФІКС ТУТ ТАКОЖ: Витягуємо лікаря
+      const doctorData = Array.isArray(doctorStatusRes.data) ? doctorStatusRes.data[0] : (doctorStatusRes.data?.items?.[0] || doctorStatusRes.data);
+
+      if (doctorData?.isPending === true || doctorData?.status === "PENDING" || doctorData?.status === "WAITING") {
+        setInStorage("savedDoctorEmail", data.email);
+        toast.error("Ваш акаунт лікаря ще знаходиться на перевірці.");
+        navigate("/not-approved");
+        return;
       }
     } catch (e) {
-      console.log("Користувач не є лікарем або помилка сервера, йдемо далі.");
+      // Ігноруємо (користувач не знайдений у лікарях, мабуть це пацієнт, йдемо логінитись)
     }
 
-    // 🚀 ВИПРАВЛЕНО ТУТ: тепер при ручному вводі теж редіректить на ВІДКРИТИЙ роут
-    if (isDoctorPending || isDoctorNotAuthenticated) {
-      toast.error("Ваш акаунт лікаря ще знаходиться на перевірці.");
-      navigate("/not-approved"); // ✅ Тепер перенаправляє куди треба!
-      return;
-    }
-
-    // 3. Звичайний логін (тільки для approved лікарів та пацієнтів)
+    // 3. ЗВИЧАЙНИЙ ЛОГІН
     mutate(data, {
       onSuccess: (response: any) => {
         const token = response?.accessToken || response?.token;
@@ -81,10 +80,10 @@ export default function LoginPage() {
 
         if (token) {
           login(token, role, response?.userId || response?.id);
-          clearFromStorage("savedDoctorEmail"); // Чистимо сторедж
+          clearFromStorage("savedDoctorEmail");
 
           if (role === "DOCTOR") {
-            navigate("/profile"); // Для апрувнутого лікаря /profile - це ок, бо токен вже є
+            navigate("/profile");
           } else {
             navigate("/");
           }

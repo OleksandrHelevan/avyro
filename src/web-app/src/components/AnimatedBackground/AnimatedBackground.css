@@ -22,9 +22,9 @@ body {
   min-height: 100vh;
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
-/* ДИНАМІЧНИЙ ФОН (ПЕРЕЛИВАННЯ ГРАДІЄНТУ) */
 .bright-gradient-bg {
   position: fixed;
   top: 0;

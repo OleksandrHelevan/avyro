@@ -161,6 +161,7 @@
 
 .search-bar-white {
   display: flex;
+  align-items: center;
   gap: 10px;
   max-width: 1000px;
   width: 100%;

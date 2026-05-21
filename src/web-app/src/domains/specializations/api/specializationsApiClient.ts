@@ -1,4 +1,4 @@
-import { apiClient } from "../../../services/apiService.ts";
+import { apiClient } from "../../../services/apiClient.ts";
 import type { Specialization } from "../types.ts";
 
 export const specializationsApiClient = {

@@ -1,11 +1,11 @@
-import {apiClient} from "../../../services/apiService.ts";
+import {apiClient} from "../../../services/apiClient.ts";
 import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
-   ScheduleRequest, ScheduleResponse,
+  ScheduleRequest, ScheduleResponse,
 
-  DoctorListItem
+  DoctorListItem, DoctorApprovalResponse
 } from "../types.ts";
 
 export const userApiClient = {
@@ -35,6 +35,6 @@ export const userApiClient = {
     apiClient.post<ScheduleResponse>('/schedules/request', request),
 
   checkDoctorStatus: async (email: string) => {
-    return apiClient.get<any>(`/doctors?email=${encodeURIComponent(email)}`);
+    return apiClient.get<DoctorApprovalResponse>(`/doctors?email=${encodeURIComponent(email)}`);
   },
 }

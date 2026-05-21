@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
 
-  DoctorListItem
+  DoctorListItem, DoctorApprovalResponse
 } from "../types.ts";
 
 export const userService = {
@@ -42,11 +42,12 @@ export const userService = {
     return userApiClient.patchDoctor( request);
   },
 
-
-
   requestSchedule: async (request: ScheduleRequest): Promise<ScheduleResponse> => {
     return userApiClient.requestSchedule(request);
   },
+  checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {
+    return userApiClient.checkDoctorStatus(email);
+  }
 
 
 };

@@ -1,39 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Stethoscope,
   Calendar as CalendarIcon,
   UserCircle,
   LayoutDashboard,
-  LogOut,
-  PlusCircle,
-  Send,
-  X
+  LogOut
 } from "lucide-react";
 
-import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations";
-import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
-import { useAuth } from "../../AuthContext.tsx";
+import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
+import {useSpecializations} from "../../domains/specializations/useSpecializations/useSpecializations";
+import {useUpdateDoctor} from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
+import {useAuth} from "../../AuthContext.tsx";
 
 import "./DoctorProfile.css";
-import {
-  useCreateSpecialization
-} from "../../domains/specializations/useCreateSpecialization/useCreateSpecialization.ts";
-
-// 🚀 ОНОВЛЕНО: Імпортуємо звичайний хук замість Direct
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
-  const { userId, logout } = useAuth();
 
-  const { data: doctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
-  const { data: specializations, isLoading: isSpecsLoading } = useSpecializations();
-  const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
+  // Беремо дані користувача та централізований логаут з нашого реактивного контексту
+  const {userId, logout} = useAuth();
 
-  // 🚀 ОНОВЛЕНО: Використовуємо звичайний хук
-  const { mutate: suggestSpec, isPending: isSuggesting } = useCreateSpecialization();
+  // 1. Отримуємо дані доктора та список спеціалізацій за допомогою ID з контексту
+  const {data: doctor, isLoading: isDoctorLoading} = useDoctor(userId || "");
+  const {data: specializations, isLoading: isSpecsLoading} = useSpecializations();
+
+  // 2. Хук оновлення даних лікаря
+  const {mutate: updateDoctor, isPending: isUpdating} = useUpdateDoctor();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -43,20 +37,21 @@ export default function DoctorProfile() {
     avatarUrl: "",
   });
 
-  const [showSpecInput, setShowSpecInput] = useState(false);
-  const [newSpecName, setNewSpecName] = useState("");
-
+  // 3. Синхронізація стану форми з даними з API
   useEffect(() => {
     if (doctor && specializations) {
       const doc = doctor as any;
 
+      // Розбираємо повне ім'я на Ім'я та Прізвище
       const rawName = doc.fullName || doc.full_name || "";
       const nameParts = rawName.trim().split(/\s+/);
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
 
+      // Перевіряємо наявність ID спеціалізації безпосередньо в об'єкті лікаря
       let specId = doc.specializationId || doc.specialization_id || "";
 
+      // ✅ СТАНЕ (Приводимо foundSpec до типу any):
       if (!specId && doc.specializationName) {
         const foundSpec = specializations.find((s: any) => s.name === doc.specializationName);
         if (foundSpec) {
@@ -92,24 +87,6 @@ export default function DoctorProfile() {
     });
   };
 
-  const handleSuggestSpec = () => {
-    if (!newSpecName.trim()) {
-      toast.error("Введіть назву спеціалізації");
-      return;
-    }
-
-    suggestSpec(
-      { name: newSpecName },
-      {
-        onSuccess: () => {
-          toast.success("Запит на нову спеціалізацію відправлено адміну!");
-          setNewSpecName("");
-          setShowSpecInput(false);
-        },
-      }
-    );
-  };
-
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -118,237 +95,135 @@ export default function DoctorProfile() {
   if (isDoctorLoading) return <div className="loading-screen"><span className="spinner">⏳</span></div>;
 
   return (
-    <div className="aero-viewport light-theme profile-page doctor-theme">
-      <div className="bright-gradient-bg">
-        <div className="light-blob blob-1" style={{ background: 'rgba(59, 206, 181, 0.3)' }}></div>
-        <div className="light-blob blob-2" style={{ background: 'rgba(59, 130, 246, 0.3)' }}></div>
-      </div>
 
-      <div className="floating-icons-container">
-        <div className="floating-icon icon-1">🩺</div>
-        <div className="floating-icon icon-2">✨</div>
-        <div className="floating-icon icon-3">💙</div>
-      </div>
 
-      <div className="main-content">
-        <div className="layout-container">
-          <aside className="sidebar">
-            <div className="sidebar-menu glass-light">
-              <button className="menu-item active">
-                <LayoutDashboard size={18} />
-                <span>Кабінет лікаря</span>
-              </button>
-            </div>
-          </aside>
+    <div className="main-content">
+      <div className="layout-container">
+        <aside className="sidebar">
+          <div className="sidebar-menu glass-light">
+            <button className="menu-item active">
+              <LayoutDashboard size={18}/>
+              <span>Кабінет лікаря</span>
+            </button>
+          </div>
+        </aside>
 
-          <main className="profile-content">
-            <div className="page-header">
-              <h1>Вітаємо, докторе {formData.lastName || "Користувач"}</h1>
-              <p>Керуйте своїми даними та графіком прийомів</p>
-            </div>
+        <main className="profile-content">
+          <div className="page-header">
+            <h1>Вітаємо, докторе {formData.lastName || "Користувач"}</h1>
+            <p>Керуйте своїми даними та графіком прийомів</p>
+          </div>
 
-            <div className="profile-card glass-light profile-card-centered">
-              <div className="avatar-section">
-                <div className="avatar-wrapper gradient-ring doc-ring">
-                  <div className="avatar-large">
+          <div className="profile-card glass-light profile-card-centered">
+            <div className="avatar-section">
+              <div className="avatar-wrapper gradient-ring doc-ring">
+                <div className="avatar-large">
                     <span className="avatar-initials">
                       {formData.firstName.charAt(0) || "D"}{formData.lastName.charAt(0) || "R"}
                     </span>
-                  </div>
                 </div>
-                <div className="avatar-info">
-                  <h2>{formData.firstName} {formData.lastName}</h2>
-                  <span className="status-badge doc-badge">
+              </div>
+              <div className="avatar-info">
+                <h2>{formData.firstName} {formData.lastName}</h2>
+                <span className="status-badge doc-badge">
                     {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
                   </span>
+              </div>
+            </div>
+
+            <div className="schedule-redirect-card">
+              <div className="redirect-info">
+                <h3>Генерація розкладу</h3>
+                <p>Налаштуйте робочі години та тривалість прийомів</p>
+              </div>
+              <button
+                type="button"
+                className="btn-redirect-schedule"
+                onClick={() => navigate("/schedule-edit")}
+              >
+                <CalendarIcon size={20} strokeWidth={2.5}/>
+                <span>Мій графік</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleProfileSubmit} className="profile-form">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Ім'я</label>
+                  <div className="input-wrapper">
+                    <UserCircle className="input-icon-svg" size={18}/>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Прізвище</label>
+                  <div className="input-wrapper">
+                    <UserCircle className="input-icon-svg" size={18}/>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{gridColumn: "1 / -1"}}>
+                  <label>Спеціалізація</label>
+                  <div className="input-wrapper">
+                    <Stethoscope className="input-icon-svg" size={18}/>
+                    <select
+                      value={formData.specializationId}
+                      onChange={(e) => setFormData({...formData, specializationId: e.target.value})}
+                      className="custom-select"
+                      required
+                    >
+                      <option value="" disabled>Оберіть напрямок...</option>
+                      {!isSpecsLoading && specializations?.map((spec: any) => (
+                        <option key={spec.id || spec._id} value={spec.id || spec._id}>
+                          {spec.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="schedule-redirect-card">
-                <div className="redirect-info">
-                  <h3>Генерація розкладу</h3>
-                  <p>Налаштуйте робочі години та тривалість прийомів</p>
-                </div>
+              <div className="form-actions" style={{display: 'flex', gap: '16px', marginTop: '20px'}}>
+                <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{flex: 1}}>
+                  {isUpdating ? "Збереження..." : "Зберегти зміни"}
+                </button>
+
                 <button
                   type="button"
-                  className="btn-redirect-schedule"
-                  onClick={() => navigate("/schedule-edit")}
+                  onClick={handleLogout}
+                  className="logout-btn-custom"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 24px',
+                    backgroundColor: '#fff1f2',
+                    color: '#e11d48',
+                    border: '1px solid #fda4af',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
                 >
-                  <CalendarIcon size={20} strokeWidth={2.5} />
-                  <span>Мій графік</span>
+                  <LogOut size={18} strokeWidth={2.5}/>
+                  Вийти
                 </button>
               </div>
-
-              <form onSubmit={handleProfileSubmit} className="profile-form">
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label>Ім'я</label>
-                    <div className="input-wrapper">
-                      <UserCircle className="input-icon-svg" size={18} />
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Прізвище</label>
-                    <div className="input-wrapper">
-                      <UserCircle className="input-icon-svg" size={18} />
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group" style={{ gridColumn: "1 / -1" }}>
-                    <label>Спеціалізація</label>
-                    <div className="input-wrapper">
-                      <Stethoscope className="input-icon-svg" size={18} />
-                      <select
-                        value={formData.specializationId}
-                        onChange={(e) => setFormData({ ...formData, specializationId: e.target.value })}
-                        className="custom-select"
-                        required
-                      >
-                        <option value="" disabled>Оберіть напрямок...</option>
-                        {!isSpecsLoading && specializations?.map((spec: any) => (
-                          <option key={spec.id || spec._id} value={spec.id || spec._id}>
-                            {spec.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {!showSpecInput ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowSpecInput(true)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#3b82f6',
-                          fontSize: '13px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          marginTop: '8px',
-                          cursor: 'pointer',
-                          fontWeight: '500'
-                        }}
-                      >
-                        <PlusCircle size={14} />
-                        Не знайшли свою? Запропонувати нову
-                      </button>
-                    ) : (
-                      <div style={{
-                        marginTop: '12px',
-                        padding: '12px',
-                        background: 'rgba(59, 130, 246, 0.05)',
-                        border: '1px dashed #bfdbfe',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px'
-                      }}>
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>
-                          Після перевірки адміністратором вона з'явиться у списку.
-                        </span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input
-                            type="text"
-                            value={newSpecName}
-                            onChange={(e) => setNewSpecName(e.target.value)}
-                            placeholder="Назва спеціалізації (напр. Офтальмолог)"
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              border: '1px solid #cbd5e1',
-                              fontSize: '14px'
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={handleSuggestSpec}
-                            disabled={isSuggesting || !newSpecName.trim()}
-                            style={{
-                              background: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '0 16px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              opacity: isSuggesting ? 0.7 : 1
-                            }}
-                          >
-                            {isSuggesting ? "..." : <Send size={16} />}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowSpecInput(false);
-                              setNewSpecName("");
-                            }}
-                            style={{
-                              background: '#f1f5f9',
-                              color: '#64748b',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '6px',
-                              padding: '0 12px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-
-                <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>
-                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{ flex: 1 }}>
-                    {isUpdating ? "Збереження..." : "Зберегти зміни"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="logout-btn-custom"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 24px',
-                      backgroundColor: '#fff1f2',
-                      color: '#e11d48',
-                      border: '1px solid #fda4af',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontWeight: '600'
-                    }}
-                  >
-                    <LogOut size={18} strokeWidth={2.5} />
-                    Вийти
-                  </button>
-                </div>
-              </form>
-            </div>
-          </main>
-        </div>
+            </form>
+          </div>
+        </main>
       </div>
     </div>
   );
