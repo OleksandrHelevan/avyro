@@ -16,6 +16,17 @@
   align-items: center;
 }
 
+.input-icon-svg {
+  position: absolute;
+  left: 14px;
+  color: var(--med-cyan, #3bceb5);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 .form-input {
   width: 100%;
   padding: 10px 14px;
@@ -27,6 +38,10 @@
   outline: none;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
+}
+
+.form-input.has-icon {
+  padding-left: 42px;
 }
 
 .form-input::placeholder {
@@ -57,6 +72,7 @@
   align-items: center;
   gap: 4px;
   line-height: 1.4;
+  margin-top: 2px;
 }
 
 .form-hint {
@@ -79,12 +95,12 @@
 }
 
 .password-input {
-  padding-right: 72px;
+  padding-right: 48px;
 }
 
 .password-toggle {
   position: absolute;
-  right: 16px;
+  right: 14px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -94,8 +110,9 @@
   justify-content: center;
   color: var(--color-text-muted);
   padding: 0;
+  z-index: 2;
 }
 
 .password-toggle:hover {
-  opacity: 0.8;
+  color: var(--color-primary);
 }

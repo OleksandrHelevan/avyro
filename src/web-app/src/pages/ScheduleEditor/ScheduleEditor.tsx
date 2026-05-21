@@ -6,6 +6,7 @@ import { Calendar, Clock, ChevronLeft, Save, CalendarCheck, Edit3 } from "lucide
 import { useRequestSchedule } from "../../domains/users/useRequestSchedule/useRequestSchedule";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import './ScheduleEditor.css';
+import Loader from "../../components/Loader/Loader.tsx";
 
 const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
@@ -106,7 +107,7 @@ export default function ScheduleEditor() {
     });
   };
 
-  if (isDoctorLoading) return <div className="loading-screen"><span className="spinner">⏳</span></div>;
+  if (isDoctorLoading) return <div className="loading-screen"><Loader/></div>;
 
   return (
     <div className="aero-viewport light-theme profile-page doctor-theme">

@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import "./DoctorProfilePage.css";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import { useCreateAppointment } from "../../domains/appointments/useCreateAppointment/useCreateAppointment";
+import Loader from "../../components/Loader/Loader.tsx";
 
 // Константа для аватарки за замовчуванням
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
@@ -128,7 +129,7 @@ export default function DoctorProfile() {
     );
   };
 
-  if (isDocLoading) return <div className="loading">Завантаження профілю...</div>;
+  if (isDocLoading) return <div className="loading-screen"><Loader/></div>;
 
   return (
     <div className="booking-page aero-viewport light-theme">
@@ -191,7 +192,6 @@ export default function DoctorProfile() {
               </button>
             </div>
           ) : (
-            /* ✅ Якщо розклад Є, показуємо звичайний календар та години */
             <>
               <div className="date-selector-section">
                 <label>Оберіть дату</label>
@@ -244,7 +244,7 @@ export default function DoctorProfile() {
                 onClick={handleBooking}
               >
                 {isBooking ? (
-                  <span className="spinner">⏳ Записуємо...</span>
+                  <span> Записуємось <Loader className={"inline-loader"}/></span>
                 ) : selectedTime ? (
                   `Записатися на ${selectedTime}`
                 ) : (

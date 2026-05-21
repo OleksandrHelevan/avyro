@@ -46,6 +46,9 @@
   filter: drop-shadow(0 0 4px rgba(77, 164, 252, 0.2));
   transform: translateY(1px);
 }
+.inline-loader{
+  display: inline-block;
+}
 
 @keyframes med-spin {
   to {

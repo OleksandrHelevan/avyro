@@ -5,7 +5,7 @@ import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import "./Header.css";
 import { useState } from "react";
 import logoImg from "./img.png";
-import { useAuth } from "../../AuthContext.tsx";
+import {useAuth} from "../../context/auth/useAuth.tsx";
 
 interface DoctorData {
   status?: string;

@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw, LogOut } from 'lucide-react';
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from '../../AuthContext.tsx';
 import { useCheckDoctorStatus } from "../../domains/users/useCheckDoctorStatus/useCheckDoctorStatus.tsx";
 import './NotApprovedPage.css';
+import {useAuth} from "../../context/auth/useAuth.tsx";
 
 export default function NotApprovedPage() {
   const navigate = useNavigate();

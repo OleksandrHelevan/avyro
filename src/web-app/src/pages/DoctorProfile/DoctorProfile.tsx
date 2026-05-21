@@ -3,7 +3,6 @@ import {useNavigate} from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Stethoscope,
-  Calendar as CalendarIcon,
   UserCircle,
   LayoutDashboard,
   LogOut
@@ -12,21 +11,19 @@ import {
 import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
 import {useSpecializations} from "../../domains/specializations/useSpecializations/useSpecializations";
 import {useUpdateDoctor} from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
-import {useAuth} from "../../AuthContext.tsx";
+import {useAuth} from "../../context/auth/useAuth.tsx";
+import ScheduleRedirectCard from "./components/ScheduleRedirectCard/ScheduleRedirectCard.tsx";
+import Loader from "../../components/Loader/Loader.tsx";
+import SelectInput from "../../components/SelectInput/SelectInput.tsx"; // Імпорт твого компонента
 
 import "./DoctorProfile.css";
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
-
-  // Беремо дані користувача та централізований логаут з нашого реактивного контексту
   const {userId, logout} = useAuth();
 
-  // 1. Отримуємо дані доктора та список спеціалізацій за допомогою ID з контексту
   const {data: doctor, isLoading: isDoctorLoading} = useDoctor(userId || "");
   const {data: specializations, isLoading: isSpecsLoading} = useSpecializations();
-
-  // 2. Хук оновлення даних лікаря
   const {mutate: updateDoctor, isPending: isUpdating} = useUpdateDoctor();
 
   const [formData, setFormData] = useState({
@@ -37,21 +34,17 @@ export default function DoctorProfile() {
     avatarUrl: "",
   });
 
-  // 3. Синхронізація стану форми з даними з API
   useEffect(() => {
     if (doctor && specializations) {
       const doc = doctor as any;
 
-      // Розбираємо повне ім'я на Ім'я та Прізвище
       const rawName = doc.fullName || doc.full_name || "";
       const nameParts = rawName.trim().split(/\s+/);
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
 
-      // Перевіряємо наявність ID спеціалізації безпосередньо в об'єкті лікаря
       let specId = doc.specializationId || doc.specialization_id || "";
 
-      // ✅ СТАНЕ (Приводимо foundSpec до типу any):
       if (!specId && doc.specializationName) {
         const foundSpec = specializations.find((s: any) => s.name === doc.specializationName);
         if (foundSpec) {
@@ -92,11 +85,15 @@ export default function DoctorProfile() {
     navigate("/login");
   };
 
-  if (isDoctorLoading) return <div className="loading-screen"><span className="spinner">⏳</span></div>;
+  // Підготовка опцій для SelectInput
+  const specializationOptions = specializations?.map((spec: any) => ({
+    value: spec.id || spec._id,
+    label: spec.name,
+  })) || [];
+
+  if (isDoctorLoading && isSpecsLoading) return <div className={"loading-screen"}><Loader/></div>;
 
   return (
-
-
     <div className="main-content">
       <div className="layout-container">
         <aside className="sidebar">
@@ -127,24 +124,11 @@ export default function DoctorProfile() {
                 <h2>{formData.firstName} {formData.lastName}</h2>
                 <span className="status-badge doc-badge">
                     {specializations?.find((s: any) => (s.id === formData.specializationId || s._id === formData.specializationId))?.name || "Спеціалізація не обрана"}
-                  </span>
+                </span>
               </div>
             </div>
 
-            <div className="schedule-redirect-card">
-              <div className="redirect-info">
-                <h3>Генерація розкладу</h3>
-                <p>Налаштуйте робочі години та тривалість прийомів</p>
-              </div>
-              <button
-                type="button"
-                className="btn-redirect-schedule"
-                onClick={() => navigate("/schedule-edit")}
-              >
-                <CalendarIcon size={20} strokeWidth={2.5}/>
-                <span>Мій графік</span>
-              </button>
-            </div>
+            <ScheduleRedirectCard/>
 
             <form onSubmit={handleProfileSubmit} className="profile-form">
               <div className="form-grid">
@@ -175,23 +159,14 @@ export default function DoctorProfile() {
                 </div>
 
                 <div className="form-group" style={{gridColumn: "1 / -1"}}>
-                  <label>Спеціалізація</label>
-                  <div className="input-wrapper">
-                    <Stethoscope className="input-icon-svg" size={18}/>
-                    <select
-                      value={formData.specializationId}
-                      onChange={(e) => setFormData({...formData, specializationId: e.target.value})}
-                      className="custom-select"
-                      required
-                    >
-                      <option value="" disabled>Оберіть напрямок...</option>
-                      {!isSpecsLoading && specializations?.map((spec: any) => (
-                        <option key={spec.id || spec._id} value={spec.id || spec._id}>
-                          {spec.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <SelectInput
+                    label="Спеціалізація"
+                    placeholder="Оберіть напрямок..."
+                    icon={<Stethoscope size={18}/>}
+                    options={specializationOptions}
+                    value={formData.specializationId}
+                    onChange={(val) => setFormData({...formData, specializationId: val.toString()})}
+                  />
                 </div>
               </div>
 
