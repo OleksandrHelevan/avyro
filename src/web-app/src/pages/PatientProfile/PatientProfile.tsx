@@ -11,12 +11,13 @@ import BadgeUnlockToast from "../GamificationPage/components/BadgeUnlockToast.ts
 
 export default function PatientProfile() {
   const navigate = useNavigate();
-
   const { userId, logout } = useAuth();
 
   const { data: patientResponse, isLoading, error } = usePatient(userId || "");
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const wasFullyFilledInitially = useRef(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -30,13 +31,23 @@ export default function PatientProfile() {
     if (patientResponse) {
       const rawName = patientResponse.fullName || "";
       const nameParts = rawName.trim().split(/\s+/);
+
+      const first = nameParts[0] || "";
+      const last = nameParts.slice(1).join(" ") || "";
+      const phone = patientResponse.phone || "";
+      const avatar = patientResponse.avatarUrl || "";
+
       setFormData({
-        firstName: nameParts[0] || "",
-        lastName: nameParts.slice(1).join(" ") || "",
+        firstName: first,
+        lastName: last,
         email: patientResponse.email || "",
-        phone: patientResponse.phone || "",
-        avatarUrl: patientResponse.avatarUrl || "",
+        phone: phone,
+        avatarUrl: avatar,
       });
+
+      if (first && last && phone && avatar) {
+        wasFullyFilledInitially.current = true;
+      }
     }
   }, [patientResponse]);
 
@@ -82,37 +93,42 @@ export default function PatientProfile() {
         address: formData.phone
       },
       {
-        // 🚀 ОНОВЛЕНО: Тепер приймаємо response від бекенду
         onSuccess: (response) => {
-
-          // Логіка перевірки заповненості профілю
-          const isFullyFilled = !!(
+          // Перевіряємо чи всі поля заповнені зараз
+          const isFullyFilledNow = !!(
             formData.firstName.trim() &&
             formData.lastName.trim() &&
             formData.phone.trim() &&
             formData.avatarUrl.trim()
           );
 
-          if (isFullyFilled) {
-            // 🚀 ОНОВЛЕНО: Шукаємо реальну кількість балів у масиві rewards
+          // 🚀 ЛОГІКА ТОСТІВ:
+          if (isFullyFilledNow && !wasFullyFilledInitially.current) {
+            // ВАРІАНТ 1: Це ПЕРШЕ повне заповнення
             const profileReward = response?.rewards?.find(
               (r: any) => r.source === 'PROFILE_BONUS'
             );
-
-            // Беремо бали від бекенду (якщо знайшли), інакше ставимо дефолтні 50
             const earnedPoints = profileReward ? profileReward.points : 50;
 
-            // Викликаємо кастомний тост в правому нижньому куті
+            // Показуємо ТІЛЬКИ кастомний тост-нагороду
             toast.custom(
               (t) => (
                 <BadgeUnlockToast
                   t={t}
                   title="Заповнення профілю"
-                  points={earnedPoints} // Передаємо динамічні бали
+                  points={earnedPoints}
                 />
               ),
               { position: 'bottom-right', duration: 4000 }
             );
+
+            // Відмічаємо, що профіль тепер повністю заповнений
+            wasFullyFilledInitially.current = true;
+
+          } else {
+            // ВАРІАНТ 2: Профіль оновлюється вдруге, втретє (або досі не до кінця заповнений)
+            // Показуємо звичайний тост
+            toast.success("Профіль оновлено!");
           }
         }
       }
@@ -146,9 +162,11 @@ export default function PatientProfile() {
         <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
 
           <aside className="sidebar">
-            <div className="sidebar-menu glass-light">
-              <button className="menu-item active">Особисті дані</button>
-              <Link to="/gamification" className="menu-item highlight-item" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="sidebar-menu glass-light slide-in-left">
+              <button className="menu-item active">
+                <User size={18} /> Особисті дані
+              </button>
+              <Link to="/gamification" className="menu-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Star size={18} strokeWidth={2.5} /> Досягнення та Бали
               </Link>
             </div>
