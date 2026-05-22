@@ -10,7 +10,7 @@ export const useUpdatePatient = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patient"] });
-      alert("Дані успішно збережено!");
+
     },
     onError: (error) => {
       console.error("Помилка при збереженні:", error);

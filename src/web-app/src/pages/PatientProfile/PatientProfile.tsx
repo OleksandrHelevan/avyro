@@ -5,21 +5,19 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
 import "./PatientProfile.css";
-import {useAuth} from "../../context/auth/useAuth.tsx";
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
-
-// ДОДАНО: Імпортуємо наш контекст авторизації
+import BadgeUnlockToast from "../GamificationPage/components/BadgeUnlockToast.tsx";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
-
-  // ДОДАНО: Беремо userId та функцію logout з контексту замість localStorage
   const { userId, logout } = useAuth();
 
-  // Використовуємо userId з контексту
   const { data: patientResponse, isLoading, error } = usePatient(userId || "");
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const wasFullyFilledInitially = useRef(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -33,13 +31,23 @@ export default function PatientProfile() {
     if (patientResponse) {
       const rawName = patientResponse.fullName || "";
       const nameParts = rawName.trim().split(/\s+/);
+
+      const first = nameParts[0] || "";
+      const last = nameParts.slice(1).join(" ") || "";
+      const phone = patientResponse.phone || "";
+      const avatar = patientResponse.avatarUrl || "";
+
       setFormData({
-        firstName: nameParts[0] || "",
-        lastName: nameParts.slice(1).join(" ") || "",
+        firstName: first,
+        lastName: last,
         email: patientResponse.email || "",
-        phone: patientResponse.phone || "",
-        avatarUrl: patientResponse.avatarUrl || "",
+        phone: phone,
+        avatarUrl: avatar,
       });
+
+      if (first && last && phone && avatar) {
+        wasFullyFilledInitially.current = true;
+      }
     }
   }, [patientResponse]);
 
@@ -77,16 +85,58 @@ export default function PatientProfile() {
       return;
     }
 
-    updatePatient({
-      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-      phone: formData.phone,
-      avatarUrl: formData.avatarUrl,
-      address:formData.phone
-    });
+    updatePatient(
+      {
+        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone,
+        avatarUrl: formData.avatarUrl,
+        address: formData.phone
+      },
+      {
+        onSuccess: (response) => {
+          // Перевіряємо чи всі поля заповнені зараз
+          const isFullyFilledNow = !!(
+            formData.firstName.trim() &&
+            formData.lastName.trim() &&
+            formData.phone.trim() &&
+            formData.avatarUrl.trim()
+          );
+
+          // 🚀 ЛОГІКА ТОСТІВ:
+          if (isFullyFilledNow && !wasFullyFilledInitially.current) {
+            // ВАРІАНТ 1: Це ПЕРШЕ повне заповнення
+            const profileReward = response?.rewards?.find(
+              (r: any) => r.source === 'PROFILE_BONUS'
+            );
+            const earnedPoints = profileReward ? profileReward.points : 50;
+
+            // Показуємо ТІЛЬКИ кастомний тост-нагороду
+            toast.custom(
+              (t) => (
+                <BadgeUnlockToast
+                  t={t}
+                  title="Заповнення профілю"
+                  points={earnedPoints}
+                />
+              ),
+              { position: 'bottom-right', duration: 4000 }
+            );
+
+            // Відмічаємо, що профіль тепер повністю заповнений
+            wasFullyFilledInitially.current = true;
+
+          } else {
+            // ВАРІАНТ 2: Профіль оновлюється вдруге, втретє (або досі не до кінця заповнений)
+            // Показуємо звичайний тост
+            toast.success("Профіль оновлено!");
+          }
+        }
+      }
+    );
   };
 
   const handleLogout = () => {
-    logout(); // ВИКОРИСТОВУЄМО ФУНКЦІЮ З КОНТЕКСТУ
+    logout();
     navigate("/login");
   };
 
@@ -112,9 +162,11 @@ export default function PatientProfile() {
         <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
 
           <aside className="sidebar">
-            <div className="sidebar-menu glass-light">
-              <button className="menu-item active">Особисті дані</button>
-              <Link to="/gamification" className="menu-item highlight-item" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="sidebar-menu glass-light slide-in-left">
+              <button className="menu-item active">
+                <User size={18} /> Особисті дані
+              </button>
+              <Link to="/gamification" className="menu-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Star size={18} strokeWidth={2.5} /> Досягнення та Бали
               </Link>
             </div>

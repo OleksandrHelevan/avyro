@@ -4,7 +4,7 @@ export const NOT_FOUND_PATH = '*';
 
 export const LOGIN_PATH = '/login';
 export const SIGNUP_PATH = '/sign-up';
-
+export const GAMIFICATION_PATH = '/gamification';
 export const DOCTOR_PROFILE_PATH = '/doctor/:id';
 export const APPOINTMENTS_PATH = '/appointments';
 export const PROFILE_PATH = '/profile';

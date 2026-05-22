@@ -2,12 +2,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
+// 🚀 ДОДАНО: GAMIFICATION_PATH
 import {
   HOME_PATH, NOT_APPROVED_PATH, NOT_FOUND_PATH,
   LOGIN_PATH, SIGNUP_PATH,
   DOCTOR_PROFILE_PATH, APPOINTMENTS_PATH, PROFILE_PATH,
   SCHEDULE_EDIT_PATH, PATIENTS_PATH,
-  ADMIN_REQUESTS_PATH, ADMIN_SPECIALIZATIONS_PATH, ADMIN_SCHEDULES_PATH
+  ADMIN_REQUESTS_PATH, ADMIN_SPECIALIZATIONS_PATH, ADMIN_SCHEDULES_PATH, GAMIFICATION_PATH
 } from "./router/routes.ts"
 
 import HomePage from '../pages/HomePage/HomePage.tsx';
@@ -21,6 +22,9 @@ import AdminSchedules from "../pages/AdminSchedules/AdminSchedules.tsx";
 import AdminRequests from "../pages/AdminRequests/AdminRequests.tsx";
 import AdminNotifications from "../pages/AdminNotifications/AdminNotifications.tsx";
 import PatientAppointmentsPage from "../pages/PatientAppointmentsPage/PatientAppointmentsPage.tsx";
+
+// 🚀 ДОДАНО: Імпорт сторінки гейміфікації
+import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx";
 
 import RootLayout from "../layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "../services/queryClient.ts";
@@ -53,6 +57,10 @@ export default function App() {
                   <Route path={DOCTOR_PROFILE_PATH} element={<DoctorProfilePage />} />
                   <Route path={APPOINTMENTS_PATH} element={<PatientAppointmentsPage />} />
                   <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />
+
+                  {/* 🚀 ДОДАНО: Маршрут гейміфікації */}
+                  <Route path={GAMIFICATION_PATH} element={<GamificationPage />} />
+
                   <Route path={SCHEDULE_EDIT_PATH} element={<ScheduleEditor />} />
                   <Route path={PATIENTS_PATH} element={<div>Сторінка пацієнтів</div>} />
 
