@@ -42,7 +42,6 @@ export default function GamificationPage() {
 
   return (
     <div className="aero-viewport light-theme gamification-page">
-      {/* Декоративні елементи на фоні */}
       <div className="bg-shape shape-1"></div>
       <div className="bg-shape shape-2"></div>
 
@@ -64,7 +63,6 @@ export default function GamificationPage() {
             <p>Заробляйте бали за активність та отримуйте бонуси</p>
           </div>
 
-          {/* Карточка Тотал Поінтів */}
           <div className="total-points-card glass-light pop-in">
             <div className="points-info">
               <span className="points-label"><Zap size={20} color="#F59E0B" /> Загальний баланс</span>

@@ -49,6 +49,7 @@ export interface GetPatientResponse {
   phone: string;
   avatarUrl: string;
   createdAt: Date;
+  address: string;
   lastLoginAt: Date;
   rewards:Reward;
 }
