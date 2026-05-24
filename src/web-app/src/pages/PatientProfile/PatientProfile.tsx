@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
-import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
-import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut } from "lucide-react";
-import "./PatientProfile.css";
+import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut, MapPin } from "lucide-react";
 import { useAuth } from "../../context/auth/useAuth.tsx";
+import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
+import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
 import Loader from "../../components/Loader/Loader.tsx";
-import BadgeUnlockToast from "../GamificationPage/components/BadgeUnlockToast.tsx";
+import BadgeUnlockOverlay from "../GamificationPage/components/BadgeUnlockOverlay/BadgeUnlockOverlay.tsx";
+import "./PatientProfile.css";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
@@ -17,13 +17,14 @@ export default function PatientProfile() {
   const { mutate: updatePatient, isPending: isUpdating } = useUpdatePatient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const wasFullyFilledInitially = useRef(false);
+  const [badgeUnlock, setBadgeUnlock] = useState<{ source: string; points: number } | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    address: "",
     avatarUrl: "",
   });
 
@@ -35,6 +36,7 @@ export default function PatientProfile() {
       const first = nameParts[0] || "";
       const last = nameParts.slice(1).join(" ") || "";
       const phone = patientResponse.phone || "";
+      const address = patientResponse.address || "";
       const avatar = patientResponse.avatarUrl || "";
 
       setFormData({
@@ -42,12 +44,9 @@ export default function PatientProfile() {
         lastName: last,
         email: patientResponse.email || "",
         phone: phone,
+        address: address,
         avatarUrl: avatar,
       });
-
-      if (first && last && phone && avatar) {
-        wasFullyFilledInitially.current = true;
-      }
     }
   }, [patientResponse]);
 
@@ -85,49 +84,45 @@ export default function PatientProfile() {
       return;
     }
 
+    const hadRewardBefore = patientResponse?.rewards?.some(
+      (r: any) => r.source === "PROFILE_BONUS"
+    );
+
+    const wasFullyFilledBefore = !!(
+      patientResponse?.fullName?.trim() &&
+      patientResponse?.phone?.trim() &&
+      patientResponse?.address?.trim() &&
+      patientResponse?.avatarUrl?.trim()
+    );
+
+    const isFullyFilledNow = !!(
+      formData.firstName.trim() &&
+      formData.lastName.trim() &&
+      formData.phone.trim() &&
+      formData.address.trim() &&
+      formData.avatarUrl.trim()
+    );
+
     updatePatient(
       {
         fullName: `${formData.firstName} ${formData.lastName}`.trim(),
         phone: formData.phone,
         avatarUrl: formData.avatarUrl,
-        address: formData.phone
+        address: formData.address,
       },
       {
         onSuccess: (response) => {
-          // Перевіряємо чи всі поля заповнені зараз
-          const isFullyFilledNow = !!(
-            formData.firstName.trim() &&
-            formData.lastName.trim() &&
-            formData.phone.trim() &&
-            formData.avatarUrl.trim()
-          );
-
-          // 🚀 ЛОГІКА ТОСТІВ:
-          if (isFullyFilledNow && !wasFullyFilledInitially.current) {
-            // ВАРІАНТ 1: Це ПЕРШЕ повне заповнення
+          if (!hadRewardBefore && !wasFullyFilledBefore && isFullyFilledNow) {
             const profileReward = response?.rewards?.find(
-              (r: any) => r.source === 'PROFILE_BONUS'
-            );
-            const earnedPoints = profileReward ? profileReward.points : 50;
-
-            // Показуємо ТІЛЬКИ кастомний тост-нагороду
-            toast.custom(
-              (t) => (
-                <BadgeUnlockToast
-                  t={t}
-                  title="Заповнення профілю"
-                  points={earnedPoints}
-                />
-              ),
-              { position: 'bottom-right', duration: 4000 }
+              (r: any) => r.source === "PROFILE_BONUS"
             );
 
-            // Відмічаємо, що профіль тепер повністю заповнений
-            wasFullyFilledInitially.current = true;
+            setBadgeUnlock({
+              source: "PROFILE_BONUS",
+              points: profileReward?.points || 100
+            });
 
           } else {
-            // ВАРІАНТ 2: Профіль оновлюється вдруге, втретє (або досі не до кінця заповнений)
-            // Показуємо звичайний тост
             toast.success("Профіль оновлено!");
           }
         }
@@ -157,6 +152,14 @@ export default function PatientProfile() {
         accept="image/*"
         onChange={handleFileChange}
       />
+
+      {badgeUnlock && (
+        <BadgeUnlockOverlay
+          source={badgeUnlock.source}
+          points={badgeUnlock.points}
+          onClose={() => setBadgeUnlock(null)}
+        />
+      )}
 
       <div className="main-content" style={{ height: '100%', position: 'relative', zIndex: 1 }}>
         <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
@@ -236,6 +239,19 @@ export default function PatientProfile() {
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="+380..."
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group input-with-icon">
+                    <label>Адреса</label>
+                    <div className="input-wrapper">
+                      <MapPin className="input-icon" size={20} strokeWidth={2.5} />
+                      <input
+                        type="text"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="Місто, вулиця, будинок..."
                       />
                     </div>
                   </div>

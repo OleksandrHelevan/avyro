@@ -13,7 +13,6 @@ import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import { useCreateAppointment } from "../../domains/appointments/useCreateAppointment/useCreateAppointment";
 import Loader from "../../components/Loader/Loader.tsx";
 
-// Константа для аватарки за замовчуванням
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
 // Допоміжна функція для генерації часових слотів

@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [defaultEmail, setDefaultEmail] = useState("");
 
-  // 1. АВТО-ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ
   useEffect(() => {
     const checkDoctorFlow = async () => {
       const savedEmail = getFromStorage<string>("savedDoctorEmail");
