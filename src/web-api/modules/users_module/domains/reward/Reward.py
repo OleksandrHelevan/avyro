@@ -3,12 +3,10 @@ from typing import Optional
 from datetime import datetime, timezone
 from bson import ObjectId
 
-
 class RewardType(str, Enum):
     SPEND = "SPEND"
     BONUS = "BONUS"
     PENALTY = "PENALTY"
-
 
 class RewardSource(str, Enum):
     PROFILE_BONUS = "PROFILE_BONUS"
@@ -23,7 +21,7 @@ class Reward:
         source: RewardSource,
         description: str,
         id: Optional[ObjectId] = None,
-        specializationId: Optional[ObjectId] = None,  # Додано для валідації БД
+        specializationId: Optional[ObjectId] = None,
         createdAt: Optional[datetime] = None
     ):
         self.id = id

@@ -28,7 +28,8 @@ class PatientResponse(BaseModel):
     avatarUrl: Optional[str] = None
     createdAt: datetime
     lastLoginAt: Optional[datetime] = None
-    rewards: List[RewardItemResponse] = [] # Додаємо це поле
+    address: Optional[str] = None
+    rewards: List[RewardItemResponse] = []
 
     class RewardDTO(BaseModel):
         id: str = Field(alias="_id")
