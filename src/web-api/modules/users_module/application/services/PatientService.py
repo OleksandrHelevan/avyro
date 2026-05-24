@@ -13,7 +13,6 @@ from modules.users_module.api.exception.exceptions import (
 )
 from config.security import hash_password
 
-# Імпортуємо доменні моделі нагород
 from modules.users_module.domains.reward.Reward import Reward, RewardType, RewardSource
 
 
