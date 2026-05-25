@@ -1,11 +1,11 @@
-import {apiClient} from "../../../services/apiClient.ts";
+import { apiClient } from "../../../services/apiClient.ts";
 import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
-
-  DoctorListItem, DoctorApprovalResponse
+  DoctorListItem, DoctorApprovalResponse,
+  GetNotificationsResponse // 🚀 ДОДАНО
 } from "../types.ts";
 
 export const userApiClient = {
@@ -30,11 +30,17 @@ export const userApiClient = {
   patchDoctor: async ( request: UpdateDoctorProfileRequest) =>
     apiClient.patch<UpdateProfileResponse>(`/users/doctors`, request),
 
-
   requestSchedule: async (request: ScheduleRequest) =>
     apiClient.post<ScheduleResponse>('/schedules/request', request),
 
   checkDoctorStatus: async (email: string) => {
     return apiClient.get<DoctorApprovalResponse>(`/doctors?email=${encodeURIComponent(email)}`);
   },
-}
+
+  // 🚀 ДОДАНО: Метод отримання сповіщень
+  getNotifications: async () =>
+    apiClient.get<GetNotificationsResponse>('/notifications'),
+  // 🚀 ДОДАНО: Метод для позначення всіх як прочитаних (за Swagger)
+  markAllNotificationsAsRead: async () =>
+    apiClient.post('/notifications/read-all', {}),
+};

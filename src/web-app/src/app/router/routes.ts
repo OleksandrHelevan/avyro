@@ -15,5 +15,6 @@ export const ADMIN_REQUESTS_PATH = '/admin/requests';
 export const ADMIN_SPECIALIZATIONS_PATH = '/admin/specializations';
 export const ADMIN_SCHEDULES_PATH = '/admin/schedules';
 
-// Хелпер для лінки на профіль лікаря
 export const getDoctorProfileUrl = (id: string | number) => `/doctor/${id}`;
+export const ADMIN_NOTIFICATIONS_PATH = '/admin/notifications';
+export const NOTIFICATIONS_PATH = '/notifications';

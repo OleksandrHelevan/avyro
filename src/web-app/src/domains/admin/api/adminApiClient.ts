@@ -3,7 +3,7 @@ import type {
   AdminRegistration,
   ApproveRegistrationResponse,
   RejectRegistrationResponse,
-  AdminScheduleRequest,
+  AdminScheduleRequest, SendNotificationResponse, SendNotificationRequest,
 } from "../types.ts";
 
 export const adminApiClient = {
@@ -38,6 +38,10 @@ export const adminApiClient = {
       name: data.name.trim(),
       description: "Створено адміністратором"
     });
+  },
+
+  sendNotification: async (data: SendNotificationRequest) => {
+    return apiClient.post<SendNotificationResponse>('/admin/notification', data);
   },
 
 };

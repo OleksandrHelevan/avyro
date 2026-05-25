@@ -1,5 +1,10 @@
 import {adminApiClient} from "../api/adminApiClient.ts";
-import type {AdminRegistration, ApproveRegistrationResponse, RejectRegistrationResponse} from "../types.ts";
+import type {
+  AdminRegistration,
+  ApproveRegistrationResponse,
+  RejectRegistrationResponse, SendNotificationRequest,
+  SendNotificationResponse
+} from "../types.ts";
 
 export const adminService = {
 
@@ -37,6 +42,11 @@ export const adminService = {
 
   approveSpecialization: async (requestId: string): Promise<any> => {
     return adminApiClient.approveSpecialization(requestId);
+  },
+
+  sendNotification: async (data: SendNotificationRequest): Promise<SendNotificationResponse> => {
+    const response = await adminApiClient.sendNotification(data);
+    return (response as any).data ?? response;
   },
 
 };

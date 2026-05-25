@@ -137,3 +137,15 @@ export interface DoctorApprovalResponse {
   isAuthenticated: boolean;
   isPending: boolean;
 }
+export interface NotificationItem {
+  id: string;
+  message: string;
+  is_read: boolean;
+  sent_at: string;
+  recipient_id: string | null;
+}
+
+export interface GetNotificationsResponse {
+  notifications: NotificationItem[];
+  unread_count: number;
+}
