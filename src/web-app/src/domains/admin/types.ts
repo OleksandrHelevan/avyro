@@ -47,3 +47,15 @@ export interface AdminScheduleRequest {
   createdAt: string;
   updatedAt?: string;
 }
+export interface SendNotificationRequest {
+  message: string;
+  recipient_id: string | null;
+}
+
+export interface SendNotificationResponse {
+  id: string;
+  message: string;
+  is_read: boolean;
+  sent_at: string;
+  recipient_id: string | null;
+}

@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
 
-  DoctorListItem, DoctorApprovalResponse
+  DoctorListItem, DoctorApprovalResponse, GetNotificationsResponse
 } from "../types.ts";
 
 export const userService = {
@@ -47,7 +47,14 @@ export const userService = {
   },
   checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {
     return userApiClient.checkDoctorStatus(email);
-  }
-
-
+  },
+  // 🚀 ОНОВЛЕНО: Тепер ми безпечно дістаємо .data з відповіді Axios
+  getNotifications: async (): Promise<GetNotificationsResponse> => {
+    const response = await userApiClient.getNotifications();
+    return (response as any).data ?? response;
+  },
+// 🚀 ДОДАНО: Сервіс для позначення прочитаними
+  markAllNotificationsAsRead: async (): Promise<any> => {
+    return userApiClient.markAllNotificationsAsRead();
+  },
 };
