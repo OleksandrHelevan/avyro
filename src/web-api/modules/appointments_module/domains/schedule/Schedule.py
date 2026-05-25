@@ -3,6 +3,9 @@ from typing import Optional, List, Dict, Any
 from bson import ObjectId
 from datetime import datetime
 from modules.appointments_module.domains.slot.Slot import Slot
+from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import ConfigDict
 
 
 class ScheduleStatus(Enum):
@@ -11,32 +14,21 @@ class ScheduleStatus(Enum):
     REJECTED = "REJECTED"
 
 
-class Schedule:
-    def __init__(
-        self,
-        doctor_id: ObjectId,
-        month: int,
-        year: int,
-        title: str,
-        is_repeated: bool,
-        repeating: Dict[str, Any],
-        slots: List[Slot],
-        created_at: datetime,
-        updated_at: datetime,
-        status: ScheduleStatus = ScheduleStatus.PENDING,  # Статус за замовчуванням
-        _id: Optional[ObjectId] = None,
-    ):
-        self.id = _id
-        self.doctor_id = doctor_id
-        self.month = month
-        self.year = year
-        self.title = title
-        self.is_repeated = is_repeated
-        self.repeating = repeating
-        self.slots = slots
-        self.status = status
-        self.created_at = created_at
-        self.updated_at = updated_at
+class Schedule(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
+
+    id: Optional[ObjectId] = Field(default=None, alias="_id")
+    doctor_id: Optional[ObjectId] = None
+    month: Optional[int] = None
+    year: Optional[int] = None
+    title: Optional[str] = None
+    is_repeated: bool = False
+    repeating: dict = Field(default_factory=dict)
+    slots: list = Field(default_factory=list)
+    status: ScheduleStatus = ScheduleStatus.PENDING
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    price_per_slot: float = 0.0
 
     def to_dict(self) -> dict:
         data = {
@@ -50,6 +42,7 @@ class Schedule:
             "status": self.status.value if hasattr(self.status, "value") else self.status,
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
+            "pricePerSlot": self.price_per_slot,
         }
         if self.id:
             data["_id"] = self.id
@@ -70,7 +63,7 @@ class Schedule:
             status = ScheduleStatus.PENDING
 
         return Schedule(
-            _id=data.get("_id"),
+            id=data.get("_id"),
             doctor_id=data.get("doctorId"),
             month=data.get("month"),
             year=data.get("year"),
@@ -81,4 +74,9 @@ class Schedule:
             status=status,
             created_at=data.get("createdAt"),
             updated_at=data.get("updatedAt"),
+            price_per_slot=data.get("pricePerSlot", 0.0)
         )
+
+
+
+

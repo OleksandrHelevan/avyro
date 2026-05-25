@@ -21,7 +21,9 @@ async def book_appointment(
     return service.book_appointment(
         doctor_id=body.doctorId,
         slot_id=body.slotId,
-        patient_id=str(current_user["sub"])
+        patient_id=str(current_user["sub"]),
+        dto=body
+
     )
 
 

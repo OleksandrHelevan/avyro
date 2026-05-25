@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Optional
 from bson import ObjectId
 from datetime import datetime, timezone
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class AppointmentStatus(Enum):
@@ -10,33 +11,25 @@ class AppointmentStatus(Enum):
     COMPLETED = "COMPLETED"
 
 
-class Appointment:
-    def __init__(
-        self,
-        patient_id: ObjectId,
-        slot_id: ObjectId,
-        doctor_id: ObjectId,
-        from_time: datetime,
-        to_time: datetime,
-        status: AppointmentStatus = AppointmentStatus.PLANNED,
-        created_at: Optional[datetime] = None,
-        updated_at: Optional[datetime] = None,
-        _id: Optional[ObjectId] = None,
-    ):
-        self.id = _id
-        self.patient_id = patient_id
-        self.slot_id = slot_id
-        self.doctor_id = doctor_id
-        self.from_time = from_time
-        self.to_time = to_time
-        self.created_at = created_at or datetime.now(timezone.utc)
-        self.updated_at = updated_at or datetime.now(timezone.utc)
-        self.status = status or AppointmentStatus.PLANNED
-        self.payment_status = "PENDING"
-        self.base_price = 0
-        self.final_price = 0
-        self.appointment_type = "VISIT"
-        self.booked_at = datetime.now(timezone.utc)
+class Appointment(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
+
+    id: Optional[ObjectId] = Field(default=None, alias="_id")
+    patient_id: Optional[ObjectId] = None
+    slot_id: Optional[ObjectId] = None
+    doctor_id: Optional[ObjectId] = None
+    from_time: Optional[datetime] = None
+    to_time: Optional[datetime] = None
+    status: AppointmentStatus = AppointmentStatus.PLANNED
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    payment_status: str = "PENDING"
+    base_price: float = 0.0
+    discount: float = 0.0
+    is_discount_used: bool = False
+    final_price: float = 0.0
+    appointment_type: str = "VISIT"
+    booked_at: Optional[datetime] = None
 
     def to_dict(self) -> dict:
         data = {
@@ -63,7 +56,7 @@ class Appointment:
         if not data:
             return None
         return Appointment(
-            _id=data.get("_id"),
+            id=data.get("_id"),
             patient_id=data.get("patientId"),
             slot_id=data.get("slotId"),
             doctor_id=data.get("doctorId"),

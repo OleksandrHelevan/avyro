@@ -13,6 +13,11 @@ from modules.users_module.infrastructure.persistence.SpecializationRepository im
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
 from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
 from modules.appointments_module.application.service.AppointmentService import AppointmentService
+from modules.payments_module.infrastructure.persistence.AccountRepository import AccountRepository
+from modules.payments_module.application.AccountService import AccountService
+from modules.payments_module.application.StripeService import StripeService
+from modules.appointments_module.infrastructure.persistence.SlotRepository import SlotRepository
+
 
 
 
@@ -78,5 +83,13 @@ def get_admin_request_service() -> AdminRequestService:
 def get_appointment_service() -> AppointmentService:
     appointment_repo = AppointmentRepository(db["Appointments"])
     schedule_repo = ScheduleRepository(db["Schedules"])
-    return AppointmentService(appointment_repo, schedule_repo)
+    slot_repo = SlotRepository(db["Schedules"])
+    return AppointmentService(appointment_repo, schedule_repo, slot_repo)
+
+def get_account_service() -> AccountService:
+    return AccountService(
+        account_repo=AccountRepository(db["Accounts"]),
+        stripe_service=StripeService()
+    )
+
 

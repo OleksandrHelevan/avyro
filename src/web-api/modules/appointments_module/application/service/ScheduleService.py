@@ -75,6 +75,7 @@ class ScheduleService:
             is_repeated=dto.isRepeated,
             repeating=dto.repeating.model_dump(),
             slots=slots,
+            price_per_slot=dto.pricePerSlot,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
