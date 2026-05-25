@@ -4,8 +4,12 @@ from fastapi import HTTPException, status
 
 from modules.appointments_module.domains.appointment.Appointment import Appointment
 from modules.appointments_module.domains.slot.Slot import SlotType
+from modules.appointments_module.infrastructure.persistence import SlotRepository
+from modules.appointments_module.application.dto.CreateAppointmentRequest import CreateAppointmentRequest
 from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
+from modules.appointments_module.domains.schedule.Schedule import Schedule
+from modules.appointments_module.domains.slot.Slot import Slot
 
 
 class AppointmentService:
@@ -13,12 +17,16 @@ class AppointmentService:
         self,
         appointment_repository: AppointmentRepository,
         schedule_repository: ScheduleRepository,
+        slot_repository: SlotRepository,
+
     ):
         self.appointment_repository = appointment_repository
         self.schedule_repository = schedule_repository
 
+
+
     # Додали doctor_id в аргументи
-    def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str) -> dict:
+    def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
         try:
             doctor_oid = ObjectId(doctor_id)
             slot_oid = ObjectId(slot_id)
@@ -64,13 +72,24 @@ class AppointmentService:
                 detail="Цей слот вже зайнятий або недоступний"
             )
 
+        price = target_schedule.price_per_slot
+
+        final_price = price
+        if dto.is_discount_used and dto.discount > 0:
+            final_price = price * (1 - dto.discount / 100)
+
+
         # 4. Створюємо апойнтмент
         appointment = Appointment(
             patient_id=patient_oid,
             slot_id=slot_oid,
-            doctor_id=doctor_oid, # Використовуємо doctor_oid
+            doctor_id=doctor_oid,
             from_time=target_slot.from_time,
             to_time=target_slot.to_time,
+            base_price=price,
+            discount=dto.discount,
+            is_discount_used=dto.is_discount_used,
+            final_price=round(final_price, 2)
         )
         created = self.appointment_repository.create(appointment)
 
@@ -82,6 +101,8 @@ class AppointmentService:
         )
 
         return self._format_appointment(created)
+
+
 
     def get_appointment_by_id(self, appointment_id: str) -> dict:
         try:
@@ -140,3 +161,5 @@ class AppointmentService:
             "finalPrice": getattr(appointment, "final_price", 0),
             "appointmentType": getattr(appointment, "appointment_type", "VISIT")
         }
+
+

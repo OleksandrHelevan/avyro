@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field
 from .RepeatingConfigDTO import RepeatingConfigDTO
+from typing import Optional
+from datetime import datetime
+
 
 class CreateScheduleDTO(BaseModel):
     doctorId: str
@@ -8,3 +11,4 @@ class CreateScheduleDTO(BaseModel):
     title: str
     isRepeated: bool
     repeating: RepeatingConfigDTO
+    pricePerSlot: float = Field(default=0.0, ge=0)

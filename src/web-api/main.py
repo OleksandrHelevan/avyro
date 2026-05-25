@@ -16,6 +16,11 @@ from modules.admin_module.api.AdminController import router as admin_router
 from modules.appointments_module.application.service.SlotCleanerScheduler import start_slot_cleaner
 from modules.notifications_module.api.NotificationController import router as notification_router
 
+from modules.payments_module.api.PaymentController import router as payment_router
+from modules.payments_module.api.WebhookController import router as webhook_router
+
+
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
@@ -87,6 +92,8 @@ app.include_router(doctor_router)
 app.include_router(specialization_router)
 app.include_router(schedule_router)
 app.include_router(notification_router)
+app.include_router(payment_router)
+app.include_router(webhook_router)
 
 @app.get("/health", tags=["General"], summary="Health Status")
 def db_health():
