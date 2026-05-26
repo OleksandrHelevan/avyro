@@ -3,15 +3,11 @@ import { useForm, FormProvider } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import "./AdminNotifications.css";
+import "./AdminNotifications.css"; // Або перейменуй на AdminSpecializations.css
 import TextInput from "../../components/TextInput/TextInput";
 
-// Твій хук для прямого створення
 import { useCreateSpecializationDirect } from "../../domains/admin/useSpecializationMutations/useSpecializationMutations.ts";
-import {adminService} from "../../domains/admin/service/adminService.ts";
-
-// 🚀 ДОДАНО: Імпорт твого сервісу адмінки (ПЕРЕВІР ШЛЯХ ДО ФАЙЛУ!)
-// В ньому мають бути методи getAdminSpecializations, approveSpecialization, rejectRegistration (або rejectRequest)
+import { adminService } from "../../domains/admin/service/adminService.ts";
 
 export default function AdminSpecializations() {
   const queryClient = useQueryClient();
@@ -41,7 +37,7 @@ export default function AdminSpecializations() {
     onError: () => toast.error("Помилка при схваленні спеціалізації"),
   });
 
-  // 4. Мутація: Відхилення (Реджект) - використовуємо існуючий метод відхилення запитів
+  // 4. Мутація: Відхилення (Реджект)
   const { mutate: rejectSpec, isPending: isRejecting } = useMutation({
     mutationFn: (requestId: string) => adminService.rejectRegistration(requestId, "Відхилено адміністратором"),
     onSuccess: () => {
@@ -62,22 +58,21 @@ export default function AdminSpecializations() {
     );
   };
 
-  // Відфільтровуємо лише ті, що очікують підтвердження (якщо бекенд повертає всі)
   const pendingRequests = proposedRequests?.filter((req: any) => req.status === "PENDING" || !req.status) || [];
 
   return (
-    <div className="dash-page">
-      <h2 className="dash-page-title">Управління спеціалізаціями</h2>
+    <div className="admin-spec-page">
+      <h2 className="admin-spec-title">Управління спеціалізаціями</h2>
 
       {/* БЛОК 1: ПРЯМЕ СТВОРЕННЯ */}
-      <div className="create-card">
-        <h3 className="create-card-title">
+      <div className="admin-spec-create-card">
+        <h3 className="admin-spec-create-card-title">
           <Tag size={20} color="#4f46e5" />
           Створити нову спеціалізацію вручну
         </h3>
 
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="create-form">
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="admin-spec-create-form">
             <div style={{ flex: 1 }}>
               <TextInput
                 name="specName"
@@ -89,7 +84,7 @@ export default function AdminSpecializations() {
 
             <button
               type="submit"
-              className="create-btn"
+              className="admin-spec-create-btn"
               disabled={isCreating}
               style={{
                 marginTop: methods.formState.errors.specName ? '0' : 'auto',
@@ -115,7 +110,7 @@ export default function AdminSpecializations() {
             <Loader2 className="animate-spin" size={18} /> Завантаження запитів...
           </div>
         ) : pendingRequests.length === 0 ? (
-          <div style={{ padding: "24px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1", textAlign: "center", color: "#64748b" }}>
+          <div className="admin-spec-empty-state" style={{ padding: "24px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1", textAlign: "center", color: "#64748b" }}>
             Нових пропозицій від лікарів наразі немає.
           </div>
         ) : (

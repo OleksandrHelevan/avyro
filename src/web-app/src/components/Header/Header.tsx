@@ -6,12 +6,11 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import logoImg from "./img.png";
 import { useAuth } from "../../context/auth/useAuth.tsx";
 
-// 🚀 ДОДАНО: Хуки для сповіщень
 import { useNotifications } from "../../domains/users/useNotifications/useNotifications.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 
 import "./Header.css";
-import {useMarkNotificationsRead} from "../../domains/users/useMarkNotificationsRead/useMarkNotificationsRead.ts";
+import { useMarkNotificationsRead } from "../../domains/users/useMarkNotificationsRead/useMarkNotificationsRead.ts";
 
 interface DoctorData {
   status?: string;
@@ -33,25 +32,21 @@ export default function Header() {
   const isApprovedDoctor = isDoctor && doctor?.isActive === true;
   const hideHeaderRoutes = ["/login", "/sign-up"];
 
-  // 🚀 ДОДАНО: Стейт та реф для дропдауну сповіщень
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  // Отримуємо сповіщення (запит піде тільки якщо юзер авторизований)
   const { data: notifData, isLoading: isNotifLoading } = useNotifications();
   const { mutate: markAsRead } = useMarkNotificationsRead();
 
   const notifications = notifData?.notifications || [];
   const unreadCount = notifData?.unread_count ?? 0;
 
-  // 🚀 ДОДАНО: Логіка автоматичного прочитання при відкритті
   useEffect(() => {
     if (isNotifOpen && unreadCount > 0) {
       markAsRead();
     }
   }, [isNotifOpen, unreadCount, markAsRead]);
 
-  // Закриття дропдауну при кліку поза ним
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -121,21 +116,26 @@ export default function Header() {
                 Знайти лікаря
               </NavLink>
             )}
+
+            {/* 🚀 ОНОВЛЕНО: Для пацієнта залишаємо Мої записи */}
             {isAuthenticated && isPatient && (
               <NavLink to="/appointments" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Мої записи
               </NavLink>
             )}
+
+            {/* 🚀 ОНОВЛЕНО: Для лікаря вкладка "Пацієнти" видалена, залишили тільки розклад і додали "Мої візити" */}
             {isAuthenticated && isApprovedDoctor && (
               <>
                 <NavLink to="/schedule-edit" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Мій розклад
                 </NavLink>
-                <NavLink to="/patients" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
-                  Пацієнти
+                <NavLink to="/doctor/appointments" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  Мої візити
                 </NavLink>
               </>
             )}
+
             {isAuthenticated && isAdmin && (
               <>
                 <NavLink to="/admin/requests" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
@@ -154,7 +154,6 @@ export default function Header() {
           {isAuthenticated ? (
             <div className="auth-group">
 
-              {/* 🚀 ДОДАНО: Адмінська кнопка "СТВОРИТИ РОЗСИЛКУ" */}
               {isAdmin && (
                 <NavLink
                   to="/admin/notifications"
@@ -166,12 +165,13 @@ export default function Header() {
                 </NavLink>
               )}
 
-              {/* 🚀 ДОДАНО: Дропдаун сповіщень ДЛЯ ВСІХ */}
               <div className="notif-wrapper" ref={notifRef}>
+                {/* 🚀 ОНОВЛЕНО: Додано інлайн-стилі, щоб гарантовано прибрати бордер та фон */}
                 <button
                   className={`profile-icon-btn ${isNotifOpen ? "active-icon" : ""}`}
                   onClick={() => setIsNotifOpen(!isNotifOpen)}
                   title="Мої сповіщення"
+                  style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", padding: 0 }}
                 >
                   <Bell size={28} strokeWidth={2.2} color={isNotifOpen ? "#7b51b3" : "currentColor"} />
                   {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
@@ -219,9 +219,8 @@ export default function Header() {
                 </AnimatePresence>
               </div>
 
-              {/* Кнопки профілю / виходу */}
               {isAdmin ? (
-                <button onClick={handleLogout} className="profile-icon-btn" title="Вийти" style={{ color: '#e11d48' }}>
+                <button onClick={handleLogout} className="profile-icon-btn" title="Вийти" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#e11d48' }}>
                   <LogOut size={28} strokeWidth={2.2} />
                 </button>
               ) : (

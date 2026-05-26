@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-/* --- ОСНОВНИЙ ФОН: Ефект м'якого Mesh-градієнта --- */
-.dash-page {
-  /* ДОДАНО: Бокові відступи (1.5rem), щоб на планшетах контент не прилипав до країв */
-  padding: 100px 1.5rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
+/* --- ОСНОВНИЙ ФОН --- */
+.admin-spec-page {
+  padding: 2rem 1.5rem;
+  width: 100%; /* Розтягуємо на всю ширину */
+  height: calc(100vh - 70px);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-
-  /* Той самий красивий фон з м'якими кольоровими плямами */
   background-image:
     radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
     radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
@@ -21,16 +21,18 @@
   background-attachment: fixed;
 }
 
-.dash-page-title {
+.admin-spec-title {
   color: #0f172a;
-  margin-bottom: 2.5rem;
+  margin-top: 50px;
+  margin-bottom: 2rem;
   font-size: 2.2rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  flex-shrink: 0;
 }
 
-.section-title {
+.admin-spec-section-title {
   color: #1e293b;
   margin-bottom: 1.5rem;
   font-size: 1.3rem;
@@ -38,29 +40,29 @@
   letter-spacing: -0.01em;
 }
 
-/* --- БЛОК СТВОРЕННЯ: Glassmorphism та градієнт --- */
-.create-card {
+/* --- БЛОК СТВОРЕННЯ --- */
+.admin-spec-create-card {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: 20px;
   padding: 2rem;
-  margin-bottom: 3.5rem;
+  margin-bottom: 2rem;
   box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15);
   border: 1px solid rgba(255, 255, 255, 1);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-/* Яскрава лінія зверху картки */
-.create-card::before {
+.admin-spec-create-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; height: 4px;
   background: linear-gradient(90deg, #4f46e5, #ec4899, #f59e0b);
 }
 
-.create-card-title {
+.admin-spec-create-card-title {
   margin-top: 0;
   display: flex;
   align-items: center;
@@ -70,13 +72,13 @@
   font-weight: 700;
 }
 
-.create-form {
+.admin-spec-create-form {
   display: flex;
   gap: 1.2rem;
   margin-top: 1.5rem;
 }
 
-.create-input {
+.admin-spec-create-input {
   flex: 1;
   padding: 14px 20px;
   border-radius: 14px;
@@ -88,7 +90,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.create-input:focus {
+.admin-spec-create-input:focus {
   outline: none;
   border-color: #818cf8;
   background: #ffffff;
@@ -96,7 +98,7 @@
   transform: translateY(-1px);
 }
 
-.create-btn {
+.admin-spec-create-btn {
   padding: 14px 28px;
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   color: white;
@@ -112,21 +114,20 @@
   box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
 }
 
-.create-btn:hover:not(:disabled) {
+.admin-spec-create-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
   transform: translateY(-2px);
   box-shadow: 0 15px 25px -8px rgba(79, 70, 229, 0.6);
 }
 
 /* --- СІТКА КАРТОК --- */
-.dash-grid {
+.admin-spec-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 2rem;
 }
 
-/* --- КАРТКА ЗАПИТУ --- */
-.dash-card {
+.admin-spec-card {
   backdrop-filter: blur(10px);
   border-radius: 24px;
   overflow: hidden;
@@ -137,13 +138,13 @@
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.dash-card:hover {
+.admin-spec-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15);
   border-color: #e0e7ff;
 }
 
-.dash-header {
+.admin-spec-card-header {
   background: transparent;
   padding: 1.5rem 1.5rem 0.5rem;
   display: flex;
@@ -152,7 +153,7 @@
   border-bottom: none;
 }
 
-.dash-header > div h3 {
+.admin-spec-card-header > div h3 {
   margin: 0 0 6px 0;
   font-size: 1.4rem;
   font-weight: 700;
@@ -160,7 +161,7 @@
   letter-spacing: -0.02em;
 }
 
-.dash-header > div span {
+.admin-spec-card-header > div span {
   display: inline-block;
   padding: 4px 10px;
   background: #eef2ff;
@@ -172,19 +173,19 @@
   font-weight: 700;
 }
 
-.dash-metrics {
+.admin-spec-card-metrics {
   padding: 1rem 1.5rem;
   flex-grow: 1;
 }
 
-.dash-metrics p {
+.admin-spec-card-metrics p {
   margin: 0;
   color: #64748b;
   font-size: 1.05rem;
   line-height: 1.6;
 }
 
-.dash-metrics strong {
+.admin-spec-card-metrics strong {
   color: #0f172a;
   font-weight: 600;
   background: linear-gradient(90deg, #4f46e5, #db2777);
@@ -192,14 +193,13 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* --- КНОПКИ ДІЙ (Прийняти / Відхилити) --- */
-.dash-actions {
+.admin-spec-card-actions {
   padding: 1rem 1.5rem 1.5rem;
   display: flex;
   gap: 12px;
 }
 
-.dash-btn {
+.admin-spec-btn {
   flex: 1;
   padding: 12px 16px;
   border-radius: 14px;
@@ -214,46 +214,31 @@
   transition: all 0.3s ease;
 }
 
-.btn-approve {
+.admin-spec-btn-approve {
   background: #10b981;
   color: white;
   box-shadow: 0 4px 15px -5px rgba(16, 185, 129, 0.4);
 }
 
-.btn-approve:hover:not(:disabled) {
+.admin-spec-btn-approve:hover:not(:disabled) {
   background: #059669;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.6);
 }
 
-.btn-reject {
+.admin-spec-btn-reject {
   background: #f1f5f9;
   color: #64748b;
 }
 
-.btn-reject:hover:not(:disabled) {
+.admin-spec-btn-reject:hover:not(:disabled) {
   background: #ef4444;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px -6px rgba(239, 68, 68, 0.4);
 }
 
-/* --- СТАН ПОРОЖНЬОГО СПИСКУ --- */
-.empty-state {
-  color: #64748b;
-  font-size: 1.15rem;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-  padding: 4rem 2rem;
-  border-radius: 24px;
-  border: 2px dashed #cbd5e1;
-  text-align: center;
-  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02);
-}
-
-/* --- ЗАВАНТАЖЕННЯ --- */
-.loader-container {
+.admin-spec-loader-container {
   display: flex;
   justify-content: center;
   padding-top: 150px;
@@ -265,63 +250,60 @@
    АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
    ========================================= */
 
-/* Планшети (Tablet) */
 @media (max-width: 1024px) {
-  .dash-grid {
+  .admin-spec-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
   }
 }
 
-/* Мобільні пристрої (Mobile) */
 @media (max-width: 768px) {
-  .dash-page {
-    padding-top: 90px;
+  .admin-spec-page {
+    padding-top: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
+    height: auto;
+    overflow: auto;
   }
 
-  .dash-page-title {
+  .admin-spec-title {
     font-size: 1.8rem;
     margin-bottom: 2rem;
     text-align: center;
   }
 
-  .section-title {
+  .admin-spec-section-title {
     text-align: center;
   }
 
-  /* Перебудовуємо форму створення у колонку */
-  .create-card {
+  .admin-spec-create-card {
     padding: 1.5rem;
   }
 
-  .create-card-title {
+  .admin-spec-create-card-title {
     font-size: 1.1rem;
     justify-content: center;
   }
 
-  .create-form {
-    flex-direction: column; /* Інпут і кнопка один під одним */
+  .admin-spec-create-form {
+    flex-direction: column;
     gap: 1rem;
   }
 
-  .create-btn {
+  .admin-spec-create-btn {
     width: 100%;
     justify-content: center;
   }
 
-  /* Картки стають рівно в одну колонку на всю ширину */
-  .dash-grid {
+  .admin-spec-grid {
     grid-template-columns: 1fr;
   }
 
-  .dash-header > div h3 {
+  .admin-spec-card-header > div h3 {
     font-size: 1.25rem;
   }
 
-  /* Якщо на малих екранах кнопки дій не вміщаються, ставимо їх одна під одною */
-  .dash-actions {
+  .admin-spec-card-actions {
     flex-direction: column;
     gap: 10px;
   }
