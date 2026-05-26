@@ -70,3 +70,39 @@ class StripeService:
             payment_method_types=["card"],
         )
         return intent["client_secret"]
+
+    async def create_invoice(
+        self,
+        customer_id: str,
+        amount: float,
+        description: str,
+        metadata: dict = None,
+    ) -> dict:
+        """
+        Створити Invoice в Stripe — фіксований чек оплати.
+        Повертає invoice_id і статус.
+        """
+        # 1. Створюємо invoice item
+        stripe.InvoiceItem.create(
+            customer=customer_id,
+            amount=int(amount * 100),  # в копійках
+            currency="uah",
+            description=description,
+            metadata=metadata or {},
+        )
+
+        # 2. Створюємо і одразу фіналізуємо invoice
+        invoice = stripe.Invoice.create(
+            customer=customer_id,
+            auto_advance=True,  # автоматично фіналізує
+            metadata=metadata or {},
+        )
+
+        finalized = stripe.Invoice.finalize_invoice(invoice["id"])
+
+        return {
+            "invoice_id": finalized["id"],
+            "status": finalized["status"],
+            "amount": amount,
+            "hosted_invoice_url": finalized.get("hosted_invoice_url"),
+        }

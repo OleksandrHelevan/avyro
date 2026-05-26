@@ -19,6 +19,10 @@ from modules.notifications_module.api.NotificationController import router as no
 from modules.payments_module.api.PaymentController import router as payment_router
 from modules.payments_module.api.WebhookController import router as webhook_router
 
+from modules.appointments_module.application.service.AppointmentCompleteScheduler import start_appointment_completer
+from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
+from config.db import db
+
 
 
 from contextlib import asynccontextmanager
@@ -49,6 +53,7 @@ from modules.users_module.api.exception.exceptions import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_slot_cleaner()
+    start_appointment_completer()
     yield
 
 app = FastAPI(

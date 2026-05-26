@@ -102,3 +102,54 @@ class AccountService:
         if not account:
             raise ValueError("Account not found")
         return account
+
+async def pay_for_appointment(
+    self,
+    patient_id: str,
+    appointment_id: str,
+    amount: float,
+    doctor_name: str,
+) -> dict:
+    """
+    Оплата візиту:
+    1. Перевіряємо баланс
+    2. Створюємо Invoice в Stripe
+    3. Списуємо з балансу
+    Якщо будь-який крок падає — rollback
+    """
+    oid = ObjectId(patient_id)
+    account = self.account_repo.find_by_user_id(oid)
+
+    if not account:
+        raise ValueError("Платіжний акаунт не знайдено. Створіть акаунт.")
+
+    if account.balance < amount:
+        raise ValueError(
+            f"Недостатньо коштів. Баланс: {account.balance}, потрібно: {amount}"
+        )
+
+    # Створюємо Invoice в Stripe (фіксуємо чек)
+    try:
+        invoice = await self.stripe_service.create_invoice(
+            customer_id=account.stripe_customer_id,
+            amount=amount,
+            description=f"Візит до лікаря {doctor_name}",
+            metadata={
+                "appointment_id": appointment_id,
+                "patient_id": patient_id,
+            },
+        )
+    except Exception as e:
+        raise ValueError(f"Помилка створення інвойсу: {str(e)}")
+
+    # Атомарно списуємо з балансу
+    success = self.account_repo.deduct_balance(oid, amount)
+    if not success:
+        raise ValueError("Недостатньо коштів або помилка списання")
+
+    return {
+        "invoice_id": invoice["invoice_id"],
+        "invoice_url": invoice["hosted_invoice_url"],
+        "amount_paid": amount,
+        "new_balance": account.balance - amount,
+    }

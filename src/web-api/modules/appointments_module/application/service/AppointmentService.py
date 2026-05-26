@@ -10,6 +10,7 @@ from modules.appointments_module.infrastructure.persistence.AppointmentRepositor
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.domains.slot.Slot import Slot
+from datetime import datetime, timezone
 
 
 class AppointmentService:
@@ -18,15 +19,14 @@ class AppointmentService:
         appointment_repository: AppointmentRepository,
         schedule_repository: ScheduleRepository,
         slot_repository: SlotRepository,
-
+        account_service=None,
     ):
         self.appointment_repository = appointment_repository
         self.schedule_repository = schedule_repository
-
-
+        self.account_service = account_service
 
     # Додали doctor_id в аргументи
-    def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
+    async def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
         try:
             doctor_oid = ObjectId(doctor_id)
             slot_oid = ObjectId(slot_id)
@@ -100,6 +100,32 @@ class AppointmentService:
             appointment_id=created.id
         )
 
+        # 6. Оплата візиту
+        if self.account_service and final_price > 0:
+            try:
+                payment = await self.account_service.pay_for_appointment(
+                    patient_id=patient_id,
+                    appointment_id=str(created.id),
+                    amount=final_price,
+                    doctor_name=str(doctor_id),
+                )
+                # Оновлюємо статус оплати
+                self.appointment_repository.update_payment_status(
+                    created.id, "PAID", payment["invoice_id"]
+                )
+                created.payment_status = "PAID"
+            except ValueError as e:
+                # Rollback — видаляємо appointment і розблоковуємо слот
+                self.appointment_repository.delete(created.id)
+                self.schedule_repository.unbook_slot(
+                    schedule_id=target_schedule.id,
+                    slot_id=slot_oid
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail=str(e)
+                )
+
         return self._format_appointment(created)
 
 
@@ -147,6 +173,51 @@ class AppointmentService:
         appointments = self.appointment_repository.get_by_doctor_id(oid)
         return [self._format_appointment(app) for app in appointments]
 
+    def finish_appointment(self, appointment_id: str, doctor_id: str) -> dict:
+        try:
+            oid = ObjectId(appointment_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Невалідний формат ID"
+            )
+
+        appointment = self.appointment_repository.get_by_id(oid)
+        if not appointment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Прийом не знайдено"
+            )
+
+        # Перевіряємо що лікар є власником цього прийому
+        if str(appointment.doctor_id) != doctor_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ви не є лікарем цього прийому"
+            )
+
+        # Можна завершити тільки RESERVED прийом
+        if appointment.status.value != "RESERVED":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}"
+            )
+
+        # Перевіряємо що прийом вже почався
+        now = datetime.now(timezone.utc)
+        from_time = appointment.from_time
+        if from_time and from_time.tzinfo is None:
+            from_time = from_time.replace(tzinfo=timezone.utc)
+
+        if now < from_time:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Прийом ще не почався"
+            )
+
+        self.appointment_repository.update_status(oid, "FINISHED")
+        return {"status": "FINISHED", "appointment_id": appointment_id}
+
     def _format_appointment(self, appointment: Appointment) -> dict:
         return {
             "_id": str(appointment.id),
@@ -161,5 +232,6 @@ class AppointmentService:
             "finalPrice": getattr(appointment, "final_price", 0),
             "appointmentType": getattr(appointment, "appointment_type", "VISIT")
         }
+
 
 

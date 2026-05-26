@@ -45,3 +45,17 @@ class AccountRepository:
             {"$set": {"pin": hashed_pin, "updated_at": datetime.utcnow()}},
         )
         return result.modified_count > 0
+
+    def deduct_balance(self, user_id: ObjectId, amount: float) -> bool:
+        """Атомарне списання — тільки якщо баланс достатній"""
+        result = self.collection.update_one(
+            {
+                "user_id": user_id,
+                "balance": {"$gte": amount}  # перевірка балансу в одній операції
+            },
+            {
+                "$inc": {"balance": -amount},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+        return result.modified_count > 0

@@ -68,6 +68,26 @@ class ScheduleRepository:
 
         return result.modified_count > 0
 
+    def unbook_slot(self, schedule_id: ObjectId, slot_id: ObjectId) -> bool:
+        result = self.collection.update_one(
+            {
+                "_id": schedule_id,
+                "slots": {
+                    "$elemMatch": {
+                        "slotId": slot_id
+                    }
+                }
+            },
+            {
+                "$set": {
+                    "slots.$.type": "AVAILABLE",
+                    "slots.$.appointmentId": None,
+                    "updatedAt": datetime.now(timezone.utc)
+                }
+            }
+        )
+        return result.modified_count > 0
+
     def get_by_id(self, schedule_id: ObjectId) -> Optional[Schedule]:
         doc = self.collection.find_one({"_id": schedule_id})
         return Schedule.from_dict(doc) if doc else None
