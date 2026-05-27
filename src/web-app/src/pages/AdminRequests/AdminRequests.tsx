@@ -108,7 +108,7 @@ export default function AdminRequests() {
       <h2>Нові заявки на реєстрацію ({pendingRequests.length})</h2>
 
       {pendingRequests.length === 0 ? (
-        <p style={{textAlign: 'center', color: '#64748b'}}>Немає нових заявок.</p>
+        <p style={{textAlign: 'center', color: '#000000'}}>Немає нових заявок.</p>
       ) : (
         <div className="req-grid">
           {pendingRequests.map(req => (

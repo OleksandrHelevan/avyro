@@ -24,7 +24,6 @@ export default function AdminSendNotification() {
 
   const sendMode = watch("sendMode");
 
-  // Мутація для відправки запиту на бекенд
   const { mutate: sendNotification, isPending } = useMutation({
     mutationFn: async (data: { message: string; recipient_id: string | null }) => {
       // Робимо POST запит на ендпоінт зі скриншота
