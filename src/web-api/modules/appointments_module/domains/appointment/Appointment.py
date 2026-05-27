@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class AppointmentStatus(Enum):
     PLANNED = "PLANNED"
+    RESERVED = "RESERVED"
+    FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
     COMPLETED = "COMPLETED"
 

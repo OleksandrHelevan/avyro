@@ -18,7 +18,7 @@ async def book_appointment(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(allow_patient)
 ):
-    return service.book_appointment(
+    return await service.book_appointment(
         doctor_id=body.doctorId,
         slot_id=body.slotId,
         patient_id=str(current_user["sub"]),
@@ -52,3 +52,15 @@ async def get_appointment(
     current_user: dict = Depends(allow_patient)
 ):
     return service.get_appointment_by_id(appointment_id)
+
+@router.post("/{appointment_id}/finish", status_code=status.HTTP_200_OK)
+async def finish_appointment(
+    appointment_id: str,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(allow_doctor)
+):
+    """Лікар завершує прийом — статус RESERVED → FINISHED"""
+    return service.finish_appointment(
+        appointment_id=appointment_id,
+        doctor_id=str(current_user["sub"])
+    )

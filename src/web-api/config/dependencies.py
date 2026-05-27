@@ -80,16 +80,22 @@ def get_admin_request_service() -> AdminRequestService:
         specialization_service=spec_service
     )
 
-def get_appointment_service() -> AppointmentService:
-    appointment_repo = AppointmentRepository(db["Appointments"])
-    schedule_repo = ScheduleRepository(db["Schedules"])
-    slot_repo = SlotRepository(db["Schedules"])
-    return AppointmentService(appointment_repo, schedule_repo, slot_repo)
-
 def get_account_service() -> AccountService:
     return AccountService(
         account_repo=AccountRepository(db["Accounts"]),
         stripe_service=StripeService()
     )
+
+def get_appointment_service() -> AppointmentService:
+    appointment_repo = AppointmentRepository(db["Appointments"])
+    schedule_repo = ScheduleRepository(db["Schedules"])
+    slot_repo = SlotRepository(db["Schedules"])
+    account_service = AccountService(
+        AccountRepository(db["Accounts"]),
+        StripeService()
+    )
+    return AppointmentService(appointment_repo, schedule_repo, slot_repo, account_service)
+
+
 
 
