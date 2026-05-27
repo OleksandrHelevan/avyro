@@ -2,14 +2,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
-// 🚀 ДОДАНО: ADMIN_NOTIFICATIONS_PATH для нової сторінки сповіщень
 import {
   HOME_PATH, NOT_APPROVED_PATH, NOT_FOUND_PATH,
   LOGIN_PATH, SIGNUP_PATH,
   DOCTOR_PROFILE_PATH, APPOINTMENTS_PATH, PROFILE_PATH,
   SCHEDULE_EDIT_PATH, PATIENTS_PATH,
-  ADMIN_REQUESTS_PATH, ADMIN_SPECIALIZATIONS_PATH, ADMIN_SCHEDULES_PATH, GAMIFICATION_PATH,
-  ADMIN_NOTIFICATIONS_PATH
+  ADMIN_REQUESTS_PATH, ADMIN_SPECIALIZATIONS_PATH, ADMIN_SCHEDULES_PATH,
+  GAMIFICATION_PATH, // 🚀 ДОДАНО
+  ADMIN_NOTIFICATIONS_PATH, WALLET_PATH
 } from "./router/routes.ts"
 
 import HomePage from '../pages/HomePage/HomePage.tsx';
@@ -23,10 +23,7 @@ import AdminSchedules from "../pages/AdminSchedules/AdminSchedules.tsx";
 import AdminRequests from "../pages/AdminRequests/AdminRequests.tsx";
 import AdminNotifications from "../pages/AdminNotifications/AdminNotifications.tsx";
 import PatientAppointmentsPage from "../pages/PatientAppointmentsPage/PatientAppointmentsPage.tsx";
-
-import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx";
-
-// 🚀 ДОДАНО: Імпорт нової сторінки для відправки сповіщень
+import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx"; // 🚀 ДОДАНО
 import AdminSendNotification from "../pages/AdminSendNotification/AdminSendNotification.tsx";
 
 import RootLayout from "../layouts/RootLayout/RootLayout.tsx";
@@ -37,6 +34,7 @@ import ProtectedRoute from "./router/guards/ProtectedRoute.tsx";
 import ProfileDispatcher from "./router/dispatchers/ProfileDispatcher.tsx";
 import AdminRoute from "./router/guards/AdminRoute.tsx";
 import { AuthProvider } from "../context/auth/AuthProvider.tsx";
+import WalletPage from "../pages/WalletPage/WalletPage.tsx";
 
 export default function App() {
   return (
@@ -56,12 +54,12 @@ export default function App() {
                 </Route>
 
                 <Route element={<ProtectedRoute />}>
-                  <Route index element={<HomePage />} />
+                  <Route index element={<HomePage />} />,
+                  <Route path={WALLET_PATH} element={<WalletPage />} />
+                  <Route path={GAMIFICATION_PATH} element={<GamificationPage />} /> {/* 🚀 ДОДАНО */}
                   <Route path={DOCTOR_PROFILE_PATH} element={<DoctorProfilePage />} />
                   <Route path={APPOINTMENTS_PATH} element={<PatientAppointmentsPage />} />
                   <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />
-
-                  <Route path={GAMIFICATION_PATH} element={<GamificationPage />} />
 
                   <Route path={SCHEDULE_EDIT_PATH} element={<ScheduleEditor />} />
                   <Route path={PATIENTS_PATH} element={<div>Сторінка пацієнтів</div>} />
@@ -70,8 +68,6 @@ export default function App() {
                     <Route path={ADMIN_REQUESTS_PATH} element={<AdminRequests />} />
                     <Route path={ADMIN_SPECIALIZATIONS_PATH} element={<AdminNotifications />} />
                     <Route path={ADMIN_SCHEDULES_PATH} element={<AdminSchedules />} />
-
-                    {/* 🚀 ДОДАНО: Маршрут для відправки сповіщень */}
                     <Route path={ADMIN_NOTIFICATIONS_PATH} element={<AdminSendNotification />} />
                   </Route>
                 </Route>

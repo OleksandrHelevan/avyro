@@ -10,7 +10,7 @@ export const APPOINTMENTS_PATH = '/appointments';
 export const PROFILE_PATH = '/profile';
 export const SCHEDULE_EDIT_PATH = '/schedule-edit';
 export const PATIENTS_PATH = '/patients';
-
+export const WALLET_PATH = "/wallet"; // або як ти його назвав
 export const ADMIN_REQUESTS_PATH = '/admin/requests';
 export const ADMIN_SPECIALIZATIONS_PATH = '/admin/specializations';
 export const ADMIN_SCHEDULES_PATH = '/admin/schedules';
