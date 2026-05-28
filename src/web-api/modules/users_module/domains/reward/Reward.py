@@ -10,6 +10,7 @@ class RewardType(str, Enum):
 
 class RewardSource(str, Enum):
     PROFILE_BONUS = "PROFILE_BONUS"
+    FIRST_VISIT_BONUS = "FIRST_VISIT_BONUS"
 
 
 class Reward:

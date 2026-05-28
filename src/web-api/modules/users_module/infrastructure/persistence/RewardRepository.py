@@ -30,4 +30,12 @@ class RewardRepository:
         rewards = self.collection.find({"user_id": patient_id})  # Або "patient_id", залежить від твоєї БД
         return list(rewards)
 
+    def has_first_visit_bonus(self, patient_id: ObjectId) -> bool:
+        count = self.collection.count_documents({
+            "patientId": patient_id,
+            "source.type": RewardSource.FIRST_VISIT_BONUS.value
+        })
+        return count > 0
+
+
 
