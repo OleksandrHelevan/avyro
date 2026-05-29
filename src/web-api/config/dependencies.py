@@ -94,7 +94,14 @@ def get_appointment_service() -> AppointmentService:
         AccountRepository(db["Accounts"]),
         StripeService()
     )
-    return AppointmentService(appointment_repo, schedule_repo, slot_repo, account_service)
+    reward_repo = RewardRepository(db["Rewards"])  # ← додати
+    return AppointmentService(
+        appointment_repo,
+        schedule_repo,
+        slot_repo,
+        account_service,
+        reward_repo  # ← додати
+    )
 
 
 

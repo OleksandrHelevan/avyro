@@ -11,6 +11,8 @@ from modules.appointments_module.infrastructure.persistence.ScheduleRepository i
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.domains.slot.Slot import Slot
 from datetime import datetime, timezone
+from modules.users_module.domains.reward.Reward import Reward, RewardType, RewardSource
+from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
 
 
 class AppointmentService:
@@ -20,10 +22,12 @@ class AppointmentService:
         schedule_repository: ScheduleRepository,
         slot_repository: SlotRepository,
         account_service=None,
+        reward_repository: RewardRepository = None,
     ):
         self.appointment_repository = appointment_repository
         self.schedule_repository = schedule_repository
         self.account_service = account_service
+        self.reward_repository = reward_repository
 
     # Додали doctor_id в аргументи
     async def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
@@ -216,6 +220,17 @@ class AppointmentService:
             )
 
         self.appointment_repository.update_status(oid, "FINISHED")
+
+        if self.reward_repository and appointment.patient_id:
+            if not self.reward_repository.has_first_visit_bonus(appointment.patient_id):
+                reward = Reward(
+                    patientId=appointment.patient_id,
+                    type=RewardType.BONUS,
+                    points=100,
+                    source=RewardSource.FIRST_VISIT_BONUS,
+                    description="Бонус за перший завершений візит"
+                )
+                self.reward_repository.create(reward)
         return {"status": "FINISHED", "appointment_id": appointment_id}
 
     def _format_appointment(self, appointment: Appointment) -> dict:
