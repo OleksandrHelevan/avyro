@@ -51,7 +51,7 @@ export interface GetPatientResponse {
   createdAt: Date;
   address: string;
   lastLoginAt: Date;
-  rewards:Reward;
+  rewards: Reward;
 }
 
 export interface PatchPatientRequest {
@@ -85,6 +85,8 @@ export interface GetDoctorResponse {
   lastLoginAt: Date;
   specializationName: string;
   schedule: any[]; // Додайте це поле тут
+  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна за слот (глобальна для лікаря)
+  price?: number;        // 🚀 ДОДАНО: Залишив для зворотної сумісності (про всяк випадок)
 }
 
 export interface UpdateDoctorProfileRequest {
@@ -95,17 +97,15 @@ export interface UpdateDoctorProfileRequest {
 }
 
 export interface UpdateProfileResponse {
- _id: string;
- email: string;
- isActive: boolean;
- fullName: string;
- phone: string;
- avatarUrl: string;
- createdAt: Date;
- lastLoginAt: Date;
+  _id: string;
+  email: string;
+  isActive: boolean;
+  fullName: string;
+  phone: string;
+  avatarUrl: string;
+  createdAt: Date;
+  lastLoginAt: Date;
 }
-
-
 
 export interface RepeatingConfig {
   type: "WEEKLY" | "DAILY" | "MONTHLY" | string;
@@ -114,6 +114,7 @@ export interface RepeatingConfig {
   endTime: string;
   slotDuration: number;
   timezone: string;
+  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна всередині конфігу
 }
 
 export interface ScheduleRequest {
@@ -122,6 +123,7 @@ export interface ScheduleRequest {
   year: number;
   title: string;
   isRepeated: boolean;
+  pricePerSlot: number;  // 🚀 ДОДАНО: Обов'язкова ціна на верхньому рівні запиту
   repeating?: RepeatingConfig;
 }
 
@@ -134,10 +136,12 @@ export interface DoctorListItem {
   avatarUrl: string | null;
   specializationId: string | null;
 }
+
 export interface DoctorApprovalResponse {
   isAuthenticated: boolean;
   isPending: boolean;
 }
+
 export interface NotificationItem {
   id: string;
   message: string;

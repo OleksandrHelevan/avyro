@@ -35,6 +35,7 @@ import ProfileDispatcher from "./router/dispatchers/ProfileDispatcher.tsx";
 import AdminRoute from "./router/guards/AdminRoute.tsx";
 import { AuthProvider } from "../context/auth/AuthProvider.tsx";
 import WalletPage from "../pages/WalletPage/WalletPage.tsx";
+import AppointmentDetailPage from "../pages/AppointmentDetailPage/AppointmentDetailPage.tsx";
 
 export default function App() {
   return (
@@ -59,6 +60,8 @@ export default function App() {
                   <Route path={GAMIFICATION_PATH} element={<GamificationPage />} /> {/* 🚀 ДОДАНО */}
                   <Route path={DOCTOR_PROFILE_PATH} element={<DoctorProfilePage />} />
                   <Route path={APPOINTMENTS_PATH} element={<PatientAppointmentsPage />} />
+                  <Route path="/appointments/:id" element={<AppointmentDetailPage />} />
+
                   <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />
 
                   <Route path={SCHEDULE_EDIT_PATH} element={<ScheduleEditor />} />

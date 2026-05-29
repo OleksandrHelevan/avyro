@@ -1,0 +1,91 @@
+.ac-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s;
+}
+.ac-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+  transform: translateY(-1px);
+}
+
+.ac-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+
+.ac-doctor-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.ac-doctor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.ac-info { flex: 1; min-width: 0; }
+
+.ac-doctor-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.ac-spec {
+  font-size: 0.78rem;
+  color: #6366f1;
+  font-weight: 500;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ac-time-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+.ac-time-row svg { color: #c7d2fe; }
+
+.ac-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ac-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.ac-badge--blue   { background: #eff6ff; color: #1d4ed8; }
+.ac-badge--green  { background: #f0fdf4; color: #15803d; }
+.ac-badge--red    { background: #fef2f2; color: #dc2626; }
+
+.ac-price { font-size: 0.88rem; font-weight: 700; color: #1e293b; }
+
+.ac-chevron { color: #cbd5e1; margin-top: 2px; }
+.ac-card:hover .ac-chevron { color: #6366f1; }

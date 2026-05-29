@@ -4,7 +4,7 @@
   justify-content: center;
   font-family: 'Inter', sans-serif;
   position: relative;
-margin-top: 100px;
+  margin-top: 100px;
 }
 
 .decor-elements .decor-item { position: absolute; color: rgba(255,255,255,0.25); z-index: 0; pointer-events: none; }
@@ -74,3 +74,42 @@ margin-top: 100px;
 }
 .confirm-booking-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 .payment-info { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 14px; }
+
+/* --- ДОДАНІ СТИЛІ, ПЕРЕНЕСЕНІ З TSX --- */
+
+/* Стан: немає графіка */
+.no-schedule-state {
+  text-align: center;
+  padding: 30px 10px;
+}
+.no-schedule-title {
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+.no-schedule-desc {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+.find-other-doctors-btn {
+  background: #7b51b3 !important;
+  box-shadow: 0 5px 15px rgba(123, 81, 179, 0.3);
+}
+
+/* Відображення ціни */
+.price-display {
+  text-align: center;
+  margin: 20px 0 10px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 10px;
+  border-radius: 8px;
+}
+.price-error-text {
+  color: #ef4444;
+  font-size: 1rem;
+}

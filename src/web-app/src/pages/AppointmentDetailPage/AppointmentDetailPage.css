@@ -1,0 +1,255 @@
+/* ── Page ────────────────────────────────────────────────────────────────── */
+.adp-page {
+  min-height: calc(100vh - 70px);
+  background: var(--aero-bg, #f6f7fa);
+  padding: 32px 20px 60px;
+}
+
+.adp-container {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Topbar ──────────────────────────────────────────────────────────────── */
+.adp-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.adp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+.adp-back:hover { color: #1e293b; transform: translateX(-2px); }
+
+.adp-refresh {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  transition: all 0.15s;
+}
+.adp-refresh:hover { color: #1e293b; background: #f8fafc; }
+
+/* ── Status banner ───────────────────────────────────────────────────────── */
+.adp-status-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.status--reserved  { background: #eff6ff; color: #1d4ed8; }
+.status--reserved svg { color: #3b82f6; }
+
+.status--finished  { background: #f0fdf4; color: #15803d; }
+.status--finished svg { color: #22c55e; }
+
+.status--cancelled { background: #fef2f2; color: #dc2626; }
+.status--cancelled svg { color: #ef4444; }
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.adp-card {
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.adp-card-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+.adp-card-label svg { color: #6366f1; }
+
+/* ── Date card ───────────────────────────────────────────────────────────── */
+.adp-date-card { border-left: 3px solid #6366f1; }
+
+.adp-date-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.adp-date-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.adp-date-day {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 5px;
+  text-transform: capitalize;
+}
+
+.adp-date-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+.adp-date-time svg { color: #94a3b8; flex-shrink: 0; }
+
+.adp-duration {
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+/* ── Person row ──────────────────────────────────────────────────────────── */
+.adp-person-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.adp-avatar-img {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.adp-avatar-fallback {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #4338ca;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adp-person-info { flex: 1; min-width: 0; }
+
+.adp-person-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adp-person-spec {
+  font-size: 0.83rem;
+  color: #6366f1;
+  font-weight: 500;
+}
+
+/* ── Contacts ────────────────────────────────────────────────────────────── */
+.adp-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.adp-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.adp-contact-row svg { color: #94a3b8; flex-shrink: 0; }
+.adp-contact-row:hover { color: #6366f1; }
+
+/* ── Price card ──────────────────────────────────────────────────────────── */
+.adp-price-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.adp-price-card .adp-card-label { margin-bottom: 0; }
+.adp-price-val { font-size: 1.4rem; font-weight: 800; color: #1e293b; flex: 1; }
+
+.adp-paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+  background: #f0fdf4;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ── Meta ────────────────────────────────────────────────────────────────── */
+.adp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.adp-meta code {
+  font-family: monospace;
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────── */
+.adp-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+.adp-error button {
+  border: none;
+  background: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.adp-spin { animation: adp-rotate 0.7s linear infinite; }
+@keyframes adp-rotate { to { transform: rotate(360deg); } }

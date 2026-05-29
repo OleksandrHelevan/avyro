@@ -4,7 +4,6 @@ import type {
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
-
   DoctorListItem, DoctorApprovalResponse, GetNotificationsResponse
 } from "../types.ts";
 
@@ -22,38 +21,38 @@ export const userService = {
   },
 
   patchPatient: async (request: PatchPatientRequest): Promise<PatchPatientResponse> => {
-    return userApiClient.patchPatient( request);
+    return userApiClient.patchPatient(request);
   },
 
-
   getAllDoctors: async (): Promise<DoctorListItem[]> => {
-
     const response = await userApiClient.getAllDoctors();
     return (response as any).data ?? response;
   },
 
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
-    console.log(`!!!${userApiClient.getDoctorById(id)}`);
-
-    return userApiClient.getDoctorById(id);
+    // Чистимо ID від випадкових пробілів, які могли потрапити з URL
+    const cleanId = id?.trim() || "";
+    const response = await userApiClient.getDoctorById(cleanId);
+    return (response as any).data ?? response;
   },
 
-  patchDoctor: async ( request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
-    return userApiClient.patchDoctor( request);
+  patchDoctor: async (request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
+    return userApiClient.patchDoctor(request);
   },
 
   requestSchedule: async (request: ScheduleRequest): Promise<ScheduleResponse> => {
     return userApiClient.requestSchedule(request);
   },
+
   checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {
     return userApiClient.checkDoctorStatus(email);
   },
-  // 🚀 ОНОВЛЕНО: Тепер ми безпечно дістаємо .data з відповіді Axios
+
   getNotifications: async (): Promise<GetNotificationsResponse> => {
     const response = await userApiClient.getNotifications();
     return (response as any).data ?? response;
   },
-// 🚀 ДОДАНО: Сервіс для позначення прочитаними
+
   markAllNotificationsAsRead: async (): Promise<any> => {
     return userApiClient.markAllNotificationsAsRead();
   },

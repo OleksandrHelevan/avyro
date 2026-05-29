@@ -15,10 +15,8 @@ const DAYS_OF_WEEK = [
   { id: 4, label: "Чт" }, { id: 5, label: "Пт" }, { id: 6, label: "Сб" }, { id: 0, label: "Нд" }
 ];
 
-// Допоміжна функція для виводу назв днів
 const getDaysNames = (daysArray: number[]) => {
   const map: Record<number, string> = { 1: "Пн", 2: "Вт", 3: "Ср", 4: "Чт", 5: "Пт", 6: "Сб", 0: "Нд" };
-  // Сортуємо, щоб неділя (0) була в кінці, якщо треба, або просто по порядку
   return daysArray
     .map(d => map[d])
     .filter(Boolean)
@@ -28,33 +26,34 @@ const getDaysNames = (daysArray: number[]) => {
 export default function ScheduleEditor() {
   const navigate = useNavigate();
 
-  // 1. Отримуємо дані
   const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
   const { mutate: requestSchedule, isPending } = useRequestSchedule();
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // Стан форми
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [params, setParams] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
     startTime: "09:00",
     endTime: "18:00",
-    slotDuration: 30
+    slotDuration: 30,
+    price: 500 // Стейт форми
   });
 
-  // Розпаковка профілю (як на сторінці запису)
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // 2. Пошук активного розкладу
+  // 🚀 ОНОВЛЕНО: Тепер ми беремо найсвіжіший графік з кінця масиву
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return null;
-    return schedules.find((s: any) => s.status === "APPROVED") || schedules[0];
+
+    // Робимо копію і перевертаємо, щоб найновіші були першими
+    const reversedSchedules = [...schedules].reverse();
+
+    return reversedSchedules.find((s: any) => s.status === "APPROVED") || reversedSchedules[0];
   }, [doctor]);
 
-  // Дістаємо самі параметри (дні, час)
   const repeatingParams = useMemo(() => {
     return activeSchedule?.payload?.repeating || activeSchedule?.repeating;
   }, [activeSchedule]);
@@ -62,18 +61,28 @@ export default function ScheduleEditor() {
   const hasConfirmedSchedule = !!repeatingParams;
   const showForm = !hasConfirmedSchedule || isEditing;
 
-  // 3. Автозаповнення форми поточними даними
+  // Глибокий пошук ціни для автозаповнення форми
   useEffect(() => {
     if (repeatingParams && isEditing) {
       setSelectedDays(repeatingParams.daysOfWeek || []);
+
+      const savedPrice = activeSchedule?.pricePerSlot
+        || activeSchedule?.price
+        || activeSchedule?.payload?.pricePerSlot
+        || activeSchedule?.payload?.price
+        || repeatingParams?.pricePerSlot
+        || repeatingParams?.price
+        || 500;
+
       setParams(prev => ({
         ...prev,
         startTime: repeatingParams.startTime || repeatingParams.start_time || "09:00",
         endTime: repeatingParams.endTime || repeatingParams.end_time || "18:00",
-        slotDuration: repeatingParams.slotDuration || repeatingParams.slot_duration || 30
+        slotDuration: repeatingParams.slotDuration || repeatingParams.slot_duration || 30,
+        price: savedPrice
       }));
     }
-  }, [repeatingParams, isEditing]);
+  }, [repeatingParams, isEditing, activeSchedule]);
 
   const toggleDay = (dayId: number) => {
     setSelectedDays(prev =>
@@ -85,12 +94,14 @@ export default function ScheduleEditor() {
     e.preventDefault();
     if (selectedDays.length === 0) return toast.error("Оберіть робочі дні");
 
-    requestSchedule({
+    // Формуємо ідеальний запит за Swagger'ом
+    const payload = {
       doctorId: CURRENT_USER_ID,
       month: params.month,
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
       isRepeated: true,
+      pricePerSlot: params.price, // Тільки на верхньому рівні!
       repeating: {
         type: "WEEKLY",
         daysOfWeek: selectedDays,
@@ -99,13 +110,28 @@ export default function ScheduleEditor() {
         slotDuration: params.slotDuration,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       }
-    }, {
+    };
+
+    requestSchedule(payload as any, {
       onSuccess: () => {
         toast.success("Графік успішно відправлено на перевірку!");
-        navigate("/profile");
+        setIsEditing(false); // Закриваємо форму після успіху
+      },
+      onError: (err: any) => {
+        toast.error("Помилка збереження графіка: " + (err.message || "400 Bad Request"));
       }
     });
   };
+
+  // Глибокий пошук ціни для відображення в "картці"
+  const displayPrice = useMemo(() => {
+    return activeSchedule?.pricePerSlot
+      || activeSchedule?.price
+      || activeSchedule?.payload?.pricePerSlot
+      || activeSchedule?.payload?.price
+      || repeatingParams?.pricePerSlot
+      || repeatingParams?.price;
+  }, [activeSchedule, repeatingParams]);
 
   if (isDoctorLoading) return <div className="loading-screen"><Loader/></div>;
 
@@ -124,7 +150,6 @@ export default function ScheduleEditor() {
         </header>
 
         {!showForm ? (
-          // --- ВІДОБРАЖЕННЯ ІСНУЮЧОГО ГРАФІКУ ---
           <div className="profile-card glass-light editor-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
               <div>
@@ -150,7 +175,6 @@ export default function ScheduleEditor() {
               </button>
             </div>
 
-            {/* ВІДОБРАЖЕННЯ ПАРАМЕТРІВ РОЗКЛАДУ */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "var(--med-purple)" }}>
@@ -158,7 +182,7 @@ export default function ScheduleEditor() {
                   <h3 style={{ margin: 0, color: "#1e293b" }}>Робочі дні</h3>
                 </div>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {repeatingParams.daysOfWeek?.map((d: number) => (
+                  {repeatingParams?.daysOfWeek?.map((d: number) => (
                     <span key={d} style={{ background: "var(--med-purple)", color: "white", padding: "6px 14px", borderRadius: "20px", fontWeight: "600", fontSize: "0.95rem" }}>
                       {getDaysNames([d])}
                     </span>
@@ -169,19 +193,21 @@ export default function ScheduleEditor() {
               <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "#0284c7" }}>
                   <Clock size={24} />
-                  <h3 style={{ margin: 0, color: "#1e293b" }}>Години прийому</h3>
+                  <h3 style={{ margin: 0, color: "#1e293b" }}>Години та вартість</h3>
                 </div>
                 <p style={{ margin: "0 0 10px", fontSize: "1.1rem", fontWeight: "600", color: "#334155" }}>
-                  {repeatingParams.startTime || repeatingParams.start_time} — {repeatingParams.endTime || repeatingParams.end_time}
+                  {repeatingParams?.startTime || repeatingParams?.start_time} — {repeatingParams?.endTime || repeatingParams?.end_time}
                 </p>
-                <p style={{ margin: 0, fontSize: "0.95rem", color: "#64748b" }}>
-                  Тривалість одного слота: <strong>{repeatingParams.slotDuration || repeatingParams.slot_duration} хв</strong>
+                <p style={{ margin: "0 0 8px 0", fontSize: "0.95rem", color: "#64748b" }}>
+                  Тривалість слота: <strong>{repeatingParams?.slotDuration || repeatingParams?.slot_duration} хв</strong>
+                </p>
+                <p style={{ margin: 0, fontSize: "1.05rem", color: "#10b981", fontWeight: "700" }}>
+                  Вартість прийому: {displayPrice ? `${displayPrice} ₴` : "Не вказана"}
                 </p>
               </div>
             </div>
           </div>
         ) : (
-          // --- ФОРМА СТВОРЕННЯ/РЕДАГУВАННЯ ГРАФІКУ ---
           <div className="profile-card glass-light editor-card">
             {hasConfirmedSchedule && isEditing && (
               <div style={{ marginBottom: "20px", textAlign: "right" }}>
@@ -215,7 +241,7 @@ export default function ScheduleEditor() {
 
               <section className="schedule-section-block">
                 <h3 className="schedule-section-title">
-                  <Clock size={20} className="icon-accent" /> Параметри часу
+                  <Clock size={20} className="icon-accent" /> Параметри часу та ціни
                 </h3>
                 <div className="schedule-params-grid">
                   <div className="form-group">
@@ -234,6 +260,16 @@ export default function ScheduleEditor() {
                       <option value={45}>45 хв</option>
                       <option value={60}>60 хв</option>
                     </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Вартість слота (₴)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={params.price}
+                      onChange={e => setParams({...params, price: Number(e.target.value)})}
+                      required
+                    />
                   </div>
                 </div>
               </section>
