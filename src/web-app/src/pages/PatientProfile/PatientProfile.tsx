@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut, MapPin } from "lucide-react";
+import {User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut, MapPin, Wallet} from "lucide-react";
 import { useAuth } from "../../context/auth/useAuth.tsx";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 import BadgeUnlockOverlay from "../GamificationPage/components/BadgeUnlockOverlay/BadgeUnlockOverlay.tsx";
 import "./PatientProfile.css";
+import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
@@ -162,20 +163,29 @@ export default function PatientProfile() {
       )}
 
       <div className="main-content" style={{ height: '100%', position: 'relative', zIndex: 1 }}>
-        <div className="layout-container" style={{ height: '100%', display: 'flex' }}>
+        <div className="layout-container" style={{height: '100%', display: 'flex'}}>
 
           <aside className="sidebar">
             <div className="sidebar-menu glass-light slide-in-left">
               <button className="menu-item active">
-                <User size={18} /> Особисті дані
+                <User size={18}/> Особисті дані
               </button>
-              <Link to="/gamification" className="menu-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Star size={18} strokeWidth={2.5} /> Досягнення та Бали
+
+              <Link to="/gamification" className="menu-item" style={{textDecoration: 'none', color: 'inherit'}}>
+                <Star size={18} strokeWidth={2.5}/> Досягнення та Бали
               </Link>
+
+              {/* ── Wallet menu item — navigates to /wallet ── */}
+              <Link to="/wallet" className="menu-item" style={{textDecoration: 'none', color: 'inherit'}}>
+                <Wallet size={18}/> Баланс
+              </Link>
+
+              {/* ── Inline balance widget ── */}
+              <WalletSidebarCard/>
             </div>
           </aside>
 
-          <main className="profile-content" style={{ flex: 1, overflowY: 'auto', paddingBottom: '40px' }}>
+          <main className="profile-content" style={{flex: 1, overflowY: 'auto', paddingBottom: '40px'}}>
             <div className="page-header">
               <h1>Особисті дані</h1>
               <p>Ваша інформація безпечно зашифрована</p>
@@ -186,7 +196,7 @@ export default function PatientProfile() {
                 <div className="avatar-wrapper gradient-ring" onClick={() => fileInputRef.current?.click()}>
                   <div className="avatar-large">
                     {formData.avatarUrl ? (
-                      <img src={formData.avatarUrl} alt="Avatar" />
+                      <img src={formData.avatarUrl} alt="Avatar"/>
                     ) : (
                       <span className="avatar-initials">
                         {formData.firstName.charAt(0)}{formData.lastName.charAt(0)}
@@ -194,14 +204,14 @@ export default function PatientProfile() {
                     )}
                   </div>
                   <div className="avatar-overlay">
-                    <Camera size={22} color="white" strokeWidth={2.5} />
+                    <Camera size={22} color="white" strokeWidth={2.5}/>
                   </div>
                 </div>
                 <div className="avatar-info">
                   <h2>{formData.firstName} {formData.lastName}</h2>
                   <span className="status-badge">Базовий акаунт</span>
                   <button type="button" className="change-photo-btn" onClick={() => fileInputRef.current?.click()}>
-                    <UploadCloud size={16} style={{ marginRight: '8px' }} /> Оновити фото
+                    <UploadCloud size={16} style={{marginRight: '8px'}}/> Оновити фото
                   </button>
                 </div>
               </div>
@@ -211,28 +221,30 @@ export default function PatientProfile() {
                   <div className="form-group input-with-icon">
                     <label>Ім'я</label>
                     <div className="input-wrapper">
-                      <User className="input-icon" size={20} strokeWidth={2.5} />
-                      <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+                      <User className="input-icon" size={20} strokeWidth={2.5}/>
+                      <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange}
+                             required/>
                     </div>
                   </div>
                   <div className="form-group input-with-icon">
                     <label>Прізвище</label>
                     <div className="input-wrapper">
-                      <User className="input-icon" size={20} strokeWidth={2.5} />
-                      <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                      <User className="input-icon" size={20} strokeWidth={2.5}/>
+                      <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange}
+                             required/>
                     </div>
                   </div>
                   <div className="form-group input-with-icon">
                     <label>Email адреса</label>
                     <div className="input-wrapper">
-                      <Mail className="input-icon" size={20} strokeWidth={2.5} />
-                      <input type="email" name="email" value={formData.email} disabled className="disabled-input" />
+                      <Mail className="input-icon" size={20} strokeWidth={2.5}/>
+                      <input type="email" name="email" value={formData.email} disabled className="disabled-input"/>
                     </div>
                   </div>
                   <div className="form-group input-with-icon">
                     <label>Номер телефону</label>
                     <div className="input-wrapper">
-                      <Phone className="input-icon" size={20} strokeWidth={2.5} />
+                      <Phone className="input-icon" size={20} strokeWidth={2.5}/>
                       <input
                         type="tel"
                         name="phone"
@@ -245,7 +257,7 @@ export default function PatientProfile() {
                   <div className="form-group input-with-icon">
                     <label>Адреса</label>
                     <div className="input-wrapper">
-                      <MapPin className="input-icon" size={20} strokeWidth={2.5} />
+                      <MapPin className="input-icon" size={20} strokeWidth={2.5}/>
                       <input
                         type="text"
                         name="address"
@@ -257,11 +269,12 @@ export default function PatientProfile() {
                   </div>
                 </div>
 
-                <div className="form-actions" style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px' }}>
-                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{ flex: 1 }}>
+                <div className="form-actions"
+                     style={{display: 'flex', gap: '16px', alignItems: 'center', marginTop: '20px'}}>
+                  <button type="submit" disabled={isUpdating} className="save-btn glow-effect" style={{flex: 1}}>
                     {isUpdating ? (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <Loader2 className="animate-spin" size={18} /> Збереження...
+                      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+                        <Loader2 className="animate-spin" size={18}/> Збереження...
                       </div>
                     ) : "Зберегти зміни"}
                   </button>
@@ -284,7 +297,7 @@ export default function PatientProfile() {
                       transition: 'all 0.2s ease'
                     }}
                   >
-                    <LogOut size={18} strokeWidth={2.5} />
+                    <LogOut size={18} strokeWidth={2.5}/>
                     Вийти
                   </button>
                 </div>

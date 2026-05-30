@@ -5,7 +5,7 @@ import {
   Stethoscope,
   UserCircle,
   LayoutDashboard,
-  LogOut
+  LogOut, Wallet
 } from "lucide-react";
 
 import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
@@ -17,6 +17,7 @@ import Loader from "../../components/Loader/Loader.tsx";
 import SelectInput from "../../components/SelectInput/SelectInput.tsx"; // Імпорт твого компонента
 
 import "./DoctorProfile.css";
+import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
@@ -102,6 +103,18 @@ export default function DoctorProfile() {
               <LayoutDashboard size={18}/>
               <span>Кабінет лікаря</span>
             </button>
+
+            {/* ── Wallet menu item — navigates to /wallet ── */}
+            <button
+              className="menu-item"
+              onClick={() => navigate("/wallet")}
+            >
+              <Wallet size={18}/>
+              <span>Баланс</span>
+            </button>
+
+            {/* ── Inline balance widget ── */}
+            <WalletSidebarCard/>
           </div>
         </aside>
 
