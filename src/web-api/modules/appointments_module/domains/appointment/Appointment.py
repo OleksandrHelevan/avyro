@@ -34,6 +34,7 @@ class Appointment(BaseModel):
     booked_at: Optional[datetime] = None
 
     def to_dict(self) -> dict:
+        now = datetime.now(timezone.utc)
         data = {
             "patientId": self.patient_id,
             "slotId": self.slot_id,
@@ -41,13 +42,13 @@ class Appointment(BaseModel):
             "from": self.from_time,
             "to": self.to_time,
             "status": self.status.value,
-            "createdAt": self.created_at,
-            "updatedAt": self.updated_at,
+            "createdAt": self.created_at or now,
+            "updatedAt": self.updated_at or now,
             "paymentStatus": self.payment_status,
             "basePrice": self.base_price,
             "finalPrice": self.final_price,
             "appointmentType": self.appointment_type,
-            "bookedAt": self.booked_at,
+            "bookedAt": self.booked_at or now,
         }
         if self.id:
             data["_id"] = self.id

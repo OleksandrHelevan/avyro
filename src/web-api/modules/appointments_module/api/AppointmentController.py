@@ -11,6 +11,9 @@ router = APIRouter(prefix="/appointments", tags=["Appointments"])
 class BookAppointmentRequest(BaseModel):
     doctorId: str
     slotId: str
+    discount: float = 0.0
+    is_discount_used: bool = False
+
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def book_appointment(
