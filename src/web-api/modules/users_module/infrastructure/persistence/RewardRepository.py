@@ -1,8 +1,7 @@
 from typing import List
 from bson import ObjectId
 from pymongo.collection import Collection
-from modules.users_module.domains.reward.Reward import Reward, RewardSource
-
+from modules.users_module.domains.reward.Reward import Reward, RewardSource, RewardType
 class RewardRepository:
     def __init__(self, collection: Collection):
         self.collection = collection
@@ -37,7 +36,25 @@ class RewardRepository:
         })
         return count > 0
 
+    def get_total_points(self, patient_id: ObjectId) -> int:
+        """Сума всіх балів пацієнта (бонуси мінус списання)"""
+        pipeline = [
+            {"$match": {"patientId": patient_id}},
+            {"$group": {"_id": None, "total": {"$sum": "$points"}}}
+        ]
+        result = list(self.collection.aggregate(pipeline))
+        return max(result[0]["total"] if result else 0, 0)
 
+    def spend_points(self, patient_id: ObjectId, points: int, description: str) -> None:
+        """Списання балів — зберігається як від'ємний Reward"""
+        reward = Reward(
+            patientId=patient_id,
+            type=RewardType.SPEND,
+            points=-points,
+            source=RewardSource.APPOINTMENT_PAYMENT,
+            description=description
+        )
+        self.create(reward)
 
 
 
