@@ -56,3 +56,7 @@ class UserRepository:
         cursor = self.collection.find(query)
 
         return [User.from_dict(doc) for doc in cursor]
+
+    def get_all_non_admin(self) -> list:
+        cursor = self.collection.find({"role": {"$ne": "ADMIN"}})
+        return [User.from_dict(doc) for doc in cursor]

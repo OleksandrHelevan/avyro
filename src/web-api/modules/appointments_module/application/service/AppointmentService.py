@@ -1,3 +1,5 @@
+from venv import create
+
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
@@ -13,6 +15,8 @@ from modules.appointments_module.domains.slot.Slot import Slot
 from datetime import datetime, timezone
 from modules.users_module.domains.reward.Reward import Reward, RewardType, RewardSource
 from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
+from modules.notifications_module.application.service.NotificationService import NotificationService
+
 
 
 class AppointmentService:
@@ -23,11 +27,17 @@ class AppointmentService:
         slot_repository: SlotRepository,
         account_service=None,
         reward_repository: RewardRepository = None,
+    notification_service=None,
+    user_repository=None,
+
+
     ):
         self.appointment_repository = appointment_repository
         self.schedule_repository = schedule_repository
         self.account_service = account_service
         self.reward_repository = reward_repository
+        self.notification_service = notification_service
+        self.user_repository = user_repository
 
     # Додали doctor_id в аргументи
     async def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
@@ -40,6 +50,10 @@ class AppointmentService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Невалідний формат ID"
             )
+
+        target_slot = self.slot_repository.get_by_id(slot_id)
+
+
 
         # 1. Знаходимо всі розклади цього лікаря
         schedules = self.schedule_repository.get_by_doctor_id(doctor_oid)
@@ -103,6 +117,28 @@ class AppointmentService:
             slot_id=slot_oid,
             appointment_id=created.id
         )
+
+        # Форматуємо дату
+        from_time = target_slot.from_time
+        if from_time:
+            formatted_time = from_time.strftime("%d/%m/%Y %H:%M")
+        else:
+            formatted_time = "невідомий час"
+
+        # Асинхронні сповіщення
+        if self.notification_service:
+            # Лікар отримує ПІБ пацієнта — треба дістати з БД
+            # Поки що використовуємо ID, фронт може підтягнути деталі
+            self.notification_service.send_appointment_notification(
+                recipient_id=str(doctor_oid),
+                message=f"До вас записався пацієнт на {formatted_time}",
+                appointment_id=str(created.id),
+            )
+            self.notification_service.send_appointment_notification(
+                recipient_id=str(patient_oid),
+                message=f"Запис до лікаря на {formatted_time} підтверджено.",
+                appointment_id=str(created.id),
+            )
 
         # 6. Оплата візиту
         if self.account_service and final_price > 0:

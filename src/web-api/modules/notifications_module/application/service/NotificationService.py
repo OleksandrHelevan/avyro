@@ -23,6 +23,8 @@ class NotificationService:
                 is_read=NotificationRepository._is_read_by_user(doc, user_id),
                 sent_at=doc["sent_at"],
                 recipient_id=doc.get("recipient_id"),
+                appointment_id=doc.get("appointment_id"),
+                notification_type=doc.get("notification_type", "GENERAL"),
             )
             for doc in docs
         ]
@@ -46,4 +48,19 @@ class NotificationService:
             is_read=False,
             sent_at=doc["sent_at"],
             recipient_id=recipient_id,
+            appointment_id=doc.get("appointment_id"),
+            notification_type=doc.get("notification_type", "GENERAL"),
+        )
+
+    def send_appointment_notification(
+        self,
+        recipient_id: str,
+        message: str,
+        appointment_id: str,
+    ) -> None:
+        NotificationRepository.create_notification(
+            message=message,
+            recipient_id=recipient_id,
+            appointment_id=appointment_id,
+            notification_type="APPOINTMENT",
         )

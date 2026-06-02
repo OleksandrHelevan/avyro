@@ -7,22 +7,24 @@ from config.db import db
 collection = db["notifications"]
 
 
-def create_notification(message: str, recipient_id: Optional[str]) -> dict:
-    """
-    Зберігає нове сповіщення в БД.
-    recipient_id=None означає broadcast для всіх.
-    """
+def create_notification(
+    message: str,
+    recipient_id: Optional[str],
+    appointment_id: Optional[str] = None,
+    notification_type: Optional[str] = None,
+) -> dict:
     doc = {
         "message": message,
         "recipient_id": recipient_id,
-        "is_read_by": [],          # список user_id які прочитали (для broadcast)
-        "is_read": False,          # для персональних
+        "is_read_by": [],
+        "is_read": False,
         "sent_at": datetime.now(timezone.utc),
+        "appointment_id": appointment_id,
+        "notification_type": notification_type or "GENERAL",
     }
     result = collection.insert_one(doc)
     doc["_id"] = result.inserted_id
     return doc
-
 
 def get_notifications_for_user(user_id: str) -> list[dict]:
     cursor = collection.find({
