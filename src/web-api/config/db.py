@@ -10,3 +10,4 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 client = MongoClient(MONGO_URL)
 db = client["avyro"]
+

@@ -153,3 +153,61 @@ async def pay_for_appointment(
         "amount_paid": amount,
         "new_balance": account.balance - amount,
     }
+
+async def pay_for_appointment_combined(
+    self,
+    patient_id: str,
+    appointment_id: str,
+    amount: float,
+    doctor_name: str,
+    points_available: int,
+) -> dict:
+    """
+    Оплата з автоматичним використанням балів:
+    1. Спочатку списуємо бали (1 бал = 1 грн)
+    2. Решту покриваємо з грошового балансу
+    """
+    oid = ObjectId(patient_id)
+    account = self.account_repo.find_by_user_id(oid)
+    if not account:
+        raise ValueError("Платіжний акаунт не знайдено. Створіть акаунт.")
+
+    points_to_use = min(points_available, int(amount))
+    money_to_charge = amount - points_to_use
+
+    if account.balance < money_to_charge:
+        raise ValueError(
+            f"Недостатньо коштів. Баланс: {account.balance} грн + {points_available} балів, потрібно: {amount} грн"
+        )
+
+    # Створюємо Invoice в Stripe тільки якщо є грошова частина
+    invoice_id = None
+    invoice_url = None
+    if money_to_charge > 0:
+        try:
+            invoice = await self.stripe_service.create_invoice(
+                customer_id=account.stripe_customer_id,
+                amount=money_to_charge,
+                description=f"Візит до лікаря {doctor_name}",
+                metadata={
+                    "appointment_id": appointment_id,
+                    "patient_id": patient_id,
+                },
+            )
+            invoice_id = invoice["invoice_id"]
+            invoice_url = invoice["hosted_invoice_url"]
+        except Exception as e:
+            raise ValueError(f"Помилка створення інвойсу: {str(e)}")
+
+        success = self.account_repo.deduct_balance(oid, money_to_charge)
+        if not success:
+            raise ValueError("Помилка списання з балансу")
+
+    return {
+        "invoice_id": invoice_id,
+        "invoice_url": invoice_url,
+        "amount_paid": amount,
+        "points_used": points_to_use,
+        "money_charged": money_to_charge,
+        "new_balance": account.balance - money_to_charge,
+    }

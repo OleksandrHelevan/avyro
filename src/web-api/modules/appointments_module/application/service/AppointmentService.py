@@ -143,19 +143,33 @@ class AppointmentService:
         # 6. Оплата візиту
         if self.account_service and final_price > 0:
             try:
-                payment = await self.account_service.pay_for_appointment(
+                # Отримуємо поточні бали пацієнта
+                points_available = 0
+                if self.reward_repository:
+                    points_available = self.reward_repository.get_total_points(patient_oid)
+
+                payment = await self.account_service.pay_for_appointment_combined(
                     patient_id=patient_id,
                     appointment_id=str(created.id),
                     amount=final_price,
                     doctor_name=str(doctor_id),
+                    points_available=points_available,
                 )
-                # Оновлюємо статус оплати
+
+                # Списуємо бали якщо використовувались
+                if self.reward_repository and payment["points_used"] > 0:
+                    self.reward_repository.spend_points(
+                        patient_id=patient_oid,
+                        points=payment["points_used"],
+                        description=f"Оплата візиту {str(created.id)}"
+                    )
+
                 self.appointment_repository.update_payment_status(
-                    created.id, "PAID", payment["invoice_id"]
+                    created.id, "PAID", payment.get("invoice_id")
                 )
                 created.payment_status = "PAID"
+
             except ValueError as e:
-                # Rollback — видаляємо appointment і розблоковуємо слот
                 self.appointment_repository.delete(created.id)
                 self.schedule_repository.unbook_slot(
                     schedule_id=target_schedule.id,
@@ -165,8 +179,6 @@ class AppointmentService:
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail=str(e)
                 )
-
-        return self._format_appointment(created)
 
 
 
