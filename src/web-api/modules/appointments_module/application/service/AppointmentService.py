@@ -36,6 +36,7 @@ class AppointmentService:
         self.schedule_repository = schedule_repository
         self.account_service = account_service
         self.reward_repository = reward_repository
+        self.slot_repository = slot_repository
         self.notification_service = notification_service
         self.user_repository = user_repository
 
@@ -117,6 +118,15 @@ class AppointmentService:
             slot_id=slot_oid,
             appointment_id=created.id
         )
+
+        if hasattr(dto, 'note') and dto.note:
+            note = {
+                "source": "PATIENT",
+                "message": dto.note,
+                "type": "SPECIFICATION",
+                "createdAt": datetime.now(timezone.utc),
+            }
+            self.appointment_repository.add_note(created.id, note)
 
         # Форматуємо дату
         from_time = target_slot.from_time
@@ -287,14 +297,76 @@ class AppointmentService:
             "patientId": str(appointment.patient_id),
             "doctorId": str(appointment.doctor_id),
             "slotId": str(appointment.slot_id),
-            "from": appointment.from_time.isoformat() if hasattr(appointment.from_time, "isoformat") else appointment.from_time,
+            "from": appointment.from_time.isoformat() if hasattr(appointment.from_time,
+                                                                 "isoformat") else appointment.from_time,
             "to": appointment.to_time.isoformat() if hasattr(appointment.to_time, "isoformat") else appointment.to_time,
             "status": appointment.status.value,
             "paymentStatus": getattr(appointment, "payment_status", "PENDING"),
             "basePrice": getattr(appointment, "base_price", 0),
             "finalPrice": getattr(appointment, "final_price", 0),
-            "appointmentType": getattr(appointment, "appointment_type", "VISIT")
+            "appointmentType": getattr(appointment, "appointment_type", "VISIT"),
+            "notes": [
+                {
+                    "source": n.source.value,
+                    "message": n.message,
+                    "type": n.type.value,
+                    "createdAt": n.created_at.isoformat() if hasattr(n.created_at, "isoformat") else n.created_at,
+                }
+                for n in (appointment.notes or [])
+            ],
         }
+
+    def add_patient_note(self, appointment_id: str, patient_id: str, message: str) -> dict:
+        try:
+            oid = ObjectId(appointment_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний ID")
+
+        appointment = self.appointment_repository.get_by_id(oid)
+        if not appointment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
+
+        if str(appointment.patient_id) != patient_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Не ваш прийом")
+
+        if appointment.status.value not in ["PLANNED", "RESERVED"]:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Не можна додати нотатку до завершеного прийому")
+
+        note = {
+            "source": "PATIENT",
+            "message": message,
+            "type": "SPECIFICATION",
+            "createdAt": datetime.now(timezone.utc),
+        }
+        self.appointment_repository.add_note(oid, note)
+        return {"status": "ok", "note": note}
+
+    def add_doctor_receipt(self, appointment_id: str, doctor_id: str, message: str) -> dict:
+        try:
+            oid = ObjectId(appointment_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний ID")
+
+        appointment = self.appointment_repository.get_by_id(oid)
+        if not appointment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
+
+        if str(appointment.doctor_id) != doctor_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Не ваш прийом")
+
+        if appointment.status.value != "FINISHED":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Рецепт можна додати тільки до FINISHED прийому")
+
+        note = {
+            "source": "DOCTOR",
+            "message": message,
+            "type": "RECEIPT",
+            "createdAt": datetime.now(timezone.utc),
+        }
+        self.appointment_repository.add_note(oid, note)
+        return {"status": "ok", "note": note}
 
 
 

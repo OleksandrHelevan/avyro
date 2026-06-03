@@ -1,8 +1,23 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 from bson import ObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
+
+class NoteSource(str, Enum):
+    PATIENT = "PATIENT"
+    DOCTOR = "DOCTOR"
+
+class NoteType(str, Enum):
+    SPECIFICATION = "SPECIFICATION"
+    RECEIPT = "RECEIPT"
+
+class AppointmentNote(BaseModel):
+    source: NoteSource
+    message: str
+    type: NoteType
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 
 
 class AppointmentStatus(Enum):
@@ -32,6 +47,8 @@ class Appointment(BaseModel):
     final_price: float = 0.0
     appointment_type: str = "VISIT"
     booked_at: Optional[datetime] = None
+    notes: List[AppointmentNote] = Field(default_factory=list)
+
 
     def to_dict(self) -> dict:
         now = datetime.now(timezone.utc)
@@ -49,15 +66,36 @@ class Appointment(BaseModel):
             "finalPrice": self.final_price,
             "appointmentType": self.appointment_type,
             "bookedAt": self.booked_at or now,
+            "notes": [
+                {
+                    "source": n.source.value,
+                    "message": n.message,
+                    "type": n.type.value,
+                    "createdAt": n.created_at,
+                }
+                for n in self.notes
+            ],
         }
         if self.id:
             data["_id"] = self.id
         return data
 
     @staticmethod
+    @staticmethod
     def from_dict(data: dict) -> Optional["Appointment"]:
         if not data:
             return None
+        notes = []
+        for n in data.get("notes", []):
+            try:
+                notes.append(AppointmentNote(
+                    source=NoteSource(n.get("source", "PATIENT")),
+                    message=n.get("message", ""),
+                    type=NoteType(n.get("type", "SPECIFICATION")),
+                    created_at=n.get("createdAt", datetime.now(timezone.utc)),
+                ))
+            except Exception:
+                pass
         return Appointment(
             id=data.get("_id"),
             patient_id=data.get("patientId"),
@@ -68,4 +106,5 @@ class Appointment(BaseModel):
             status=AppointmentStatus(data.get("status", "PLANNED")),
             created_at=data.get("createdAt"),
             updated_at=data.get("updatedAt"),
+            notes=notes,
         )
