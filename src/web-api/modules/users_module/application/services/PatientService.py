@@ -204,3 +204,15 @@ class PatientService:
 
     def get_user_by_email(self, email: str):
         return self.user_repository.get_by_email(email)
+
+    def get_all_users(self) -> list:
+        users = self.user_repository.get_all_non_admin()
+        result = []
+        for user in users:
+            result.append({
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role.value if hasattr(user.role, "value") else user.role,
+                "fullName": getattr(user.profile, "full_name", None) if user.profile else None,
+            })
+        return result

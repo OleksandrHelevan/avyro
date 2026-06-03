@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class CreateNotificationRequest(BaseModel):
     message: str
-    recipient_id: Optional[str] = None  # None = надіслати всім
+    recipient_id: Optional[str] = None
 
 
 class NotificationResponse(BaseModel):
@@ -14,6 +14,8 @@ class NotificationResponse(BaseModel):
     is_read: bool
     sent_at: datetime
     recipient_id: Optional[str] = None
+    appointment_id: Optional[str] = None
+    notification_type: Optional[str] = None
 
 
 class NotificationsListResponse(BaseModel):

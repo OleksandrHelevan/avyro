@@ -86,22 +86,29 @@ def get_account_service() -> AccountService:
         stripe_service=StripeService()
     )
 
+
 def get_appointment_service() -> AppointmentService:
+    from modules.notifications_module.application.service.NotificationService import NotificationService
+
     appointment_repo = AppointmentRepository(db["Appointments"])
     schedule_repo = ScheduleRepository(db["Schedules"])
     slot_repo = SlotRepository(db["Schedules"])
+    notification_service = NotificationService()
     account_service = AccountService(
-        AccountRepository(db["Accounts"]),
-        StripeService()
+        account_repo=AccountRepository(db["Accounts"]),
+        stripe_service=StripeService()
     )
-    reward_repo = RewardRepository(db["Rewards"])  # ← додати
+    user_repo = UserRepository(db["Users"])
+
     return AppointmentService(
         appointment_repo,
         schedule_repo,
         slot_repo,
         account_service,
-        reward_repo  # ← додати
+        notification_service,
+        user_repo,
     )
+
 
 
 
