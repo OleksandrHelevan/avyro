@@ -1,11 +1,12 @@
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Bell, Send, Users, User, Loader2, MessageSquare } from "lucide-react";
 
-// 🚀 Перевір шлях до твого apiClient!
 import "./AdminSendNotification.css";
-import {apiClient} from "../../services/apiClient.ts";
+import { apiClient } from "../../services/apiClient.ts";
+// 🚀 Перевірте, чи правильний шлях до userService у вашому проєкті!
+import { userService } from "../../domains/users/service/userService.ts";
 
 interface NotificationForm {
   sendMode: "all" | "single";
@@ -24,14 +25,18 @@ export default function AdminSendNotification() {
 
   const sendMode = watch("sendMode");
 
+  // 🚀 Стягуємо всіх користувачів для випадаючого списку
+  const { data: allUsers = [], isLoading: isUsersLoading } = useQuery({
+    queryKey: ["adminAllUsers"],
+    queryFn: () => userService.getAllUsers(),
+  });
+
   const { mutate: sendNotification, isPending } = useMutation({
     mutationFn: async (data: { message: string; recipient_id: string | null }) => {
-      // Робимо POST запит на ендпоінт зі скриншота
       return apiClient.post('/admin/notification', data);
     },
     onSuccess: () => {
       toast.success("Сповіщення успішно надіслано!");
-      // Очищаємо поле повідомлення, але залишаємо обраний режим
       reset({ message: "", recipientId: "", sendMode });
     },
     onError: (error: any) => {
@@ -40,7 +45,6 @@ export default function AdminSendNotification() {
   });
 
   const onSubmit = (data: NotificationForm) => {
-    // Якщо вибрано "всім" - відправляємо null (None), інакше - ID юзера
     const payload = {
       message: data.message.trim(),
       recipient_id: data.sendMode === "all" ? null : data.recipientId.trim(),
@@ -93,24 +97,37 @@ export default function AdminSendNotification() {
                 <User size={24} className="radio-icon" />
                 <div className="radio-content">
                   <h4>Конкретному юзеру</h4>
-                  <p>За ID користувача</p>
+                  <p>Оберіть зі списку</p>
                 </div>
               </label>
             </div>
           </div>
 
-          {/* ПОЛЕ ДЛЯ ID (Показується тільки якщо вибрано "Конкретному юзеру") */}
+          {/* 🚀 ДРОПДАУН ДЛЯ ВИБОРУ КОРИСТУВАЧА */}
           {sendMode === "single" && (
             <div className="form-group slide-down">
-              <label>ID Користувача (recipient_id)</label>
-              <input
-                type="text"
-                placeholder="Введіть унікальний ID..."
-                {...register("recipientId", {
-                  required: sendMode === "single" ? "ID користувача обов'язковий" : false
-                })}
-                className={`custom-input ${errors.recipientId ? "input-error" : ""}`}
-              />
+              <label>Оберіть користувача</label>
+              {isUsersLoading ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px", color: "#6b7280" }}>
+                  <Loader2 className="animate-spin" size={16} /> Завантаження списку...
+                </div>
+              ) : (
+                <select
+                  {...register("recipientId", {
+                    required: sendMode === "single" ? "Оберіть користувача обов'язково" : false
+                  })}
+                  className={`custom-input ${errors.recipientId ? "input-error" : ""}`}
+                  // Додаємо трохи стилів, щоб select виглядав як input
+                  style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #d1d5db", backgroundColor: "white", cursor: "pointer" }}
+                >
+                  <option value="">-- Оберіть користувача зі списку --</option>
+                  {allUsers.map((user: any) => (
+                    <option key={user._id || user.id} value={user._id || user.id}>
+                      {user.fullName || "Без імені"} ({user.email}) — [{user.role}]
+                    </option>
+                  ))}
+                </select>
+              )}
               {errors.recipientId && <span className="error-text">{errors.recipientId.message}</span>}
             </div>
           )}

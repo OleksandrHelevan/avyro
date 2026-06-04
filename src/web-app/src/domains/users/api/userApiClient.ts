@@ -23,7 +23,8 @@ export const userApiClient = {
 
   getAllDoctors: async () =>
     apiClient.get<DoctorListItem[]>('/users/doctors'),
-
+  getAllUsers: async () =>
+    apiClient.get<any[]>('/users'),
   getDoctorById: async (id: string) =>
     apiClient.get<GetDoctorResponse>(`/users/doctors/${id}`),
 
