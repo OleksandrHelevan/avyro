@@ -1,22 +1,15 @@
-from venv import create
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
+from datetime import datetime, timezone
 
 from modules.appointments_module.domains.appointment.Appointment import Appointment
 from modules.appointments_module.domains.slot.Slot import SlotType
 from modules.appointments_module.infrastructure.persistence import SlotRepository
-from modules.appointments_module.application.dto.CreateAppointmentRequest import CreateAppointmentRequest
 from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
-from modules.appointments_module.domains.schedule.Schedule import Schedule
-from modules.appointments_module.domains.slot.Slot import Slot
-from datetime import datetime, timezone
 from modules.users_module.domains.reward.Reward import Reward, RewardType, RewardSource
 from modules.users_module.infrastructure.persistence.RewardRepository import RewardRepository
-from modules.notifications_module.application.service.NotificationService import NotificationService
-
 
 
 class AppointmentService:
@@ -27,10 +20,8 @@ class AppointmentService:
         slot_repository: SlotRepository,
         account_service=None,
         reward_repository: RewardRepository = None,
-    notification_service=None,
-    user_repository=None,
-
-
+        notification_service=None,
+        user_repository=None,
     ):
         self.appointment_repository = appointment_repository
         self.schedule_repository = schedule_repository
@@ -40,7 +31,6 @@ class AppointmentService:
         self.notification_service = notification_service
         self.user_repository = user_repository
 
-    # Додали doctor_id в аргументи
     async def book_appointment(self, doctor_id: str, slot_id: str, patient_id: str, dto) -> dict:
         try:
             doctor_oid = ObjectId(doctor_id)
@@ -52,11 +42,6 @@ class AppointmentService:
                 detail="Невалідний формат ID"
             )
 
-        target_slot = self.slot_repository.get_by_id(slot_id)
-
-
-
-        # 1. Знаходимо всі розклади цього лікаря
         schedules = self.schedule_repository.get_by_doctor_id(doctor_oid)
         if not schedules:
             raise HTTPException(
@@ -64,19 +49,17 @@ class AppointmentService:
                 detail="Розклад для цього лікаря не знайдено"
             )
 
-        # 2. Шукаємо потрібний слот у знайдених розкладах
         target_schedule = None
         target_slot = None
 
         for schedule in schedules:
             for slot in schedule.slots:
-                # Надійно порівнюємо через string
                 if str(slot.id) == str(slot_oid):
                     target_schedule = schedule
                     target_slot = slot
                     break
             if target_slot:
-                break # Якщо знайшли, виходимо з зовнішнього циклу
+                break
 
         if not target_slot or not target_schedule:
             raise HTTPException(
@@ -84,7 +67,6 @@ class AppointmentService:
                 detail="Слот не знайдено в розкладах лікаря"
             )
 
-        # 3. Перевіряємо доступність слота
         if target_slot.slot_type != SlotType.AVAILABLE:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -92,13 +74,11 @@ class AppointmentService:
             )
 
         price = target_schedule.price_per_slot
-
         final_price = price
         if dto.is_discount_used and dto.discount > 0:
             final_price = price * (1 - dto.discount / 100)
 
-
-        # 4. Створюємо апойнтмент
+        # Створення об'єкта Appointment
         appointment = Appointment(
             patient_id=patient_oid,
             slot_id=slot_oid,
@@ -108,17 +88,25 @@ class AppointmentService:
             base_price=price,
             discount=dto.discount,
             is_discount_used=dto.is_discount_used,
-            final_price=round(final_price, 2)
+            final_price=round(final_price, 2),
+            notes=[]
         )
         created = self.appointment_repository.create(appointment)
 
-        # 5. Блокуємо слот у правильному розкладі
         self.schedule_repository.book_slot(
             schedule_id=target_schedule.id,
             slot_id=slot_oid,
             appointment_id=created.id
         )
 
+        # Безпечна конвертація часу для сповіщень
+        from_time = target_slot.from_time
+        if isinstance(from_time, str):
+            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
+
+        formatted_time = from_time.strftime("%d/%m/%Y %H:%M") if isinstance(from_time, datetime) else "невідомий час"
+
+        # Додавання початкової нотатки, якщо вона є в DTO
         if hasattr(dto, 'note') and dto.note:
             note = {
                 "source": "PATIENT",
@@ -128,17 +116,7 @@ class AppointmentService:
             }
             self.appointment_repository.add_note(created.id, note)
 
-        # Форматуємо дату
-        from_time = target_slot.from_time
-        if from_time:
-            formatted_time = from_time.strftime("%d/%m/%Y %H:%M")
-        else:
-            formatted_time = "невідомий час"
-
-        # Асинхронні сповіщення
         if self.notification_service:
-            # Лікар отримує ПІБ пацієнта — треба дістати з БД
-            # Поки що використовуємо ID, фронт може підтягнути деталі
             self.notification_service.send_appointment_notification(
                 recipient_id=str(doctor_oid),
                 message=f"До вас записався пацієнт на {formatted_time}",
@@ -150,14 +128,9 @@ class AppointmentService:
                 appointment_id=str(created.id),
             )
 
-        # 6. Оплата візиту
         if self.account_service and final_price > 0:
             try:
-                # Отримуємо поточні бали пацієнта
-                points_available = 0
-                if self.reward_repository:
-                    points_available = self.reward_repository.get_total_points(patient_oid)
-
+                points_available = self.reward_repository.get_total_points(patient_oid) if self.reward_repository else 0
                 payment = await self.account_service.pay_for_appointment_combined(
                     patient_id=patient_id,
                     appointment_id=str(created.id),
@@ -166,119 +139,70 @@ class AppointmentService:
                     points_available=points_available,
                 )
 
-                # Списуємо бали якщо використовувались
-                if self.reward_repository and payment["points_used"] > 0:
+                if self.reward_repository and payment.get("points_used", 0) > 0:
                     self.reward_repository.spend_points(
                         patient_id=patient_oid,
                         points=payment["points_used"],
                         description=f"Оплата візиту {str(created.id)}"
                     )
 
-                self.appointment_repository.update_payment_status(
-                    created.id, "PAID", payment.get("invoice_id")
-                )
+                self.appointment_repository.update_payment_status(created.id, "PAID", payment.get("invoice_id"))
                 created.payment_status = "PAID"
-
             except ValueError as e:
                 self.appointment_repository.delete(created.id)
-                self.schedule_repository.unbook_slot(
-                    schedule_id=target_schedule.id,
-                    slot_id=slot_oid
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                    detail=str(e)
-                )
+                self.schedule_repository.unbook_slot(schedule_id=target_schedule.id, slot_id=slot_oid)
+                raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))
 
-
+        return {"appointment_id": str(created.id)}
 
     def get_appointment_by_id(self, appointment_id: str) -> dict:
         try:
             oid = ObjectId(appointment_id)
         except (InvalidId, TypeError):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний формат ID"
-            )
-
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
         appointment = self.appointment_repository.get_by_id(oid)
-
         if not appointment:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Запис не знайдено"
-            )
-
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Запис не знайдено")
         return self._format_appointment(appointment)
 
     def get_appointments_by_patient_id(self, patient_id: str) -> list[dict]:
         try:
             oid = ObjectId(patient_id)
         except (InvalidId, TypeError):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний формат ID пацієнта"
-            )
-
-        appointments = self.appointment_repository.get_by_patient_id(oid)
-        return [self._format_appointment(app) for app in appointments]
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID пацієнта")
+        return [self._format_appointment(app) for app in self.appointment_repository.get_by_patient_id(oid)]
 
     def get_appointments_by_doctor_id(self, doctor_id: str) -> list[dict]:
         try:
             oid = ObjectId(doctor_id)
         except (InvalidId, TypeError):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний формат ID лікаря"
-            )
-
-        appointments = self.appointment_repository.get_by_doctor_id(oid)
-        return [self._format_appointment(app) for app in appointments]
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID лікаря")
+        return [self._format_appointment(app) for app in self.appointment_repository.get_by_doctor_id(oid)]
 
     def finish_appointment(self, appointment_id: str, doctor_id: str) -> dict:
         try:
             oid = ObjectId(appointment_id)
         except (InvalidId, TypeError):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Невалідний формат ID"
-            )
-
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
         appointment = self.appointment_repository.get_by_id(oid)
         if not appointment:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Прийом не знайдено"
-            )
-
-        # Перевіряємо що лікар є власником цього прийому
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
         if str(appointment.doctor_id) != doctor_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Ви не є лікарем цього прийому"
-            )
-
-        # Можна завершити тільки RESERVED прийом
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
         if appointment.status.value != "RESERVED":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}")
 
-        # Перевіряємо що прийом вже почався
-        now = datetime.now(timezone.utc)
+        # Безпечна конвертація часу завершення
         from_time = appointment.from_time
-        if from_time and from_time.tzinfo is None:
-            from_time = from_time.replace(tzinfo=timezone.utc)
+        if isinstance(from_time, str):
+            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
 
-        if now < from_time:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Прийом ще не почався"
-            )
+        now = datetime.now(timezone.utc)
+        if now < from_time.replace(tzinfo=timezone.utc):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Прийом ще не почався")
 
         self.appointment_repository.update_status(oid, "FINISHED")
-
         if self.reward_repository and appointment.patient_id:
             if not self.reward_repository.has_first_visit_bonus(appointment.patient_id):
                 reward = Reward(
@@ -292,6 +216,7 @@ class AppointmentService:
         return {"status": "FINISHED", "appointment_id": appointment_id}
 
     def _format_appointment(self, appointment: Appointment) -> dict:
+        notes = getattr(appointment, "notes", [])
         return {
             "_id": str(appointment.id),
             "patientId": str(appointment.patient_id),
@@ -300,73 +225,37 @@ class AppointmentService:
             "from": appointment.from_time.isoformat() if hasattr(appointment.from_time,
                                                                  "isoformat") else appointment.from_time,
             "to": appointment.to_time.isoformat() if hasattr(appointment.to_time, "isoformat") else appointment.to_time,
-            "status": appointment.status.value,
+            "status": appointment.status.value if hasattr(appointment.status, "value") else appointment.status,
             "paymentStatus": getattr(appointment, "payment_status", "PENDING"),
             "basePrice": getattr(appointment, "base_price", 0),
             "finalPrice": getattr(appointment, "final_price", 0),
             "appointmentType": getattr(appointment, "appointment_type", "VISIT"),
             "notes": [
                 {
-                    "source": n.source.value,
+                    "source": n.source.value if hasattr(n.source, "value") else n.source,
                     "message": n.message,
-                    "type": n.type.value,
+                    "type": n.type.value if hasattr(n.type, "value") else n.type,
                     "createdAt": n.created_at.isoformat() if hasattr(n.created_at, "isoformat") else n.created_at,
                 }
-                for n in (appointment.notes or [])
+                for n in notes
             ],
         }
 
     def add_patient_note(self, appointment_id: str, patient_id: str, message: str) -> dict:
-        try:
-            oid = ObjectId(appointment_id)
-        except (InvalidId, TypeError):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний ID")
-
+        oid = ObjectId(appointment_id)
         appointment = self.appointment_repository.get_by_id(oid)
-        if not appointment:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
-
-        if str(appointment.patient_id) != patient_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Не ваш прийом")
-
-        if appointment.status.value not in ["PLANNED", "RESERVED"]:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Не можна додати нотатку до завершеного прийому")
-
-        note = {
-            "source": "PATIENT",
-            "message": message,
-            "type": "SPECIFICATION",
-            "createdAt": datetime.now(timezone.utc),
-        }
+        if not appointment or str(appointment.patient_id) != patient_id:
+            raise HTTPException(status_code=404, detail="Прийом не знайдено або доступ заборонено")
+        note = {"source": "PATIENT", "message": message, "type": "SPECIFICATION",
+                "createdAt": datetime.now(timezone.utc)}
         self.appointment_repository.add_note(oid, note)
         return {"status": "ok", "note": note}
 
     def add_doctor_receipt(self, appointment_id: str, doctor_id: str, message: str) -> dict:
-        try:
-            oid = ObjectId(appointment_id)
-        except (InvalidId, TypeError):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний ID")
-
+        oid = ObjectId(appointment_id)
         appointment = self.appointment_repository.get_by_id(oid)
-        if not appointment:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
-
-        if str(appointment.doctor_id) != doctor_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Не ваш прийом")
-
-        if appointment.status.value != "FINISHED":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Рецепт можна додати тільки до FINISHED прийому")
-
-        note = {
-            "source": "DOCTOR",
-            "message": message,
-            "type": "RECEIPT",
-            "createdAt": datetime.now(timezone.utc),
-        }
+        if not appointment or str(appointment.doctor_id) != doctor_id:
+            raise HTTPException(status_code=404, detail="Прийом не знайдено або доступ заборонено")
+        note = {"source": "DOCTOR", "message": message, "type": "RECEIPT", "createdAt": datetime.now(timezone.utc)}
         self.appointment_repository.add_note(oid, note)
         return {"status": "ok", "note": note}
-
-
-

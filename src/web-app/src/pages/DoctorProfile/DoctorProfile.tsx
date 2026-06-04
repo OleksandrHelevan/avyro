@@ -86,7 +86,6 @@ export default function DoctorProfile() {
     navigate("/login");
   };
 
-  // Підготовка опцій для SelectInput
   const specializationOptions = specializations?.map((spec: any) => ({
     value: spec.id || spec._id,
     label: spec.name,
@@ -113,7 +112,6 @@ export default function DoctorProfile() {
               <span>Баланс</span>
             </button>
 
-            {/* ── Inline balance widget ── */}
             <WalletSidebarCard/>
           </div>
         </aside>

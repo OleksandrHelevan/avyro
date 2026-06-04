@@ -64,6 +64,17 @@ class AppointmentRepository:
         return result.deleted_count > 0
 
     def add_note(self, appointment_id: ObjectId, note: dict) -> bool:
+        self.collection.update_one(
+            {
+                "_id": appointment_id,
+                "$or": [
+                    {"notes": {"$exists": False}},
+                    {"notes": None}
+                ]
+            },
+            {"$set": {"notes": []}}
+        )
+
         result = self.collection.update_one(
             {"_id": appointment_id},
             {
@@ -72,4 +83,3 @@ class AppointmentRepository:
             }
         )
         return result.modified_count > 0
-
