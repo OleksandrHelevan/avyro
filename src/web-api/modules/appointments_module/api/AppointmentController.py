@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
+from typing import Optional
+
 
 from config.dependencies import get_appointment_service
 from config.permissions import RoleChecker, allow_patient, allow_doctor
@@ -13,6 +15,41 @@ class BookAppointmentRequest(BaseModel):
     slotId: str
     discount: float = 0.0
     is_discount_used: bool = False
+    note: Optional[str] = None
+
+
+class AddNoteRequest(BaseModel):
+    message: str
+
+
+router.post("/{appointment_id}/notes/specification", status_code=status.HTTP_201_CREATED)
+async def add_patient_note(
+    appointment_id: str,
+    body: AddNoteRequest,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(allow_patient)
+):
+    """Пацієнт додає опис проблеми"""
+    return service.add_patient_note(
+        appointment_id=appointment_id,
+        patient_id=str(current_user["sub"]),
+        message=body.message,
+    )
+
+
+@router.post("/{appointment_id}/notes/receipt", status_code=status.HTTP_201_CREATED)
+async def add_doctor_receipt(
+    appointment_id: str,
+    body: AddNoteRequest,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(allow_doctor)
+):
+    """Лікар додає рецепт після завершення прийому"""
+    return service.add_doctor_receipt(
+        appointment_id=appointment_id,
+        doctor_id=str(current_user["sub"]),
+        message=body.message,
+    )
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)

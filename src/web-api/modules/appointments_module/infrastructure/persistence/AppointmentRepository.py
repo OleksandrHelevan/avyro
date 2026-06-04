@@ -62,3 +62,14 @@ class AppointmentRepository:
     def delete(self, appointment_id: ObjectId) -> bool:
         result = self.collection.delete_one({"_id": appointment_id})
         return result.deleted_count > 0
+
+    def add_note(self, appointment_id: ObjectId, note: dict) -> bool:
+        result = self.collection.update_one(
+            {"_id": appointment_id},
+            {
+                "$push": {"notes": note},
+                "$set": {"updatedAt": datetime.utcnow()}
+            }
+        )
+        return result.modified_count > 0
+
