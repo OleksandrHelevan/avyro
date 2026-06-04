@@ -1,8 +1,5 @@
 from pydantic import BaseModel, Field
 from .RepeatingConfigDTO import RepeatingConfigDTO
-from typing import Optional
-from datetime import datetime
-
 
 class CreateScheduleDTO(BaseModel):
     doctorId: str

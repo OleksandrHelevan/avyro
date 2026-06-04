@@ -18,15 +18,12 @@ class AppointmentNote(BaseModel):
     type: NoteType
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-
-
 class AppointmentStatus(Enum):
     PLANNED = "PLANNED"
     RESERVED = "RESERVED"
     FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
     COMPLETED = "COMPLETED"
-
 
 class Appointment(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
@@ -48,7 +45,6 @@ class Appointment(BaseModel):
     appointment_type: str = "VISIT"
     booked_at: Optional[datetime] = None
     notes: List[AppointmentNote] = Field(default_factory=list)
-
 
     def to_dict(self) -> dict:
         now = datetime.now(timezone.utc)
@@ -81,12 +77,11 @@ class Appointment(BaseModel):
         return data
 
     @staticmethod
-    @staticmethod
     def from_dict(data: dict) -> Optional["Appointment"]:
         if not data:
             return None
         notes = []
-        for n in data.get("notes", []):
+        for n in data.get("notes") or []:
             try:
                 notes.append(AppointmentNote(
                     source=NoteSource(n.get("source", "PATIENT")),

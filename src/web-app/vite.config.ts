@@ -10,13 +10,12 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-    host: true, // Дозволяє доступ по IP в локальній мережі
+    host: true,
     proxy: {
-      // 🚀 МАГІЯ CORS: перехоплюємо всі запити, що починаються на /api
       '/api': {
-        target: 'https://avyro.onrender.com', // Реальна адреса бекенду Сані
-        changeOrigin: true,                   // Підміняємо Origin, щоб бекенд не блокував запит
-        rewrite: (path) => path.replace(/^\/api/, '') // Відрізаємо '/api' перед відправкою на Onrender
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }

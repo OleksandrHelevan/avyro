@@ -9,7 +9,6 @@ from modules.appointments_module.application.service.SlotService import SlotServ
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
 
-
 class ScheduleService:
     def __init__(self, repository: ScheduleRepository, slot_service: SlotService, request_repository):
         self.repository = repository
@@ -30,7 +29,6 @@ class ScheduleService:
                 detail="Невалідний формат ID лікаря"
             )
 
-        # ВИПРАВЛЕНО: Використовуємо правильний метод
         schedules = self.repository.get_by_doctor_id(doc_oid)
 
         if not schedules:

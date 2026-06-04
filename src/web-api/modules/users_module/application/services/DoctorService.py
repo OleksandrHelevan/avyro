@@ -117,6 +117,7 @@ class DoctorService:
                         "isRepeated": sched.get("isRepeated", False),
                         "repeating": sched.get("repeating", {}),
                         "status": sched.get("status", "PENDING"),
+                        "pricePerSlot": sched.get("pricePerSlot", 0.0),
                         "slots": formatted_slots,
                         "createdAt": sched.get("createdAt"),
                         "updatedAt": sched.get("updatedAt")
@@ -131,7 +132,6 @@ class DoctorService:
                         else:
                             type_val = str(slot_type) if slot_type else None
 
-                        # --- БЕЗПЕЧНА ПЕРЕВІРКА ТИПІВ ДЛЯ ЧАСУ ---
                         from_val = getattr(slot, "from_time", None)
                         if from_val and not isinstance(from_val, str) and hasattr(from_val, "isoformat"):
                             from_val = from_val.isoformat()
@@ -139,7 +139,6 @@ class DoctorService:
                         to_val = getattr(slot, "to_time", None)
                         if to_val and not isinstance(to_val, str) and hasattr(to_val, "isoformat"):
                             to_val = to_val.isoformat()
-                        # ----------------------------------------
 
                         formatted_slots.append({
                             "slotId": str(slot.id) if hasattr(slot, "id") and slot.id else None,
@@ -165,6 +164,7 @@ class DoctorService:
                         "isRepeated": getattr(sched, "is_repeated", False),
                         "repeating": getattr(sched, "repeating", {}),
                         "status": str(status_val),
+                        "pricePerSlot": getattr(sched, "price_per_slot", getattr(sched, "pricePerSlot", 0.0)),
                         "slots": formatted_slots,
                         "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
                         "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else updated_at

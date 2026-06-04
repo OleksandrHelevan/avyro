@@ -21,6 +21,7 @@ class ScheduleResponse(BaseModel):
     isRepeated: bool
     repeating: Dict[str, Any]
     status: str
+    pricePerSlot: float
     slots: List[SlotResponseDTO]
     createdAt: datetime
     updatedAt: datetime
