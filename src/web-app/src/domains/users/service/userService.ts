@@ -39,7 +39,10 @@ export const userService = {
   patchDoctor: async (request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
     return userApiClient.patchDoctor(request);
   },
-
+  getAllUsers: async (): Promise<any[]> => {
+    const response = await userApiClient.getAllUsers();
+    return (response as any).data ?? response;
+  },
   requestSchedule: async (request: ScheduleRequest): Promise<ScheduleResponse> => {
     return userApiClient.requestSchedule(request);
   },
