@@ -24,7 +24,7 @@ export default function PatientAppointmentsPage() {
     return (rawDoctors as any)?.data || (rawDoctors as any)?.items || [];
   }, [rawDoctors]);
 
-  // 3. Форматуємо отримані записи
+  // Форматуємо отримані записи
   const appointments = useMemo(() => {
     const appts = (rawAppointments as any)?.data || (rawAppointments as any)?.items || rawAppointments || [];
     return Array.isArray(appts) ? appts : [];
@@ -80,12 +80,27 @@ export default function PatientAppointmentsPage() {
                   return dId && appt.doctorId && dId.toString() === appt.doctorId.toString();
                 });
 
+                // Витягуємо ID поточного запису
+                const appointmentId = appt._id || appt.id;
+
                 return (
-                  <AppointmentCard
-                    key={appt._id || appt.id || index}
-                    appointment={appt}
-                    doctor={doctor}
-                  />
+                  // Обгортка для кліку та навігації
+                  <div
+                    key={appointmentId || index}
+                    onClick={() => {
+                      if (appointmentId) {
+                        // Змініть цей URL, якщо ваш роут називається інакше
+                        navigate(`/appointments/${appointmentId}`);
+                      }
+                    }}
+                    style={{ cursor: "pointer", display: "block", textDecoration: "none" }}
+                    className="clickable-appointment-card"
+                  >
+                    <AppointmentCard
+                      appointment={appt}
+                      doctor={doctor}
+                    />
+                  </div>
                 );
               })}
             </div>

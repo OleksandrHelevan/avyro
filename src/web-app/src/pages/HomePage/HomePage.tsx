@@ -200,7 +200,6 @@ const HomePage = () => {
                       <p className="spec-text-dark">{displaySpecName}</p>
                       <p className="email-hint"><Mail size={12}/> {doc.email}</p>
                     </div>
-                    <div className="bonus-tag-light">Top Rated</div>
                   </div>
                   <button
                     className="btn-profile-light btn-outline"

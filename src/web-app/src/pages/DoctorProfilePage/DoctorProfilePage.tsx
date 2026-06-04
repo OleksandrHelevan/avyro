@@ -51,7 +51,6 @@ export default function DoctorProfile() {
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return null;
 
     const reversedSchedules = [...schedules].reverse();
-
     return reversedSchedules.find((s: any) => s.status === "APPROVED") || reversedSchedules[0];
   }, [doctor]);
 
@@ -86,63 +85,74 @@ export default function DoctorProfile() {
 
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
-    const allPossibleSlots = [
-      ...(Array.isArray(doctor?.schedule) ? doctor.schedule : []),
-      ...(Array.isArray(activeSchedule?.slots) ? activeSchedule.slots : []),
-      ...(Array.isArray(activeSchedule?.payload?.slots) ? activeSchedule.payload.slots : [])
-    ];
+    let allPossibleSlots: any[] = [];
+    if (Array.isArray(activeSchedule.slots)) allPossibleSlots.push(...activeSchedule.slots);
+    if (Array.isArray(activeSchedule.payload?.slots)) allPossibleSlots.push(...activeSchedule.payload.slots);
+    if (Array.isArray(doctor?.schedule)) {
+      doctor.schedule.forEach((sch: any) => {
+        if (Array.isArray(sch.slots)) allPossibleSlots.push(...sch.slots);
+        if (Array.isArray(sch.payload?.slots)) allPossibleSlots.push(...sch.payload.slots);
+      });
+    }
 
     return allPossibleSlots.find((s: any) => {
-      const timeStr = String(s.from || "");
-      return timeStr.includes(formattedDate) &&
-        timeStr.includes(selectedTime) &&
-        s.type === "AVAILABLE";
+      const timeStr = String(s.from || s.startTime || s.start_time || "");
+      return timeStr.includes(formattedDate) && timeStr.includes(selectedTime);
     });
   }, [selectedDate, selectedTime, activeSchedule, doctor]);
 
   const consultationPrice = useMemo(() => {
     if (!selectedTime) return null;
 
-    if (selectedSlotData && (selectedSlotData.pricePerSlot || selectedSlotData.price)) {
-      return selectedSlotData.pricePerSlot || selectedSlotData.price;
+    if (selectedSlotData) {
+      const slotPrice = selectedSlotData.price ?? selectedSlotData.pricePerSlot ?? selectedSlotData.price_per_slot ?? selectedSlotData.cost;
+      if (slotPrice !== undefined && slotPrice !== null) return slotPrice;
     }
 
-    const schedulePrice = activeSchedule?.pricePerSlot
-      || activeSchedule?.price
-      || activeSchedule?.payload?.pricePerSlot
-      || activeSchedule?.payload?.price;
+    const schedulePrice = activeSchedule?.price ?? activeSchedule?.pricePerSlot ?? activeSchedule?.price_per_slot ?? activeSchedule?.payload?.price ?? activeSchedule?.payload?.pricePerSlot;
+    if (schedulePrice !== undefined && schedulePrice !== null) return schedulePrice;
 
-    const finalPrice = schedulePrice || doctor?.pricePerSlot || doctor?.price || doctor?.consultationPrice;
+    const doctorPrice = doctor?.price ?? doctor?.pricePerSlot ?? doctor?.consultationPrice ?? doctor?.fee;
+    if (doctorPrice !== undefined && doctorPrice !== null) return doctorPrice;
 
-    return finalPrice || null;
+    return null; // Поки бекенд не надсилає ціну, буде null
   }, [selectedSlotData, activeSchedule, selectedTime, doctor]);
 
   const handleBooking = () => {
     if (!selectedSlotData) {
-      toast.error(`Помилка: Цей час вже зайнятий або недоступний.`);
+      toast.error(`Помилка: Цей час вже зайнятий або не має унікального ID.`);
       return;
     }
 
     const slotIdToBook = selectedSlotData.slotId || selectedSlotData.id || selectedSlotData._id;
+    const doctorIdToBook = doctor?._id || doctor?.id || id; // 🚀 Отримуємо ID лікаря
 
     if (!slotIdToBook) {
       toast.error(`Помилка: Не знайдено ідентифікатор слота.`);
       return;
     }
 
+    if (!doctorIdToBook) {
+      toast.error(`Помилка: Не знайдено ідентифікатор лікаря.`);
+      return;
+    }
+
+    // 🚀 ВІДПРАВЛЯЄМО slotId ТА doctorId
     bookAppointment(
       {
         slotId: slotIdToBook,
+        doctorId: doctorIdToBook,
+        // Якщо бекенд не падає від pricePerSlot, можемо залишити, але головне - doctorId
         pricePerSlot: consultationPrice
       } as any,
       {
         onSuccess: () => {
           setSelectedTime(null);
-          toast.success("Ви успішно записані!");
+          // Тост про успіх вже показується всередині useCreateAppointment
         },
         onError: (err: any) => {
-          const errorMessage = err?.response?.data?.message || err?.message || "";
-          if (errorMessage.includes("INSUFFICIENT_FUNDS") || err?.response?.status === 402) {
+          const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || "";
+          if (errorMessage.includes("INSUFFICIENT_FUNDS") || errorMessage.includes("balance") || err?.response?.status === 402) {
             toast.error("Недостатньо коштів на балансі. Будь ласка, поповніть гаманець.");
             setShowTopUpModal(true);
           } else {
@@ -162,12 +172,6 @@ export default function DoctorProfile() {
         <div className="light-blob blob-2"></div>
       </div>
 
-      <div className="floating-icons-container">
-        <div className="floating-icon icon-1">💙</div>
-        <div className="floating-icon icon-2">✨</div>
-        <div className="floating-icon icon-3">👨‍⚕️</div>
-      </div>
-
       <div className="booking-wrapper">
         <button className="nav-back-btn" onClick={() => navigate(-1)}>
           <ArrowLeft size={18} /> Назад
@@ -182,7 +186,7 @@ export default function DoctorProfile() {
             />
           </div>
           <div className="doctor-details">
-            <h2>{doctor?.fullName || doctor?.full_name || "Спеціаліст"}</h2>
+            <h2>{doctor?.fullName || "Спеціаліст"}</h2>
             <p><Mail size={14} /> {doctor?.email || "doctor@avyro.com"}</p>
           </div>
         </div>
@@ -195,21 +199,7 @@ export default function DoctorProfile() {
 
           {!activeSchedule ? (
             <div className="no-schedule-state">
-              <p className="no-schedule-title">
-                У цього спеціаліста наразі немає доступних годин для запису.
-              </p>
-              <p className="no-schedule-desc">
-                Не хвилюйтеся! У нас є інші чудові фахівці цього профілю.
-              </p>
-              <button
-                className="confirm-booking-btn find-other-doctors-btn"
-                onClick={() => {
-                  const spec = doctor?.specializationName || "Усі";
-                  navigate(`/?spec=${encodeURIComponent(spec)}`);
-                }}
-              >
-                Знайти схожих лікарів
-              </button>
+              <p className="no-schedule-title">У цього спеціаліста наразі немає доступних годин.</p>
             </div>
           ) : (
             <>
@@ -260,42 +250,35 @@ export default function DoctorProfile() {
 
               {selectedTime && (
                 <div className="price-display">
-                  {consultationPrice ? (
+                  {consultationPrice !== null ? (
                     `Вартість прийому: ${consultationPrice} ₴`
                   ) : (
-                    <span className="price-error-text">Ціна не вказана для цього часу</span>
+                    <span className="price-warning-text" style={{ color: "#f59e0b", fontSize: "14px" }}>
+                      Ціна уточнюється, але ви можете записатися
+                    </span>
                   )}
                 </div>
               )}
 
+              {/* 🚀 КНОПКА РОЗБЛОКОВАНА ДЛЯ ТЕСТУВАННЯ */}
               <button
                 className="confirm-booking-btn"
-                disabled={!selectedTime || isBooking || (selectedTime !== null && !consultationPrice)}
+                disabled={!selectedTime || isBooking}
                 onClick={handleBooking}
               >
                 {isBooking ? (
                   <span> Записуємось <Loader className={"inline-loader"}/></span>
                 ) : !selectedTime ? (
                   "Оберіть час візиту"
-                ) : !consultationPrice ? (
-                  "Неможливо записатися (немає ціни)"
                 ) : (
                   "Оплатити та Записатися"
                 )}
               </button>
-
-              {selectedTime && consultationPrice && (
-                <p className="payment-info">Кошти будуть списані з вашого внутрішнього гаманця</p>
-              )}
             </>
           )}
         </div>
       </div>
-
-      <TopUpModal
-        isOpen={showTopUpModal}
-        onClose={() => setShowTopUpModal(false)}
-      />
+      <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
     </div>
   );
 }
