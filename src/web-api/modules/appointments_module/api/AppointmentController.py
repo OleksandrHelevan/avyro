@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from typing import Optional
 
-
 from config.dependencies import get_appointment_service
-from config.permissions import RoleChecker, allow_patient, allow_doctor
+from config.permissions import allow_patient, allow_doctor
+from config.security import get_current_user
 from modules.appointments_module.application.service.AppointmentService import AppointmentService
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
-# Додаємо doctorId у запит
+
 class BookAppointmentRequest(BaseModel):
     doctorId: str
     slotId: str
@@ -20,36 +20,6 @@ class BookAppointmentRequest(BaseModel):
 
 class AddNoteRequest(BaseModel):
     message: str
-
-
-router.post("/{appointment_id}/notes/specification", status_code=status.HTTP_201_CREATED)
-async def add_patient_note(
-    appointment_id: str,
-    body: AddNoteRequest,
-    service: AppointmentService = Depends(get_appointment_service),
-    current_user: dict = Depends(allow_patient)
-):
-    """Пацієнт додає опис проблеми"""
-    return service.add_patient_note(
-        appointment_id=appointment_id,
-        patient_id=str(current_user["sub"]),
-        message=body.message,
-    )
-
-
-@router.post("/{appointment_id}/notes/receipt", status_code=status.HTTP_201_CREATED)
-async def add_doctor_receipt(
-    appointment_id: str,
-    body: AddNoteRequest,
-    service: AppointmentService = Depends(get_appointment_service),
-    current_user: dict = Depends(allow_doctor)
-):
-    """Лікар додає рецепт після завершення прийому"""
-    return service.add_doctor_receipt(
-        appointment_id=appointment_id,
-        doctor_id=str(current_user["sub"]),
-        message=body.message,
-    )
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -63,7 +33,6 @@ async def book_appointment(
         slot_id=body.slotId,
         patient_id=str(current_user["sub"]),
         dto=body
-
     )
 
 
@@ -72,8 +41,7 @@ async def get_my_patient_appointments(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(allow_patient)
 ):
-    patient_id = str(current_user["sub"])
-    return service.get_appointments_by_patient_id(patient_id)
+    return service.get_appointments_by_patient_id(str(current_user["sub"]))
 
 
 @router.get("/doctor/me", status_code=status.HTTP_200_OK)
@@ -81,17 +49,36 @@ async def get_my_doctor_appointments(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(allow_doctor)
 ):
-    doctor_id = str(current_user["sub"])
-    return service.get_appointments_by_doctor_id(doctor_id)
+    return service.get_appointments_by_doctor_id(str(current_user["sub"]))
+
+
+@router.post("/{appointment_id}/note", status_code=status.HTTP_201_CREATED)
+async def add_note(
+    appointment_id: str,
+    body: AddNoteRequest,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Пацієнт → тип SPECIFICATION
+    Лікар   → тип RECEIPT
+    """
+    return service.add_note(
+        appointment_id=appointment_id,
+        user_id=str(current_user["sub"]),
+        role=str(current_user.get("role", "")),
+        message=body.message,
+    )
 
 
 @router.get("/{appointment_id}", status_code=status.HTTP_200_OK)
 async def get_appointment(
     appointment_id: str,
     service: AppointmentService = Depends(get_appointment_service),
-    current_user: dict = Depends(allow_patient)
+    current_user: dict = Depends(get_current_user)
 ):
     return service.get_appointment_by_id(appointment_id)
+
 
 @router.post("/{appointment_id}/finish", status_code=status.HTTP_200_OK)
 async def finish_appointment(
@@ -99,7 +86,6 @@ async def finish_appointment(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(allow_doctor)
 ):
-    """Лікар завершує прийом — статус RESERVED → FINISHED"""
     return service.finish_appointment(
         appointment_id=appointment_id,
         doctor_id=str(current_user["sub"])
