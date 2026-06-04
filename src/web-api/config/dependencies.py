@@ -93,20 +93,22 @@ def get_appointment_service() -> AppointmentService:
     appointment_repo = AppointmentRepository(db["Appointments"])
     schedule_repo = ScheduleRepository(db["Schedules"])
     slot_repo = SlotRepository(db["Schedules"])
-    notification_service = NotificationService()
     account_service = AccountService(
         account_repo=AccountRepository(db["Accounts"]),
         stripe_service=StripeService()
     )
+    reward_repo = RewardRepository(db["Rewards"])
+    notification_service = NotificationService()
     user_repo = UserRepository(db["Users"])
 
     return AppointmentService(
-        appointment_repo,
-        schedule_repo,
-        slot_repo,
-        account_service,
-        notification_service,
-        user_repo,
+        appointment_repository=appointment_repo,
+        schedule_repository=schedule_repo,
+        slot_repository=slot_repo,
+        account_service=account_service,
+        reward_repository=reward_repo,       # ← було пропущено
+        notification_service=notification_service,
+        user_repository=user_repo,
     )
 
 
