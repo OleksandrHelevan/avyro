@@ -31,13 +31,11 @@ class SpecializationService:
                 detail=f"Спеціалізація з ім'ям '{request.name}' вже існує"
             )
 
-        # === ФІКС ТУТ: Перетворюємо DTO на Доменну модель ===
         new_specialization = Specialization(
             name=request.name,
             description=request.description
         )
 
-        # Тепер репозиторій отримує саме те, що очікує, і зможе додати .id
         created_spec = self.repository.create(new_specialization)
 
         return {
@@ -89,7 +87,6 @@ class SpecializationService:
         request: CreateSpecializationRequest,
         doctor_id: str
     ) -> dict:
-        # НОВА ВАЛІДАЦІЯ: Перевіряємо, чи така спеціалізація ВЖЕ існує в головній базі
         existing_spec = self.repository.get_by_name(request.name)
         if existing_spec:
             raise HTTPException(
@@ -97,7 +94,6 @@ class SpecializationService:
                 detail=f"Спеціалізація '{request.name}' вже існує в системі. Виберіть її зі списку."
             )
 
-        # СТАРА ВАЛІДАЦІЯ: Перевіряємо, чи немає вже відкритої заявки
         existing_request = (
             self.request_repository
             .get_active_specialization_by_name(request.name)

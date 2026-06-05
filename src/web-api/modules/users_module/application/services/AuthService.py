@@ -5,7 +5,7 @@ from modules.users_module.application.dto.LoginResponse import LoginResponse
 from config.security import verify_password, create_access_token
 
 from modules.users_module.infrastructure.persistence.UserRepository import UserRepository
-from modules.requests_module.infrastructure.persistence.RequestRepository import RequestRepository # Додайте імпорт
+from modules.requests_module.infrastructure.persistence.RequestRepository import RequestRepository #
 
 class AuthService:
     def __init__(self, user_repository: UserRepository, request_repository: RequestRepository):

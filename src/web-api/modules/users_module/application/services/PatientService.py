@@ -31,14 +31,12 @@ class PatientService:
         self.specialization_repository = specialization_repository
 
     def _to_object_id(self, user_id: str) -> ObjectId:
-        """Перетворює рядок на ObjectId з перевіркою валідності"""
         try:
             return ObjectId(user_id)
         except Exception:
             raise InvalidUserIdException("Invalid user id")
 
     def _build_patient_profile_response(self, user, is_completed: bool):
-        """Допоміжний метод для формування стандартизованої відповіді профілю пацієнта"""
         user_rewards = self.reward_repository.get_by_patient_id(user.id)
 
         rewards_response = [
@@ -178,7 +176,6 @@ class PatientService:
         return self._build_patient_profile_response(user, is_completed)
 
     def get_doctors_list(self):
-        """Отримує список всіх лікарів та підтягує назву спеціалізації."""
         doctors = self.user_repository.get_doctors(None)
 
         all_specs = self.specialization_repository.get_all()

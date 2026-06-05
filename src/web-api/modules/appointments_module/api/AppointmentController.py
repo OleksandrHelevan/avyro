@@ -59,10 +59,7 @@ async def add_note(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    Пацієнт → тип SPECIFICATION
-    Лікар   → тип RECEIPT
-    """
+
     return service.add_note(
         appointment_id=appointment_id,
         user_id=str(current_user["sub"]),

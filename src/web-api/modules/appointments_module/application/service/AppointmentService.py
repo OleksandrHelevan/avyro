@@ -99,14 +99,12 @@ class AppointmentService:
             appointment_id=created.id
         )
 
-        # Безпечна конвертація часу для сповіщень
         from_time = target_slot.from_time
         if isinstance(from_time, str):
             from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
 
         formatted_time = from_time.strftime("%d/%m/%Y %H:%M") if isinstance(from_time, datetime) else "невідомий час"
 
-        # Додавання початкової нотатки, якщо вона є в DTO
         if hasattr(dto, 'note') and dto.note:
             note = {
                 "source": "PATIENT",
@@ -193,7 +191,6 @@ class AppointmentService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}")
 
-        # Безпечна конвертація часу завершення
         from_time = appointment.from_time
         if isinstance(from_time, str):
             from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))

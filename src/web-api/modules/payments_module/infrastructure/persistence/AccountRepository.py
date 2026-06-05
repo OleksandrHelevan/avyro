@@ -47,11 +47,10 @@ class AccountRepository:
         return result.modified_count > 0
 
     def deduct_balance(self, user_id: ObjectId, amount: float) -> bool:
-        """Атомарне списання — тільки якщо баланс достатній"""
         result = self.collection.update_one(
             {
                 "user_id": user_id,
-                "balance": {"$gte": amount}  # перевірка балансу в одній операції
+                "balance": {"$gte": amount}
             },
             {
                 "$inc": {"balance": -amount},

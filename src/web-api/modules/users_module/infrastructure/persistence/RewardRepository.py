@@ -16,17 +16,15 @@ class RewardRepository:
         return [Reward.from_dict(doc) for doc in cursor]
 
     def has_profile_bonus(self, patient_id: ObjectId) -> bool:
-        # Перевіряє, чи юзер вже отримував нагороду PROFILE_BONUS
         count = self.collection.count_documents({
             "patientId": patient_id,
-            "source.type": RewardSource.PROFILE_BONUS.value  # <--- ЗМІНА ТУТ: тепер шукаємо source.type
+            "source.type": RewardSource.PROFILE_BONUS.value
         })
         return count > 0
 
     def get_all_by_patient_id(self, patient_id: ObjectId) -> list:
-        """Повертає всі винагороди для конкретного пацієнта"""
-        # Знаходимо всі записи, де patient_id або user_id співпадає
-        rewards = self.collection.find({"user_id": patient_id})  # Або "patient_id", залежить від твоєї БД
+
+        rewards = self.collection.find({"user_id": patient_id})
         return list(rewards)
 
     def has_first_visit_bonus(self, patient_id: ObjectId) -> bool:
@@ -37,7 +35,6 @@ class RewardRepository:
         return count > 0
 
     def get_total_points(self, patient_id: ObjectId) -> int:
-        """Сума всіх балів пацієнта (бонуси мінус списання)"""
         pipeline = [
             {"$match": {"patientId": patient_id}},
             {"$group": {"_id": None, "total": {"$sum": "$points"}}}
@@ -46,7 +43,6 @@ class RewardRepository:
         return max(result[0]["total"] if result else 0, 0)
 
     def spend_points(self, patient_id: ObjectId, points: int, description: str) -> None:
-        """Списання балів — зберігається як від'ємний Reward"""
         reward = Reward(
             patientId=patient_id,
             type=RewardType.SPEND,

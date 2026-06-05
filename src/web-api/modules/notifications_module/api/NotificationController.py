@@ -14,7 +14,6 @@ router = APIRouter(tags=["Notifications"])
 _service = NotificationService()
 
 
-# ── Admin ──────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/admin/notification",
@@ -25,18 +24,13 @@ def send_notification(
     body: CreateNotificationRequest,
     current_user: dict = Depends(allow_admin),
 ):
-    """
-    Доступний лише адміністратору.
-    recipient_id=None → надіслати всім.
-    recipient_id=<id>  → надіслати конкретному юзеру.
-    """
+
     return _service.send_notification(
         message=body.message,
         recipient_id=body.recipient_id,
     )
 
 
-# ── User ───────────────────────────────────────────────────────────────────────
 
 @router.get(
     "/notifications",
@@ -45,10 +39,7 @@ def send_notification(
 def get_notifications(
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Повертає всі сповіщення для поточного юзера (персональні + broadcast),
-    а також кількість непрочитаних.
-    """
+
     user_id = current_user.get("sub")
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -62,9 +53,7 @@ def get_notifications(
 def read_all_notifications(
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Позначає всі сповіщення поточного юзера як прочитані.
-    """
+
     user_id = current_user.get("sub")
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

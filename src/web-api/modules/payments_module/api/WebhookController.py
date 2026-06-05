@@ -1,11 +1,4 @@
-"""
-Stripe Webhook — обробляємо події від Stripe асинхронно.
-Поки для тестування це не обов'язково, але корисно для продакшну.
 
-Для тестування webhook локально:
-  stripe listen --forward-to localhost:8000/payments/webhook
-  stripe trigger payment_intent.succeeded
-"""
 import stripe
 from fastapi import APIRouter, Request, HTTPException
 from config.db import STRIPE_WEBHOOK_SECRET
@@ -27,10 +20,8 @@ async def stripe_webhook(request: Request):
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    # Обробка подій
     if event["type"] == "payment_intent.succeeded":
         intent = event["data"]["object"]
-        # Тут можна додатково логувати або верифікувати баланс
         print(f"[Stripe] PaymentIntent succeeded: {intent['id']}, amount: {intent['amount']}")
 
     elif event["type"] == "payment_intent.payment_failed":

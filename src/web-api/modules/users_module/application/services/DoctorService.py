@@ -30,7 +30,6 @@ class DoctorService:
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
 
-        # 1. Спочатку дістаємо юзера і перевіряємо його
         user = self.user_repository.get_by_id(user_oid)
         if not user:
             raise HTTPException(status_code=404, detail="Користувача не знайдено")
@@ -38,7 +37,6 @@ class DoctorService:
         if str(user.role) != "DOCTOR" and str(user.role) != "Role.DOCTOR":
             raise HTTPException(status_code=403, detail="Користувач не є лікарем")
 
-        # 2. Потім дістаємо спеціалізацію
         specialization = self.spec_repository.get_by_id(spec_oid)
         if not specialization:
             raise HTTPException(status_code=404, detail="Спеціалізацію не знайдено")
