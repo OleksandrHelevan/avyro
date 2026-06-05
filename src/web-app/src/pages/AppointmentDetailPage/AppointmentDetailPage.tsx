@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Calendar, Clock, User, Stethoscope,
-  Phone, Mail, Coins, CheckCircle2, XCircle, Timer,
+  Phone, Mail, Coins, CheckCircle2, XCircle, Timer, MessageSquare
 } from "lucide-react";
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
 import Loader from "../../components/Loader/Loader.tsx";
@@ -75,6 +75,33 @@ export default function AppointmentDetailPage() {
   const StatusIcon = statusCfg.Icon;
   const duration = appt.from && appt.to ? durationMin(appt.from, appt.to) : null;
 
+  // Шукаємо нотатку (в залежності від того, як бекенд її зберігає)
+// 🚀 ВИТЯГУЄМО НОТАТКУ (Обходимо TypeScript помилки через as any)
+  const apptData: any = appt; // Робимо "гнучку" копію об'єкта для пошуку
+  const patientNoteObj = Array.isArray(apptData.notes)
+    ? apptData.notes.find((n: any) => n.source === 'PATIENT' || n.type === 'SPECIFICATION')
+    : null;
+  const appointmentNote = patientNoteObj?.message || apptData.note || apptData.comment || apptData.description;
+
+  // 🚀 ВИТЯГУЄМО ЦІНУ (Супер-розумний пошук)
+  const possiblePrices = [
+    apptData.finalPrice, apptData.basePrice, apptData.price,
+    apptData.payload?.price, apptData.payload?.pricePerSlot,
+    doctor?.price, doctor?.pricePerSlot, doctor?.consultationPrice, doctor?.fee
+  ];
+
+  // Перетворюємо все на числа (щоб "500" текст став цифрою 500)
+  const validPrice = possiblePrices
+    .map(p => Number(p))
+    .find(p => !isNaN(p) && p > 0);
+
+
+  // 🕵️‍♂️ ШПИГУН ТІЛЬКИ ДЛЯ ЦІНИ (подивимося в консолі, якщо знову буде 0)
+  console.log("🕵️‍♂️ Масив усіх знайдених цін:", possiblePrices);
+  console.log("✅ Вибрана ціна (validPrice):", validPrice);
+  // 🕵️‍♂️ НАШ ШПИГУН
+  console.log("🕵️‍♂️ ДАНІ ВІЗИТУ З БЕКЕНДУ:", appt);
+
   return (
     <div className="adp-page" style={{ paddingTop: "120px" }}>
       <div className="adp-container">
@@ -84,7 +111,6 @@ export default function AppointmentDetailPage() {
           <button className="adp-back" onClick={() => navigate(-1)}>
             <ArrowLeft size={18} /> Назад
           </button>
-
         </div>
 
         {/* ── UNIFIED CARD (ОДИН БЛОК) ── */}
@@ -161,6 +187,28 @@ export default function AppointmentDetailPage() {
                     <div className="adp-person-name">{appt.patient.fullName}</div>
                     {appt.patient.email && <div className="adp-person-spec">{appt.patient.email}</div>}
                   </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 🚀 ДОДАНО: Секція нотатки */}
+          {appointmentNote && (
+            <>
+              <div className="adp-divider"></div>
+              <div className="adp-section">
+                <div className="adp-section-label"><MessageSquare size={14} />Коментар до запису</div>
+                <div style={{
+                  background: 'rgba(241, 245, 249, 0.6)',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  color: '#334155',
+                  fontSize: '15px',
+                  lineHeight: '1.6',
+                  fontStyle: 'italic'
+                }}>
+                  "{appointmentNote}"
                 </div>
               </div>
             </>

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Mail, CalendarDays, ArrowLeft } from "lucide-react";
+import { Mail, CalendarDays, ArrowLeft, MessageSquare } from "lucide-react";
 import {
   format, isSameDay, isBefore, startOfToday,
   parse, isAfter, getDay, addDays
@@ -41,6 +41,9 @@ export default function DoctorProfile() {
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
+
+  // 🚀 ДОДАНО: Стан для нотатки
+  const [appointmentNote, setAppointmentNote] = useState("");
 
   const { data: rawDoctor, isLoading: isDocLoading } = useDoctor(id || "");
   const { mutate: bookAppointment, isPending: isBooking } = useCreateAppointment();
@@ -115,7 +118,7 @@ export default function DoctorProfile() {
     const doctorPrice = doctor?.price ?? doctor?.pricePerSlot ?? doctor?.consultationPrice ?? doctor?.fee;
     if (doctorPrice !== undefined && doctorPrice !== null) return doctorPrice;
 
-    return null; // Поки бекенд не надсилає ціну, буде null
+    return null;
   }, [selectedSlotData, activeSchedule, selectedTime, doctor]);
 
   const handleBooking = () => {
@@ -125,7 +128,7 @@ export default function DoctorProfile() {
     }
 
     const slotIdToBook = selectedSlotData.slotId || selectedSlotData.id || selectedSlotData._id;
-    const doctorIdToBook = doctor?._id || doctor?.id || id; // 🚀 Отримуємо ID лікаря
+    const doctorIdToBook = doctor?._id || doctor?.id || id;
 
     if (!slotIdToBook) {
       toast.error(`Помилка: Не знайдено ідентифікатор слота.`);
@@ -137,30 +140,34 @@ export default function DoctorProfile() {
       return;
     }
 
-    // 🚀 ВІДПРАВЛЯЄМО slotId ТА doctorId
-    bookAppointment(
-      {
-        slotId: slotIdToBook,
-        doctorId: doctorIdToBook,
-        // Якщо бекенд не падає від pricePerSlot, можемо залишити, але головне - doctorId
-        pricePerSlot: consultationPrice
-      } as any,
-      {
-        onSuccess: () => {
-          setSelectedTime(null);
-          // Тост про успіх вже показується всередині useCreateAppointment
-        },
-        onError: (err: any) => {
-          const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || "";
-          if (errorMessage.includes("INSUFFICIENT_FUNDS") || errorMessage.includes("balance") || err?.response?.status === 402) {
-            toast.error("Недостатньо коштів на балансі. Будь ласка, поповніть гаманець.");
-            setShowTopUpModal(true);
-          } else {
-            toast.error(errorMessage || "Сталася помилка при записі.");
-          }
+    // 🚀 ВІДПРАВЛЯЄМО slotId, doctorId ТА note (нотатку)
+    const bookingPayload: any = {
+      slotId: slotIdToBook,
+      doctorId: doctorIdToBook,
+      pricePerSlot: consultationPrice
+    };
+
+    // Додаємо нотатку тільки якщо вона не порожня
+    if (appointmentNote.trim() !== "") {
+      bookingPayload.note = appointmentNote.trim();
+      // Можливо ваш бекенд чекає поле "comment" чи "description", тоді змініть 'note' на потрібне
+    }
+
+    bookAppointment(bookingPayload, {
+      onSuccess: () => {
+        setSelectedTime(null);
+        setAppointmentNote(""); // Очищаємо нотатку після успішного запису
+      },
+      onError: (err: any) => {
+        const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || "";
+        if (errorMessage.includes("INSUFFICIENT_FUNDS") || errorMessage.includes("balance") || err?.response?.status === 402) {
+          toast.error("Недостатньо коштів на балансі. Будь ласка, поповніть гаманець.");
+          setShowTopUpModal(true);
+        } else {
+          toast.error(errorMessage || "Сталася помилка при записі.");
         }
       }
-    );
+    });
   };
 
   if (isDocLoading) return <div className="loading-screen"><Loader/></div>;
@@ -218,6 +225,7 @@ export default function DoctorProfile() {
                         onClick={() => {
                           setSelectedDate(day);
                           setSelectedTime(null);
+                          setAppointmentNote(""); // Скидаємо нотатку при зміні дати
                         }}
                         disabled={!isWorkDay}
                       >
@@ -248,6 +256,23 @@ export default function DoctorProfile() {
                 </div>
               </div>
 
+              {/* 🚀 ДОДАНО: Секція для вводу нотатки (з'являється тільки якщо обрано час) */}
+              {selectedTime && (
+                <div className="booking-note-section">
+                  <label className="booking-note-label">
+                    <MessageSquare size={16} /> Додати нотатку для лікаря (необов'язково)
+                  </label>
+                  <textarea
+                    className="booking-note-input"
+                    value={appointmentNote}
+                    onChange={(e) => setAppointmentNote(e.target.value)}
+                    placeholder="Опишіть ваші симптоми або мету візиту..."
+                    rows={3}
+                    disabled={isBooking}
+                  />
+                </div>
+              )}
+
               {selectedTime && (
                 <div className="price-display">
                   {consultationPrice !== null ? (
@@ -260,7 +285,6 @@ export default function DoctorProfile() {
                 </div>
               )}
 
-              {/* 🚀 КНОПКА РОЗБЛОКОВАНА ДЛЯ ТЕСТУВАННЯ */}
               <button
                 className="confirm-booking-btn"
                 disabled={!selectedTime || isBooking}
