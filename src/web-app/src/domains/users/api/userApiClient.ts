@@ -1,9 +1,11 @@
-import { apiClient } from "../../../services/apiService.ts"; // Перевірте свій шлях!
+import { apiClient } from "../../../services/apiClient.ts";
 import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
-  Specialization, ScheduleRequest, ScheduleResponse
+  ScheduleRequest, ScheduleResponse,
+  DoctorListItem, DoctorApprovalResponse,
+  GetNotificationsResponse // 🚀 ДОДАНО
 } from "../types.ts";
 
 export const userApiClient = {
@@ -13,29 +15,34 @@ export const userApiClient = {
   signUp: async (request: SignUpRequest) =>
     apiClient.post<SignUpResponse>('/sign-up', request),
 
-  // --- Patients ---
   getPatientById: async (id: string) =>
     apiClient.get<GetPatientResponse>(`/users/patients/${id}`),
 
-  patchPatient: async (id: string, request: PatchPatientRequest) =>
-    apiClient.patch<PatchPatientResponse>(`/users/patients/${id}`, request),
-
-  // --- Doctors ---
+  patchPatient: async (request: PatchPatientRequest) =>
+    apiClient.patch<PatchPatientResponse>('/users/patient', request),
+  getMyDoctorAppointments: async () =>
+    apiClient.get('/appointments/doctor/me'),
+  getAllDoctors: async () =>
+    apiClient.get<DoctorListItem[]>('/users/doctors'),
+  getAllUsers: async () =>
+    apiClient.get<any[]>('/users'),
   getDoctorById: async (id: string) =>
     apiClient.get<GetDoctorResponse>(`/users/doctors/${id}`),
 
-  patchDoctor: async (id: string, request: UpdateDoctorProfileRequest) =>
-    apiClient.patch<UpdateProfileResponse>(`/users/doctors/${id}`, request),
+  patchDoctor: async ( request: UpdateDoctorProfileRequest) =>
+    apiClient.patch<UpdateProfileResponse>(`/users/doctors`, request),
 
-  // --- Specializations ---
-  getAllSpecializations: async () =>
-    apiClient.get<Specialization[]>('/specializations/'),
-
-  // ДОДАНО: Отримання спеціалізації за ID
-  getSpecializationById: async (spec_id: string) =>
-    apiClient.get<Specialization>(`/specializations/${spec_id}`),
-
-  // --- Schedules ---
   requestSchedule: async (request: ScheduleRequest) =>
-    apiClient.post<ScheduleResponse>('/schedules/schedule/request', request),
-}
+    apiClient.post<ScheduleResponse>('/schedules/request', request),
+
+  checkDoctorStatus: async (email: string) => {
+    return apiClient.get<DoctorApprovalResponse>(`/doctors?email=${encodeURIComponent(email)}`);
+  },
+
+  // 🚀 ДОДАНО: Метод отримання сповіщень
+  getNotifications: async () =>
+    apiClient.get<GetNotificationsResponse>('/notifications'),
+  // 🚀 ДОДАНО: Метод для позначення всіх як прочитаних (за Swagger)
+  markAllNotificationsAsRead: async () =>
+    apiClient.post('/notifications/read-all', {}),
+};

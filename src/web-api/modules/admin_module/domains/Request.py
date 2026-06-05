@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Optional, Any, Dict
 from bson import ObjectId
-from datetime import datetime, UTC
-
+from datetime import datetime, timezone
 
 class RequestType(Enum):
     DOCTOR_REGISTRATION = "DOCTOR_REGISTRATION"
@@ -33,8 +32,8 @@ class Request:
         self.status = status
         self.payload = payload
         self.admin_comment = admin_comment
-        self.created_at = created_at or datetime.now(UTC)
-        self.updated_at = updated_at or datetime.now(UTC)
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.updated_at = updated_at or datetime.now(timezone.utc)
         self.processed_at = processed_at
         self.processed_by = processed_by
 

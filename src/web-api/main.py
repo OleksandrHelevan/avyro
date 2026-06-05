@@ -13,6 +13,24 @@ from modules.users_module.api.AuthController import router as auth_router
 from modules.appointments_module.api.ScheduleController import router as schedule_router
 from modules.users_module.api.SpecializationController import router as specialization_router
 from modules.admin_module.api.AdminController import router as admin_router
+from modules.appointments_module.application.service.SlotCleanerScheduler import start_slot_cleaner
+from modules.notifications_module.api.NotificationController import router as notification_router
+
+from modules.payments_module.api.PaymentController import router as payment_router
+from modules.payments_module.api.WebhookController import router as webhook_router
+
+from modules.appointments_module.application.service.AppointmentCompleteScheduler import start_appointment_completer
+from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
+from config.db import db
+
+
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+
+
+
 
 
 from modules.users_module.api.exception.exception_handlers import (
@@ -32,7 +50,14 @@ from modules.users_module.api.exception.exceptions import (
     InvalidCredentialsException
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_slot_cleaner()
+    start_appointment_completer()
+    yield
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Avyro — Health Journey API",
     version="1.0.0",
     description=(
@@ -71,6 +96,9 @@ app.include_router(user_router)
 app.include_router(doctor_router)
 app.include_router(specialization_router)
 app.include_router(schedule_router)
+app.include_router(notification_router)
+app.include_router(payment_router)
+app.include_router(webhook_router)
 
 
 @app.get("/health", tags=["General"], summary="Health Status")
@@ -84,3 +112,5 @@ def db_health():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "error", "mongo": "not connected", "message": "Database is offline"}
         )
+from modules.appointments_module.api.AppointmentController import router as appointment_router
+app.include_router(appointment_router)

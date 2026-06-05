@@ -1,50 +1,100 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import {motion, AnimatePresence} from "framer-motion";
+import {useState, useEffect, useMemo} from "react";
+import {useNavigate, useSearchParams} from "react-router-dom";
+import {Search, Mail, Send} from "lucide-react";
 import "./HomePage.css";
 
-const fadeUpVariant = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-};
+import {useGetDoctors} from "../../domains/users/useGetDoctors/useGetDoctors.ts";
+import {useSpecializations} from "../../domains/specializations/useSpecializations/useSpecializations.ts";
+import Loader from "../../components/Loader/Loader.tsx";
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
-  }
+const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
+
+const fadeUpVariant = {
+  hidden: {opacity: 0, y: 40},
+  visible: {opacity: 1, y: 0, transition: {duration: 0.6, ease: "easeOut"}}
 };
 
 const HomePage = () => {
-  const [activeSpec, setActiveSpec] = useState("Неврологія");
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialSpec = searchParams.get("spec") || "Усі";
+  const initialSearch = searchParams.get("search") || "";
+
+  const [activeSpec, setActiveSpec] = useState(initialSpec);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
+  // Завантаження даних
+  const {data: doctors = [], isLoading: isLoadingDoctors} = useGetDoctors();
+  const {data: apiSpecs = [], isLoading: isLoadingSpecs} = useSpecializations();
+
+  // 2. Синхронізуємо URL, якщо змінилися локальні стани
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeSpec !== "Усі") params.set("spec", activeSpec);
+    if (searchTerm.trim() !== "") params.set("search", searchTerm);
+
+    setSearchParams(params, {replace: true});
+  }, [activeSpec, searchTerm, setSearchParams]);
+
+  // Список назв спеціалізацій для кнопок-фільтрів
+  const displaySpecs = useMemo(() => ["Усі", ...apiSpecs.map(s => s.name)], [apiSpecs]);
+
+  // Слайди для банера
   const slides = [
-    { title: "Безкоштовна онлайн-консультація", desc: "Для нових пацієнтів до кінця місяця", color: "linear-gradient(135deg, rgba(24,192,196,0.8), rgba(114,86,161,0.8))" },
-    { title: "Комплексний чекап організму", desc: "Знижка 20% на всі аналізи", color: "linear-gradient(135deg, rgba(114,86,161,0.8), rgba(24,192,196,0.8))" },
-    { title: "Сімейний лікар у смартфоні", desc: "Зв'язок 24/7 у нашому додатку", color: "linear-gradient(135deg, rgba(56,189,248,0.8), rgba(99,102,241,0.8))" }
+    {
+      title: "Безкоштовна онлайн-консультація",
+      desc: "Для нових пацієнтів до кінця місяця",
+      color: "linear-gradient(135deg, #18c0c4, #7256a1)"
+    },
+    {
+      title: "Комплексний чекап організму",
+      desc: "Знижка 20% на всі аналізи",
+      color: "linear-gradient(135deg, #7256a1, #18c0c4)"
+    },
+    {
+      title: "Сімейний лікар у смартфоні",
+      desc: "Зв'язок 24/7 у нашому додатку",
+      color: "linear-gradient(135deg, #38bdf8, #6366f1)"
+    }
   ];
 
-  const doctors = [
-    { id: 1, name: "Др. Олександр Петренко", spec: "Кардіолог", rank: "Вища категорія", bonus: "+100 балів", active: false },
-    { id: 2, name: "Др. Ірина Коваленко", spec: "Кардіолог", rank: "К.м.н.", bonus: "+100 балів", active: true },
-    { id: 3, name: "Др. Василь Мельник", spec: "Невролог", rank: "10 років досвіду", bonus: "+50 балів", active: false },
-    { id: 4, name: "Др. Олена Сергієнко", spec: "Педіатр", rank: "15 років досвіду", bonus: "+75 балів", active: false }
-  ];
+  // ЛОГІКА ФІЛЬТРАЦІЇ
+  const filteredDoctors = useMemo(() => {
+    const selectedSpecObj: any = apiSpecs.find(s => s.name === activeSpec);
+    const selectedSpecId = selectedSpecObj ? (selectedSpecObj.id || selectedSpecObj._id) : null;
 
-  const specs = ["Усі", "Кардіологія", "Неврологія", "Педіатрія"];
+    return doctors.filter((doc: any) => {
+      const docSpecId = doc.specializationId || doc.specialization_id;
+      const docSpecName = doc.specializationName;
 
-  const steps = [
-    { num: "01", title: "Знайдіть лікаря", desc: "Оберіть спеціаліста за рейтингом та відгуками" },
-    { num: "02", title: "Оберіть час", desc: "Забронюйте зручний слот у розкладі онлайн" },
-    { num: "03", title: "Отримайте допомогу", desc: "Прийдіть у клініку або почніть відеодзвінок" }
-  ];
+      // 🛑 ПРАВИЛО 1: Якщо в лікаря ВЗАГАЛІ НЕМАЄ спеціалізації – не показуємо його
+      if (!docSpecId && !docSpecName) {
+        return false;
+      }
 
-  const reviews = [
-    { id: 1, author: "Марія В.", role: "Пацієнтка", text: "Дуже зручний сервіс! Знайшла чудового кардіолога за 5 хвилин. Консультація онлайн пройшла на вищому рівні." },
-    { id: 2, author: "Андрій К.", role: "Пацієнт", text: "Завдяки MED.avyro я забув про черги в реєстратурі. Зручний запис, нагадування про візит — 10/10!" }
-  ];
+      const search = searchTerm.toLowerCase().trim();
+      const specNameToSearch = docSpecName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "";
+
+      const matchesCategory =
+        activeSpec === "Усі" ||
+        docSpecId === selectedSpecId ||
+        docSpecName === activeSpec ||
+        specNameToSearch === activeSpec;
+
+      // Шукаємо по імені, пошті та спеціалізації
+      const matchesSearch = !search ||
+        doc.fullName?.toLowerCase().includes(search) ||
+        doc.email?.toLowerCase().includes(search) ||
+        specNameToSearch.toLowerCase().includes(search);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [doctors, activeSpec, searchTerm, apiSpecs]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,37 +104,18 @@ const HomePage = () => {
   }, [slides.length]);
 
   return (
-    <div className="aero-viewport light-theme">
-      <div className="bright-gradient-bg">
-        <div className="light-blob blob-1"></div>
-        <div className="light-blob blob-2"></div>
-      </div>
-
-      <div className="floating-icons-container">
-        <div className="bg-icon icon-heart"></div>
-        <div className="bg-icon icon-cross"></div>
-        <div className="bg-icon icon-pill"></div>
-        <div className="bg-icon icon-heart2"></div>
-        <div className="bg-icon icon-plus"></div>
-      </div>
-
+    <>
       <main className="main-content">
-
-        <motion.div
-          className="slider-container"
-          initial="hidden"
-          animate="visible"
-          variants={fadeUpVariant}
-        >
+        {/* Банер-слайдер */}
+        <motion.div className="slider-container" initial="hidden" animate="visible" variants={fadeUpVariant}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
               className="slide-card glass-light"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4 }}
-              style={{ background: slides[currentSlide].color }}
+              initial={{opacity: 0, x: 20}}
+              animate={{opacity: 1, x: 0}}
+              exit={{opacity: 0, x: -20}}
+              style={{background: slides[currentSlide].color}}
             >
               <div className="slide-content">
                 <h2>{slides[currentSlide].title}</h2>
@@ -93,143 +124,102 @@ const HomePage = () => {
               </div>
             </motion.div>
           </AnimatePresence>
-          <div className="slider-dots">
-            {slides.map((_, idx) => (
-              <div key={idx} className={`dot ${idx === currentSlide ? 'dot-active' : ''}`} onClick={() => setCurrentSlide(idx)}></div>
-            ))}
+        </motion.div>
+
+        {/* Скрол-секція спеціалізацій */}
+        <motion.div className="specs-section" initial="hidden" whileInView="visible" viewport={{once: true}}
+                    variants={fadeUpVariant}>
+          <h3 className="section-subtitle">Спеціалізації</h3>
+          <div className="specs-scroll-wrapper">
+            <div className="specs-group">
+              {isLoadingSpecs ? (
+                <Loader/>
+              ) : (
+                displaySpecs.map(spec => (
+                  <button
+                    key={spec}
+                    className={`spec-tag-light ${activeSpec === spec ? 'spec-active' : 'glass-light'}`}
+                    onClick={() => setActiveSpec(spec)}
+                  >
+                    {spec}
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         </motion.div>
 
-        <motion.div
-          className="search-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={fadeUpVariant}
-        >
-          <h2 className="med-title-dark">Знайдіть потрібного спеціаліста</h2>
+        {/* Пошук */}
+        <motion.div className="search-section" initial="hidden" whileInView="visible" variants={fadeUpVariant}>
+          <h2 className="med-title-dark">Знайдіть свого лікаря</h2>
           <div className="search-bar-white">
-            <input type="text" placeholder="Ім'я лікаря або спеціалізація..." />
+            <Search size={20} color="#6b7280"/>
+            <input
+              type="text"
+              placeholder="Ім'я, спеціальність або пошта..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {/* Кнопка тепер просто декоративна, оскільки пошук відбувається миттєво */}
             <button className="btn-search-dark">Знайти</button>
           </div>
         </motion.div>
 
-        <motion.div
-          className="stats-row"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={staggerContainer}
-        >
-          <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">500+</span> Лікарів</motion.div>
-          <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">12k+</span> Пацієнтів</motion.div>
-          <motion.div variants={fadeUpVariant} className="stat-item glass-light"><span className="stat-num">4.9</span> Середня оцінка</motion.div>
-        </motion.div>
-
-        <motion.div
-          className="how-it-works"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
-          <motion.h3 variants={fadeUpVariant} className="section-subtitle text-center">Як це працює?</motion.h3>
-          <div className="steps-grid">
-            {steps.map((step, i) => (
-              <motion.div key={i} variants={fadeUpVariant} className="step-card glass-light">
-                <div className="step-number">{step.num}</div>
-                <h4>{step.title}</h4>
-                <p>{step.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="specs-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.8 }}
-          variants={fadeUpVariant}
-        >
-          <h3 className="section-subtitle">Спеціалізації</h3>
-          <div className="specs-group">
-            {specs.map(spec => (
-              <button
-                key={spec}
-                className={`spec-tag-light ${activeSpec === spec ? 'spec-active' : 'glass-light'}`}
-                onClick={() => setActiveSpec(spec)}
-              >
-                {spec}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="results-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          variants={staggerContainer}
-        >
-          <motion.h3 variants={fadeUpVariant} className="section-subtitle">Результати пошуку (12)</motion.h3>
+        {/* Сітка лікарів */}
+        <div className="results-section">
           <div className="doctors-grid">
-            {doctors.map((doc) => (
-              <motion.div
-                key={doc.id}
-                variants={fadeUpVariant}
-                className={`doctor-card-light glass-light ${doc.active ? 'card-border-active' : ''}`}
-                whileHover={{ y: -8, scale: 1.02 }}
-              >
-                <div className="card-header">
-                  <div className="doctor-avatar-placeholder"></div>
-                  <div className="doctor-info-dark">
-                    <h4>{doc.name}</h4>
-                    <p className="spec-text-dark">{doc.spec} • {doc.rank}</p>
-                  </div>
-                  <div className="bonus-tag-light">{doc.bonus}</div>
-                </div>
-                <button className={`btn-profile-light ${doc.active ? 'btn-active-fill' : 'btn-outline'}`}>
-                  Переглянути профіль
-                </button>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+            {isLoadingDoctors ? (
+              <Loader/>
+            ) : filteredDoctors.length === 0 ? (
+              <p style={{gridColumn: '1 / -1', textAlign: 'center', color: '#000000'}}>
+                За вашим запитом лікарів не знайдено.
+              </p>
+            ) : filteredDoctors.map((doc: any, index) => {
 
-        <motion.div
-          className="reviews-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
-          <motion.h3 variants={fadeUpVariant} className="section-subtitle">Що кажуть наші пацієнти</motion.h3>
-          <div className="reviews-grid">
-            {reviews.map((rev) => (
-              <motion.div key={rev.id} variants={fadeUpVariant} className="review-card glass-light">
-                <div className="review-stars">⭐⭐⭐⭐⭐</div>
-                <p className="review-text">"{rev.text}"</p>
-                <div className="review-author">
-                  <div className="author-avatar"></div>
-                  <div>
-                    <strong>{rev.author}</strong>
-                    <span>{rev.role}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+              const docSpecId = doc.specializationId || doc.specialization_id;
+              const displaySpecName = doc.specializationName || apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name || "Загальний профіль";
 
+              return (
+                <motion.div
+                  key={doc.id || doc._id || index}
+                  className="doctor-card-light glass-light"
+                  whileHover={{y: -5}}
+                >
+                  <div className="card-header">
+                    <div className="doctor-avatar-placeholder">
+                      <img
+                        src={doc.avatarUrl || DEFAULT_AVATAR}
+                        alt="doc"
+                        onError={(e) => {
+                          (e.currentTarget.src = DEFAULT_AVATAR)
+                        }}
+                      />
+                    </div>
+                    <div className="doctor-info-dark">
+                      <h4>{doc.fullName || "Спеціаліст"}</h4>
+                      <p className="spec-text-dark">{displaySpecName}</p>
+                      <p className="email-hint"><Mail size={12}/> {doc.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    className="btn-profile-light btn-outline"
+                    onClick={() => navigate(`/doctor/${doc.id || doc._id}`)}
+                  >
+                    Записатися на прийом
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </main>
 
+      {/* Футер */}
       <motion.footer
         className="aero-footer glass-light"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        viewport={{once: true, amount: 0.1}}
         variants={fadeUpVariant}
       >
         <div className="footer-content">
@@ -238,94 +228,47 @@ const HomePage = () => {
               <div className="logo-icon-med"></div>
               <h2>MED<span className="logo-accent">.avyro</span></h2>
             </div>
-            <p>Сучасний сервіс пошуку лікарів та онлайн-консультацій. Ваше здоров'я — наш пріоритет.</p>
+            <p>Ваш надійний провідник у світі сучасної медицини. Записуйтесь до найкращих спеціалістів онлайн за лічені
+              хвилини.</p>
+            <div className="social-links">
+              <a href="#" className="social-icon"><Send size={18}/></a>
+            </div>
           </div>
+
           <div className="footer-col">
             <h4>Пацієнтам</h4>
-            <a href="#">Лікарі</a>
-            <a href="#">Клініки</a>
-            <a href="#">Аналізи</a>
+            <a href="#">Знайти лікаря</a>
+            <a href="#">Спеціалізації</a>
+            <a href="#">Як це працює</a>
+            <a href="#">Відгуки</a>
           </div>
+
           <div className="footer-col">
-            <h4>Партнерам</h4>
-            <a href="#">Реєстрація лікаря</a>
-            <a href="#">Для клінік</a>
-            <a href="#">Реклама</a>
+            <h4>Лікарям</h4>
+            <a href="/login">Увійти в кабінет</a>
+            <a href="/sign-up">Реєстрація спеціаліста</a>
+            <a href="#">Партнерська програма</a>
           </div>
-          <div className="footer-col">
-            <h4>Завантажити</h4>
-            <div className="app-buttons">
-              <button className="btn-app">App Store</button>
-              <button className="btn-app">Google Play</button>
+        </div>
+
+        <div className="footer-bottom">
+          <div className="footer-bottom-content">
+            <p>© 2026 MED.avyro. Всі права захищено.</p>
+            <div className="footer-legal">
+              <a href="#">Політика конфіденційності</a>
+              <a href="#">Умови використання</a>
             </div>
           </div>
         </div>
-        <div className="footer-bottom">
-          <p>© 2026 MED.avyro. Всі права захищено.</p>
-        </div>
       </motion.footer>
 
-      <div className="floating-help-container" style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 999 }}>
-        <AnimatePresence>
-          {isHelpOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              className="glass-light"
-              style={{
-                position: 'absolute',
-                bottom: '80px',
-                right: '0',
-                width: '320px',
-                padding: '1.5rem',
-                borderRadius: '1rem',
-                background: 'rgba(255, 255, 255, 0.95)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                color: '#111827',
-                border: '1px solid rgba(255, 255, 255, 0.6)'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#7b51b3' }}>Як це працює?</h3>
-                <button
-                  onClick={() => setIsHelpOpen(false)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#6b7280' }}
-                >
-                  ✕
-                </button>
-              </div>
-              <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '0.9rem', color: '#4b5563' }}>
-                <li><strong>1. Знайдіть лікаря:</strong> Використовуйте пошук або фільтри за спеціалізацією.</li>
-                <li><strong>2. Запишіться:</strong> Оберіть зручний слот у профілі лікаря.</li>
-                <li><strong>3. Кабінет:</strong> Перейдіть у "Мій кабінет", щоб заповнити дані для швидкого прийому.</li>
-                <li><strong>4. Бонуси:</strong> Отримуйте бейджі та знижки за здорові звички!</li>
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button
-          className="floating-chatbot"
-          onClick={() => setIsHelpOpen(!isHelpOpen)}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 1, type: "spring", stiffness: 200 }}
-          style={{
-            width: '60px', height: '60px', borderRadius: '50%',
-            border: 'none', background: '#7b51b3', color: 'white',
-            fontSize: '1.8rem', cursor: 'pointer', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(123, 81, 179, 0.4)',
-            position: 'absolute', bottom: '0', right: '0'
-          }}
-        >
-          <span className="pulse-ring"></span>
-          {isHelpOpen ? '✕' : '❓'}
-        </motion.button>
+      <div className="help-fab-container">
+        <button className="floating-chatbot" onClick={() => setIsHelpOpen(!isHelpOpen)}>
+          {isHelpOpen ? "✕" : "?"}
+          <div className="pulse-ring"></div>
+        </button>
       </div>
-
-    </div>
+    </>
   );
 };
 

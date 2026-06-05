@@ -1,0 +1,140 @@
+/* Контейнер на весь екран без скролу */
+.not-approved-viewport {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Специфічний блоб для фону */
+.blob-not-approved {
+  background: rgba(59, 206, 181, 0.25);
+  width: 600px;
+  height: 600px;
+  filter: blur(120px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.not-approved-content {
+  z-index: 10;
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Скляна картка */
+.glass-card-not-approved {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  padding: 3.5rem 2.5rem !important;
+  border-radius: 32px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(20px);
+}
+
+.status-icon-container {
+  margin-bottom: 2rem;
+  color: #3bceb5;
+  display: flex;
+  justify-content: center;
+}
+
+/* Анімація пульсації іконки */
+.pulse-icon-teal {
+  animation: pulse-teal 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse-teal {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.status-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.5px;
+}
+
+.status-description {
+  color: #64748b;
+  line-height: 1.7;
+  font-size: 1.05rem;
+  margin-bottom: 2.5rem;
+}
+
+.status-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Кнопка перевірки статусу */
+.btn-check-status {
+  width: 100%;
+  padding: 16px;
+  background: #3bceb5;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-check-status:hover {
+  background: #2d9d8a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 206, 181, 0.3);
+}
+
+.btn-check-status:active {
+  transform: translateY(0);
+}
+
+/* Кнопка виходу */
+.btn-logout-minimal {
+  background: none;
+  border: none;
+  color: #e11d48;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  transition: opacity 0.2s;
+}
+
+.btn-logout-minimal:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
+/* Адаптивність */
+@media (max-width: 480px) {
+  .glass-card-not-approved {
+    padding: 2.5rem 1.5rem !important;
+  }
+  .status-title {
+    font-size: 1.5rem;
+  }
+}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 from modules.users_module.application.dto.CreateProfileRequest import CreateProfileRequest
 from modules.users_module.domains.user.UserRole import UserRole
@@ -10,3 +10,5 @@ class CreateUserRequest(BaseModel):
     role: UserRole
     isActive: bool = True
     profile: Optional[CreateProfileRequest] = None
+
+    model_config = ConfigDict(extra='forbid')

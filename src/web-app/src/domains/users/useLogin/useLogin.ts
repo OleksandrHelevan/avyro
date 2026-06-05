@@ -5,18 +5,14 @@ import { userService } from "../service/userService.ts";
 import toast from "react-hot-toast";
 
 export const useLogin = () => {
+
   return useMutation({
     mutationFn: (data: LoginRequest) => userService.login(data),
     onSuccess: (response: LoginResponse) => {
       setInStorage("accessToken", response.accessToken);
       setInStorage("userId", response.userId);
-
-      toast.success("Вхід успішний!");
-
-      window.location.href = "/";
+      toast.success("Вхід успішний!", { id: "login-success" });
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Помилка входу");
-    }
+
   });
 };

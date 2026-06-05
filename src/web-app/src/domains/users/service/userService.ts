@@ -1,9 +1,10 @@
-import { userApiClient } from "../api/userApiClient.ts";
+import {userApiClient} from "../api/userApiClient.ts";
 import type {
   LoginRequest, LoginResponse, SignUpRequest, SignUpResponse,
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
-  Specialization, ScheduleRequest, ScheduleResponse
+  ScheduleRequest, ScheduleResponse,
+  DoctorListItem, DoctorApprovalResponse, GetNotificationsResponse
 } from "../types.ts";
 
 export const userService = {
@@ -15,36 +16,50 @@ export const userService = {
     return userApiClient.signUp(request);
   },
 
-  // --- Patients ---
   getPatientById: async (id: string): Promise<GetPatientResponse> => {
     return userApiClient.getPatientById(id);
   },
 
-  patchPatient: async (id: string, request: PatchPatientRequest): Promise<PatchPatientResponse> => {
-    return userApiClient.patchPatient(id, request);
+  patchPatient: async (request: PatchPatientRequest): Promise<PatchPatientResponse> => {
+    return userApiClient.patchPatient(request);
   },
 
-  // --- Doctors ---
+  getAllDoctors: async (): Promise<DoctorListItem[]> => {
+    const response = await userApiClient.getAllDoctors();
+    return (response as any).data ?? response;
+  },
+
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
-    return userApiClient.getDoctorById(id);
+    // Чистимо ID від випадкових пробілів, які могли потрапити з URL
+    const cleanId = id?.trim() || "";
+    const response = await userApiClient.getDoctorById(cleanId);
+    return (response as any).data ?? response;
   },
 
-  patchDoctor: async (id: string, request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
-    return userApiClient.patchDoctor(id, request);
+  patchDoctor: async (request: UpdateDoctorProfileRequest): Promise<UpdateProfileResponse> => {
+    return userApiClient.patchDoctor(request);
   },
-
-  // --- Specializations ---
-  getAllSpecializations: async (): Promise<Specialization[]> => {
-    return userApiClient.getAllSpecializations();
+  getAllUsers: async (): Promise<any[]> => {
+    const response = await userApiClient.getAllUsers();
+    return (response as any).data ?? response;
   },
-
-  // ДОДАНО: Отримання спеціалізації за ID
-  getSpecializationById: async (spec_id: string): Promise<Specialization> => {
-    return userApiClient.getSpecializationById(spec_id);
-  },
-
-  // --- Schedules ---
   requestSchedule: async (request: ScheduleRequest): Promise<ScheduleResponse> => {
     return userApiClient.requestSchedule(request);
-  }
+  },
+
+  checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {
+    return userApiClient.checkDoctorStatus(email);
+  },
+
+  getNotifications: async (): Promise<GetNotificationsResponse> => {
+    const response = await userApiClient.getNotifications();
+    return (response as any).data ?? response;
+  },
+  getMyDoctorAppointments: async () => {
+    const response = await userApiClient.getMyDoctorAppointments();
+    return (response as any).data ?? response;
+  },
+  markAllNotificationsAsRead: async (): Promise<any> => {
+    return userApiClient.markAllNotificationsAsRead();
+  },
 };

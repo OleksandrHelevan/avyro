@@ -20,11 +20,13 @@ class SpecializationRepository:
         return [Specialization.from_dict(doc) for doc in cursor]
 
     def create(self, spec: Specialization) -> Specialization:
-        # ДОДАНО ПОЛЕ createdAt
         result = self.collection.insert_one({
             "name": spec.name,
             "description": spec.description,
-            "createdAt": datetime.now(timezone.utc)  # Додаємо час створення
+            "createdAt": datetime.now(timezone.utc)
         })
         spec.id = result.inserted_id
         return spec
+
+    def get_by_name(self, name: str):
+        return self.collection.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}})

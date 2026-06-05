@@ -1,0 +1,199 @@
+.notification-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  max-width: 800px;
+  margin-top: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.notification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(123, 81, 179, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+/* Радіо-кнопки вибору одержувача */
+.radio-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.hidden-radio {
+  display: none;
+}
+
+.radio-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.radio-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.radio-card.active {
+  background: #ffffff;
+  border-color: #7b51b3;
+  box-shadow: 0 4px 15px rgba(123, 81, 179, 0.15);
+}
+
+.radio-icon {
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.radio-card.active .radio-icon {
+  color: #7b51b3;
+}
+
+.radio-content h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.radio-content p {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Інпути та текстареа */
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.custom-input:focus {
+  background: #ffffff;
+  border-color: #7b51b3;
+  box-shadow: 0 0 0 4px rgba(123, 81, 179, 0.1);
+}
+
+.textarea-wrapper {
+  position: relative;
+}
+
+.textarea-icon {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  color: #9ca3af;
+}
+
+.custom-textarea {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.custom-textarea:focus {
+  background: #ffffff;
+  border-color: #7b51b3;
+  box-shadow: 0 0 0 4px rgba(123, 81, 179, 0.1);
+}
+
+.input-error {
+  border-color: #ef4444 !important;
+}
+
+.error-text {
+  display: block;
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  font-weight: 500;
+}
+
+/* Кнопка відправки */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.send-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #7b51b3;
+  color: #ffffff;
+  padding: 0.8rem 2rem;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.send-btn:hover:not(:disabled) {
+  background-color: #633c94;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(123, 81, 179, 0.4);
+}
+
+.send-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Анімація появи поля ID */
+.slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .radio-group {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,57 @@
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 100%;
+  flex: 1 1 100%;
+  grid-column: 1 / -1;
+  padding: 0;
+  margin: 0 auto;
+}
+
+.med-loader-container {
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.classic-spinner-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(77, 164, 252, 0.1);
+  border-top: 4px solid #4da4fc;
+  border-radius: 50%;
+  animation: med-spin 1s linear infinite;
+  box-sizing: border-box;
+}
+
+.heart-center-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.inner-medical-heart {
+  color: #4da4fc;
+  fill: #4da4fc;
+  filter: drop-shadow(0 0 4px rgba(77, 164, 252, 0.2));
+  transform: translateY(1px);
+}
+.inline-loader{
+  display: inline-block;
+}
+
+@keyframes med-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

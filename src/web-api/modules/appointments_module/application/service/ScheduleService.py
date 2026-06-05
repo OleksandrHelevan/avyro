@@ -1,13 +1,13 @@
 from datetime import datetime, timezone
 from bson import ObjectId
-
-from modules.admin_module.domains.Request import Request, RequestType
+from bson.errors import InvalidId
+from fastapi import HTTPException, status
+from modules.requests_module.domains.Request import Request, RequestType
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from modules.appointments_module.application.mapper.ScheduleMapper import ScheduleMapper
 from modules.appointments_module.application.service.SlotService import SlotService
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
-
 
 class ScheduleService:
     def __init__(self, repository: ScheduleRepository, slot_service: SlotService, request_repository):
@@ -20,11 +20,39 @@ class ScheduleService:
         year = getattr(dto, 'year', datetime.now(timezone.utc).year)
         return self.create_monthly_schedule(dto.doctorId, year, month, dto)
 
+    def get_doctor_slots(self, doctor_id: str) -> list:
+        try:
+            doc_oid = ObjectId(doctor_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Невалідний формат ID лікаря"
+            )
+
+        schedules = self.repository.get_by_doctor_id(doc_oid)
+
+        if not schedules:
+            return []
+
+        all_slots = []
+        for schedule in schedules:
+            for slot in schedule.slots:
+                all_slots.append({
+                    "slotId": str(slot.id) if hasattr(slot, "id") and slot.id else None,
+                    "from": slot.from_time if isinstance(slot.from_time, str) else (
+                        slot.from_time.isoformat() if hasattr(slot, "from_time") and slot.from_time else None),
+                    "to": slot.to_time.isoformat() if hasattr(slot, "to_time") and hasattr(slot.to_time, 'isoformat') else getattr(slot, "to_time", None),
+                    "type": slot.slot_type.value if hasattr(slot, "slot_type") and hasattr(slot.slot_type, "value") else str(getattr(slot, "slot_type", None)),
+                    "appointmentId": str(slot.appointment_id) if hasattr(slot, "appointment_id") and slot.appointment_id else None,
+                })
+
+        return all_slots
+
     def request_schedule_creation(self, dto: CreateScheduleDTO) -> str:
         request_obj = Request(
             creator_id=ObjectId(dto.doctorId),
             type=RequestType.SCHEDULE_CREATION,
-            payload=dto.dict()
+            payload=dto.model_dump()
         )
         saved_request = self.request_repository.create(request_obj)
         return str(saved_request.id)
@@ -34,7 +62,7 @@ class ScheduleService:
             doctor_id=doctor_id,
             year=year,
             month=month,
-            config=dto.repeating.dict()
+            config=dto.repeating.model_dump()
         )
 
         schedule_domain = Schedule(
@@ -43,8 +71,9 @@ class ScheduleService:
             year=year,
             title=dto.title,
             is_repeated=dto.isRepeated,
-            repeating=dto.repeating.dict(),
+            repeating=dto.repeating.model_dump(),
             slots=slots,
+            price_per_slot=dto.pricePerSlot,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )

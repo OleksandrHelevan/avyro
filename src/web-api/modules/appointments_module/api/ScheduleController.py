@@ -1,18 +1,22 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-
-from config.dependencies import get_schedule_service
+from typing import List, Any
 from config.permissions import RoleChecker
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
+from config.dependencies import get_schedule_service
 from modules.appointments_module.application.service.ScheduleService import ScheduleService
 
-router = APIRouter(
-    prefix="/schedules",
-    tags=["Schedules"]
-)
+router = APIRouter(prefix="/schedules", tags=["Schedules"])
 
 allow_doctor = RoleChecker(["DOCTOR"])
 
-@router.post("/schedule/request", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.get("", response_model=List[Any])
+async def get_doctor_schedules(
+    doctorId: str,
+    schedule_service: ScheduleService = Depends(get_schedule_service)
+):
+    return schedule_service.get_doctor_slots(doctorId)
+
+@router.post("/request", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def request_schedule_creation(
     dto: CreateScheduleDTO,
     service: ScheduleService = Depends(get_schedule_service),

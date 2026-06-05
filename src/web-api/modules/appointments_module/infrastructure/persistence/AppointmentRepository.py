@@ -1,0 +1,85 @@
+from typing import List, Optional
+from bson import ObjectId
+from pymongo.collection import Collection
+from modules.appointments_module.domains.appointment.Appointment import Appointment
+from datetime import datetime
+
+
+class AppointmentRepository:
+    def __init__(self, collection: Collection):
+        self.collection = collection
+
+    def create(self, appointment: Appointment) -> Appointment:
+        doc = appointment.to_dict()
+        result = self.collection.insert_one(doc)
+        appointment.id = result.inserted_id
+        return appointment
+
+    def get_by_id(self, appointment_id: ObjectId) -> Optional[Appointment]:
+        doc = self.collection.find_one({"_id": appointment_id})
+        return Appointment.from_dict(doc) if doc else None
+
+    def get_by_patient_id(self, patient_id: ObjectId) -> List[Appointment]:
+        cursor = self.collection.find({"patientId": patient_id})
+        return [Appointment.from_dict(doc) for doc in cursor]
+
+    def get_by_doctor_id(self, doctor_id: ObjectId) -> List[Appointment]:
+        cursor = self.collection.find({"doctorId": doctor_id})
+        return [Appointment.from_dict(doc) for doc in cursor]
+
+    def get_by_slot_id(self, slot_id: ObjectId) -> Optional[Appointment]:
+        doc = self.collection.find_one({"slotId": slot_id})
+        return Appointment.from_dict(doc) if doc else None
+
+    def update_status(self, appointment_id: ObjectId, new_status: str) -> bool:
+        result = self.collection.update_one(
+            {"_id": appointment_id},
+            {"$set": {"status": new_status, "updatedAt": datetime.utcnow()}}
+        )
+        return result.modified_count > 0
+
+    def get_finished_before(self, before_time: datetime) -> List[Appointment]:
+        cursor = self.collection.find({
+            "status": "FINISHED",
+            "to": {"$lte": before_time}
+        })
+        return [Appointment.from_dict(doc) for doc in cursor]
+
+    def update_payment_status(
+        self, appointment_id: ObjectId, payment_status: str, invoice_id: str = None
+    ) -> bool:
+        update = {
+            "$set": {
+                "paymentStatus": payment_status,
+                "updatedAt": datetime.utcnow()
+            }
+        }
+        if invoice_id:
+            update["$set"]["stripeInvoiceId"] = invoice_id
+        result = self.collection.update_one({"_id": appointment_id}, update)
+        return result.modified_count > 0
+
+    def delete(self, appointment_id: ObjectId) -> bool:
+        result = self.collection.delete_one({"_id": appointment_id})
+        return result.deleted_count > 0
+
+    def add_note(self, appointment_id: ObjectId, note: dict) -> bool:
+        self.collection.update_one(
+            {
+                "_id": appointment_id,
+                "$or": [
+                    {"notes": {"$exists": False}},
+                    {"notes": None}
+                ]
+            },
+            {"$set": {"notes": []}}
+        )
+
+        result = self.collection.update_one(
+            {"_id": appointment_id},
+            {
+                "$push": {"notes": note},
+                "$set": {"updatedAt": datetime.utcnow()}
+            }
+        )
+        return result.modified_count > 0

@@ -1,0 +1,90 @@
+.role-selector {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.role-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-left: 4px;
+}
+
+.role-options {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.role-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.role-option:hover {
+  border-color: #c7d2fe;
+  background-color: #f8fafc;
+}
+
+.role-option.active {
+  border-color: var(--med-purple);
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.radio-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+
+  border: 2px solid #94a3b8;
+  background-color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+}
+
+.role-option.active .radio-circle {
+  border-color: var(--med-purple);
+}
+
+.role-option.active .radio-circle::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--med-purple);
+}
+
+.role-option span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.role-option.active span {
+  color: #1e293b;
+}
+
+@media (min-width: 768px){
+  .role-selector {
+    gap: 10px;
+  }
+}
