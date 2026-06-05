@@ -6,10 +6,7 @@ from config.db import db
 
 
 async def clean_expired_slots():
-    """
-    Видаляє вільні слоти, час завершення яких вже минув.
-    Запускається асинхронно кожні 4 години.
-    """
+
     while True:
         try:
             now = datetime.now(timezone.utc)
@@ -24,12 +21,9 @@ async def clean_expired_slots():
         except Exception as e:
             logger.error(f"[SlotCleaner] Помилка під час очищення слотів: {e}")
 
-        await asyncio.sleep(4 * 60 * 60)  # 4 години
+        await asyncio.sleep(4 * 60 * 60)
 
 
 def start_slot_cleaner():
-    """
-    Запускає планувальник як фонову asyncio задачу.
-    Викликати з lifespan або startup event у main.py.
-    """
+
     asyncio.create_task(clean_expired_slots())

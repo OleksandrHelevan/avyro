@@ -52,5 +52,4 @@ class SlotRepository:
         )
 
     def delete_by_schedule(self, schedule_id: ObjectId) -> None:
-        """Видаляє всі слоти, пов'язані з конкретним розкладом"""
         self.collection.delete_many({"scheduleId": schedule_id})

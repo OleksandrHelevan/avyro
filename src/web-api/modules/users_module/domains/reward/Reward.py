@@ -41,12 +41,10 @@ class Reward:
         if not data:
             return None
 
-        # Витягуємо source безпечно.
-        # ТЕПЕР ЧИТАЄМО ПОЛЕ "type" (де лежить "PROFILE_BONUS"), А НЕ "name"
+
         source_data = data.get("source", {})
         source_value = source_data.get("type") if isinstance(source_data, dict) else source_data
 
-        # Додаткова перевірка, щоб уникнути помилок Enum
         try:
             valid_source = RewardSource(source_value) if source_value else RewardSource.PROFILE_BONUS
         except ValueError:
@@ -68,13 +66,11 @@ class Reward:
             "patientId": self.patientId,
             "type": self.type.value,
             "points": self.points,
-            # ДОДАНО: додаємо поле type всередину source, як просить БД
             "source": {
-                "name": "Заповнення профілю", # Або можна залишити self.source.value
-                "type": self.source.value     # Тепер тут буде "PROFILE_BONUS", як просить БД!
+                "name": "Заповнення профілю",
+                "type": self.source.value
             },
             "description": self.description,
-            # ДОДАНО: генеруємо новий ObjectId, якщо його немає, бо БД не приймає null
             "specializationId": self.specializationId or ObjectId(),
             "createdAt": self.createdAt
         }

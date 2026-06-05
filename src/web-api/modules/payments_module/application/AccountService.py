@@ -18,7 +18,6 @@ class AccountService:
     async def get_or_create_account(
         self, user_id: str, email: str, name: str
     ) -> Account:
-        """Якщо акаунт ще не існує — створюємо Stripe Customer і зберігаємо."""
         oid = ObjectId(user_id)
         existing = self.account_repo.find_by_user_id(oid)
         if existing:
@@ -31,11 +30,7 @@ class AccountService:
     async def top_up_balance(
         self, user_id: str, dto: TopUpBalanceRequest
     ) -> dict:
-        """
-        Поповнення балансу:
-        1. Робимо PaymentIntent через Stripe (тестовий режим)
-        2. Якщо succeeded — додаємо суму до балансу в БД
-        """
+
         oid = ObjectId(user_id)
         account = self.account_repo.find_by_user_id(oid)
         if not account:
@@ -57,7 +52,6 @@ class AccountService:
                 "new_balance": new_balance,
             }
 
-        # Платіж не пройшов одразу (напр. requires_action)
         return {
             "stripe_payment_intent_id": result["id"],
             "status": result["status"],
@@ -65,7 +59,6 @@ class AccountService:
         }
 
     async def add_card(self, user_id: str, dto: AddCardRequest) -> CardInfo:
-        """Прив'язати нову картку до акаунту через Stripe."""
         oid = ObjectId(user_id)
         account =  self.account_repo.find_by_user_id(oid)
         if not account:
@@ -77,7 +70,6 @@ class AccountService:
 
         card = CardInfo(**pm_data, is_default=dto.set_as_default)
 
-        # Якщо встановлюємо дефолтну — скинути is_default у інших
         if dto.set_as_default:
             for c in account.cards:
                 c.is_default = False
@@ -86,12 +78,10 @@ class AccountService:
         return card
 
     async def set_pin(self, user_id: str, dto: SetPinRequest) -> bool:
-        """Встановити/оновити PIN (зберігаємо bcrypt hash)."""
         hashed = bcrypt.hashpw(dto.pin.encode(), bcrypt.gensalt()).decode()
         return  self.account_repo.set_pin(ObjectId(user_id), hashed)
 
     async def verify_pin(self, user_id: str, pin: str) -> bool:
-        """Перевірити PIN."""
         account =  self.account_repo.find_by_user_id(ObjectId(user_id))
         if not account or not account.pin:
             return False
@@ -110,13 +100,7 @@ async def pay_for_appointment(
     amount: float,
     doctor_name: str,
 ) -> dict:
-    """
-    Оплата візиту:
-    1. Перевіряємо баланс
-    2. Створюємо Invoice в Stripe
-    3. Списуємо з балансу
-    Якщо будь-який крок падає — rollback
-    """
+
     oid = ObjectId(patient_id)
     account = self.account_repo.find_by_user_id(oid)
 
@@ -128,7 +112,6 @@ async def pay_for_appointment(
             f"Недостатньо коштів. Баланс: {account.balance}, потрібно: {amount}"
         )
 
-    # Створюємо Invoice в Stripe (фіксуємо чек)
     try:
         invoice = await self.stripe_service.create_invoice(
             customer_id=account.stripe_customer_id,
@@ -142,7 +125,6 @@ async def pay_for_appointment(
     except Exception as e:
         raise ValueError(f"Помилка створення інвойсу: {str(e)}")
 
-    # Атомарно списуємо з балансу
     success = self.account_repo.deduct_balance(oid, amount)
     if not success:
         raise ValueError("Недостатньо коштів або помилка списання")
@@ -162,11 +144,7 @@ async def pay_for_appointment_combined(
     doctor_name: str,
     points_available: int,
 ) -> dict:
-    """
-    Оплата з автоматичним використанням балів:
-    1. Спочатку списуємо бали (1 бал = 1 грн)
-    2. Решту покриваємо з грошового балансу
-    """
+
     oid = ObjectId(patient_id)
     account = self.account_repo.find_by_user_id(oid)
     if not account:
@@ -180,7 +158,6 @@ async def pay_for_appointment_combined(
             f"Недостатньо коштів. Баланс: {account.balance} грн + {points_available} балів, потрібно: {amount} грн"
         )
 
-    # Створюємо Invoice в Stripe тільки якщо є грошова частина
     invoice_id = None
     invoice_url = None
     if money_to_charge > 0:

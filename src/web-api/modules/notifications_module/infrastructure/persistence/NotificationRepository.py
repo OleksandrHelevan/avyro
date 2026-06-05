@@ -37,16 +37,12 @@ def get_notifications_for_user(user_id: str) -> list[dict]:
     return list(cursor)
 
 def mark_all_as_read(user_id: str) -> int:
-    """
-    Позначає всі непрочитані сповіщення юзера як прочитані.
-    """
-    # 1. Персональні
+
     personal_result = collection.update_many(
         {"recipient_id": user_id, "is_read": False},
         {"$set": {"is_read": True}}
     )
 
-    # 2. Broadcast (ВИПРАВЛЕНО: додано $or для точного збігу з логікою пошуку)
     broadcast_result = collection.update_many(
         {
             "$or": [
@@ -62,8 +58,7 @@ def mark_all_as_read(user_id: str) -> int:
     return personal_result.modified_count + broadcast_result.modified_count
 
 def _is_read_by_user(notification: dict, user_id: str) -> bool:
-    """Перевіряє чи прочитав юзер конкретне сповіщення."""
     if notification.get("recipient_id") is None:
-        # broadcast
+
         return user_id in notification.get("is_read_by", [])
     return notification.get("is_read", False)
