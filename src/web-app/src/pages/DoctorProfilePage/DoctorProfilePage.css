@@ -113,3 +113,47 @@
   color: #ef4444;
   font-size: 1rem;
 }
+/* ── Секція Нотатки ── */
+.booking-note-section {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.booking-note-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.booking-note-input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: 2px solid #f1f5f9;
+  background: rgba(255, 255, 255, 0.8);
+  font-family: inherit;
+  font-size: 14px;
+  color: #1e293b;
+  resize: vertical;
+  min-height: 80px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.booking-note-input:focus {
+  outline: none;
+  border-color: #7b51b3;
+  background: white;
+  box-shadow: 0 4px 12px rgba(123, 81, 179, 0.1);
+}
+
+.booking-note-input::placeholder {
+  color: #94a3b8;
+}

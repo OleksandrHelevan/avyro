@@ -55,7 +55,10 @@ export const userService = {
     const response = await userApiClient.getNotifications();
     return (response as any).data ?? response;
   },
-
+  getMyDoctorAppointments: async () => {
+    const response = await userApiClient.getMyDoctorAppointments();
+    return (response as any).data ?? response;
+  },
   markAllNotificationsAsRead: async (): Promise<any> => {
     return userApiClient.markAllNotificationsAsRead();
   },

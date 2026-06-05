@@ -114,12 +114,9 @@ export default function ScheduleEditor() {
 
     requestSchedule(payload as any, {
       onSuccess: () => {
-        toast.success("Графік успішно відправлено на перевірку!");
         setIsEditing(false); // Закриваємо форму після успіху
       },
-      onError: (err: any) => {
-        toast.error("Помилка збереження графіка: " + (err.message || "400 Bad Request"));
-      }
+
     });
   };
 
@@ -275,7 +272,7 @@ export default function ScheduleEditor() {
               </section>
 
               <button type="submit" disabled={isPending} className="save-schedule-btn glow-effect">
-                {isPending ? <span className="spinner">⏳</span> : <><Save size={20} /><span>{hasConfirmedSchedule ? "Оновити графік" : "Відправити графік на підтвердження"}</span></>}
+                {isPending ? <Loader/> : <><Save size={20} /><span>{hasConfirmedSchedule ? "Оновити графік" : "Відправити графік на підтвердження"}</span></>}
               </button>
             </form>
           </div>

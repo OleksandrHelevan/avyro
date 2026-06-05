@@ -8,7 +8,7 @@ import {
   DOCTOR_PROFILE_PATH, APPOINTMENTS_PATH, PROFILE_PATH,
   SCHEDULE_EDIT_PATH, PATIENTS_PATH,
   ADMIN_REQUESTS_PATH, ADMIN_SPECIALIZATIONS_PATH, ADMIN_SCHEDULES_PATH,
-  GAMIFICATION_PATH, // 🚀 ДОДАНО
+  GAMIFICATION_PATH,
   ADMIN_NOTIFICATIONS_PATH, WALLET_PATH
 } from "./router/routes.ts"
 
@@ -23,7 +23,8 @@ import AdminSchedules from "../pages/AdminSchedules/AdminSchedules.tsx";
 import AdminRequests from "../pages/AdminRequests/AdminRequests.tsx";
 import AdminNotifications from "../pages/AdminNotifications/AdminNotifications.tsx";
 import PatientAppointmentsPage from "../pages/PatientAppointmentsPage/PatientAppointmentsPage.tsx";
-import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx"; // 🚀 ДОДАНО
+import DoctorAppointmentsPage from "../pages/DoctorAppointmentsPage/DoctorAppointmentsPage.tsx"; // 🚀 ДОДАНО ІМПОРТ
+import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx";
 import AdminSendNotification from "../pages/AdminSendNotification/AdminSendNotification.tsx";
 
 import RootLayout from "../layouts/RootLayout/RootLayout.tsx";
@@ -55,11 +56,18 @@ export default function App() {
                 </Route>
 
                 <Route element={<ProtectedRoute />}>
-                  <Route index element={<HomePage />} />,
+                  <Route index element={<HomePage />} />
                   <Route path={WALLET_PATH} element={<WalletPage />} />
-                  <Route path={GAMIFICATION_PATH} element={<GamificationPage />} /> {/* 🚀 ДОДАНО */}
+                  <Route path={GAMIFICATION_PATH} element={<GamificationPage />} />
                   <Route path={DOCTOR_PROFILE_PATH} element={<DoctorProfilePage />} />
+
+                  {/* Записи для пацієнта */}
                   <Route path={APPOINTMENTS_PATH} element={<PatientAppointmentsPage />} />
+
+                  {/* 🚀 ДОДАНО: Записи для лікаря */}
+                  <Route path="/doctor/appointments" element={<DoctorAppointmentsPage />} />
+
+                  {/* Спільна сторінка деталей запису (працює і для лікаря, і для пацієнта) */}
                   <Route path="/appointments/:id" element={<AppointmentDetailPage />} />
 
                   <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />

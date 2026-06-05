@@ -20,7 +20,8 @@ export const userApiClient = {
 
   patchPatient: async (request: PatchPatientRequest) =>
     apiClient.patch<PatchPatientResponse>('/users/patient', request),
-
+  getMyDoctorAppointments: async () =>
+    apiClient.get('/appointments/doctor/me'),
   getAllDoctors: async () =>
     apiClient.get<DoctorListItem[]>('/users/doctors'),
   getAllUsers: async () =>
