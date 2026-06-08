@@ -128,13 +128,21 @@ class AppointmentService:
 
         if self.account_service and final_price > 0:
             try:
-                points_available = self.reward_repository.get_total_points(patient_oid) if self.reward_repository else 0
+                points_available = 0
+                if self.reward_repository:
+                    rewards = self.reward_repository.get_by_patient_id(patient_oid)
+                    points_available = sum(
+                        r.points for r in rewards
+                        if r.type.value == "BONUS"
+                    )
+
                 payment = await self.account_service.pay_for_appointment_combined(
                     patient_id=patient_id,
                     appointment_id=str(created.id),
                     amount=final_price,
-                    doctor_name=str(doctor_id),
+                    doctor_name=str(doctor_oid),
                     points_available=points_available,
+                    payment_method=getattr(dto, "payment_method", "MONEY"),
                 )
 
                 if self.reward_repository and payment.get("points_used", 0) > 0:

@@ -6,8 +6,9 @@ from config.dependencies import get_admin_request_service, get_specialization_se
 from config.permissions import allow_admin
 from modules.admin_module.application.service.AdminRequestService import AdminRequestService
 from modules.users_module.application.services.SpecializationService import SpecializationService
-from modules.users_module.application.dto.SpecializationDto import
+from modules.users_module.application.dto.SpecializationDto import CreateSpecializationRequest
 from modules.requests_module.domains.Request import RequestStatus
+
 
 router = APIRouter(
     prefix="/admin",
@@ -87,5 +88,7 @@ async def reject_request(
         comment
     )
     return {"status": "success" if success else "failed"}
+
+
 
 
