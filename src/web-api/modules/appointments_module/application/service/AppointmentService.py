@@ -220,6 +220,58 @@ class AppointmentService:
                 self.reward_repository.create(reward)
         return {"status": "FINISHED", "appointment_id": appointment_id}
 
+    def cancel_appointment(self, appointment_id: str, patient_id: str) -> dict:
+        try:
+            oid = ObjectId(appointment_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
+
+        appointment = self.appointment_repository.get_by_id(oid)
+        if not appointment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
+
+        if str(appointment.patient_id) != patient_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Немає доступу до цього візиту")
+
+        if appointment.status.value != "RESERVED":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неможливо скасувати прийом зі статусом {appointment.status.value}"
+            )
+
+        from_time = appointment.from_time
+        if isinstance(from_time, str):
+            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
+        if from_time.tzinfo is None:
+            from_time = from_time.replace(tzinfo=timezone.utc)
+
+        now = datetime.now(timezone.utc)
+        hours_until = (from_time - now).total_seconds() / 3600
+        if hours_until < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Скасування неможливе — до прийому менше 2 годин"
+            )
+
+        self.appointment_repository.update_status(oid, "CANCELLED")
+
+        # Розблокувати слот
+        schedules = self.schedule_repository.get_by_doctor_id(appointment.doctor_id)
+        for schedule in schedules:
+            for slot in schedule.slots:
+                if str(slot.id) == str(appointment.slot_id):
+                    self.schedule_repository.unbook_slot(schedule_id=schedule.id, slot_id=appointment.slot_id)
+                    break
+
+        if self.notification_service:
+            self.notification_service.send_appointment_notification(
+                recipient_id=str(appointment.doctor_id),
+                message="Пацієнт скасував запис",
+                appointment_id=appointment_id,
+            )
+
+        return {"status": "CANCELLED", "appointment_id": appointment_id}
+
     def _format_appointment(self, appointment: Appointment) -> dict:
         notes = getattr(appointment, "notes", [])
         return {

@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime, timezone
+from fastapi import HTTPException
+
 
 from config.dependencies import get_appointment_service
 from config.permissions import allow_patient, allow_doctor
@@ -87,3 +90,37 @@ async def finish_appointment(
         appointment_id=appointment_id,
         doctor_id=str(current_user["sub"])
     )
+
+@router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_appointment(
+    appointment_id: str,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(get_current_user)
+):
+    appointment = service.get_by_id(appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Візит не знайдено")
+
+    if str(appointment.patient_id) != current_user["sub"]:
+        raise HTTPException(status_code=403, detail="Немає доступу до цього візиту")
+
+    slot = service.get_slot(appointment.slot_id)
+    now = datetime.now(timezone.utc)
+    time_until = (slot.from_time - now).total_seconds() / 3600
+
+    if time_until < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Скасування неможливе — до прийому менше 2 годин"
+        )
+
+    return service.cancel_appointment(appointment_id)
+
+
+@router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_appointment(
+    appointment_id: str,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(get_current_user)
+):
+    return service.cancel_appointment(appointment_id, current_user["sub"])
