@@ -24,6 +24,9 @@ class BookAppointmentRequest(BaseModel):
 class AddNoteRequest(BaseModel):
     message: str
 
+class CancelAppointmentRequest(BaseModel):
+    reason: Optional[str] = None
+
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def book_appointment(
@@ -120,7 +123,14 @@ async def cancel_appointment(
 @router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
 async def cancel_appointment(
     appointment_id: str,
+    body: CancelAppointmentRequest = CancelAppointmentRequest(),
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(get_current_user)
 ):
-    return service.cancel_appointment(appointment_id, current_user["sub"])
+    return service.cancel_appointment(
+        appointment_id=appointment_id,
+        canceller_id=current_user["sub"],
+        role=current_user["role"],
+        reason=body.reason,
+    )
+

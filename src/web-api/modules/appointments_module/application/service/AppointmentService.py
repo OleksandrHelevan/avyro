@@ -220,7 +220,7 @@ class AppointmentService:
                 self.reward_repository.create(reward)
         return {"status": "FINISHED", "appointment_id": appointment_id}
 
-    def cancel_appointment(self, appointment_id: str, patient_id: str) -> dict:
+    def cancel_appointment(self, appointment_id: str, canceller_id: str, role: str, reason: str = None) -> dict:
         try:
             oid = ObjectId(appointment_id)
         except (InvalidId, TypeError):
@@ -230,8 +230,10 @@ class AppointmentService:
         if not appointment:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
 
-        if str(appointment.patient_id) != patient_id:
+        if role == "PATIENT" and str(appointment.patient_id) != canceller_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Немає доступу до цього візиту")
+        if role == "DOCTOR" and str(appointment.doctor_id) != canceller_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
 
         if appointment.status.value != "RESERVED":
             raise HTTPException(
@@ -239,38 +241,79 @@ class AppointmentService:
                 detail=f"Неможливо скасувати прийом зі статусом {appointment.status.value}"
             )
 
-        from_time = appointment.from_time
-        if isinstance(from_time, str):
-            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
-        if from_time.tzinfo is None:
-            from_time = from_time.replace(tzinfo=timezone.utc)
-
-        now = datetime.now(timezone.utc)
-        hours_until = (from_time - now).total_seconds() / 3600
-        if hours_until < 2:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Скасування неможливе — до прийому менше 2 годин"
-            )
+        if role == "PATIENT":
+            from_time = appointment.from_time
+            if isinstance(from_time, str):
+                from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
+            if from_time.tzinfo is None:
+                from_time = from_time.replace(tzinfo=timezone.utc)
+            if (from_time - datetime.now(timezone.utc)).total_seconds() / 3600 < 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Скасування неможливе — до прийому менше 2 годин"
+                )
 
         self.appointment_repository.update_status(oid, "CANCELLED")
 
-        # Розблокувати слот
+        slot_freed = False
         schedules = self.schedule_repository.get_by_doctor_id(appointment.doctor_id)
         for schedule in schedules:
             for slot in schedule.slots:
                 if str(slot.id) == str(appointment.slot_id):
                     self.schedule_repository.unbook_slot(schedule_id=schedule.id, slot_id=appointment.slot_id)
+                    slot_freed = True
                     break
+
+        cancelled_by = "PATIENT" if role == "PATIENT" else "DOCTOR"
+        notify_user_id = str(appointment.doctor_id) if role == "PATIENT" else str(appointment.patient_id)
+        reason_text = reason or ("Скасовано пацієнтом" if role == "PATIENT" else "Скасовано лікарем")
 
         if self.notification_service:
             self.notification_service.send_appointment_notification(
-                recipient_id=str(appointment.doctor_id),
-                message="Пацієнт скасував запис",
+                recipient_id=notify_user_id,
+                message=f"Візит {appointment_id} скасовано. Причина: {reason_text}",
                 appointment_id=appointment_id,
+                extra={
+                    "cancelled_by": cancelled_by,
+                    "canceller_id": canceller_id,
+                    "reason": reason_text,
+                    "slot_freed": slot_freed,
+                }
             )
+            self.notification_service.send_appointment_notification(
+                recipient_id=canceller_id,
+                message=f"Ви скасували візит {appointment_id}. Причина: {reason_text}",
+                appointment_id=appointment_id,
+                extra={
+                    "cancelled_by": cancelled_by,
+                    "canceller_id": canceller_id,
+                    "reason": reason_text,
+                    "slot_freed": slot_freed,
+                }
+            )
+            if self.user_repository:
+                admins = self.user_repository.get_by_role("ADMIN")
+                for admin in admins:
+                    self.notification_service.send_appointment_notification(
+                        recipient_id=str(admin.id),
+                        message=f"Візит {appointment_id} скасовано користувачем {canceller_id}. Причина: {reason_text}",
+                        appointment_id=appointment_id,
+                        extra={
+                            "cancelled_by": cancelled_by,
+                            "canceller_id": canceller_id,
+                            "affected_user_id": notify_user_id,
+                            "reason": reason_text,
+                            "slot_freed": slot_freed,
+                        }
+                    )
 
-        return {"status": "CANCELLED", "appointment_id": appointment_id}
+        return {
+            "status": "CANCELLED",
+            "appointment_id": appointment_id,
+            "cancelled_by": cancelled_by,
+            "reason": reason_text,
+            "slot_freed": slot_freed,
+        }
 
     def _format_appointment(self, appointment: Appointment) -> dict:
         notes = getattr(appointment, "notes", [])
