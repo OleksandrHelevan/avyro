@@ -154,7 +154,8 @@ class AppointmentService:
 
                 self.appointment_repository.update_payment_status(created.id, "PAID", payment.get("invoice_id"))
                 created.payment_status = "PAID"
-            except ValueError as e:
+            except Exception as e:
+                print(f"DEBUG exception type={type(e).__name__}, message={e}")
                 self.appointment_repository.delete(created.id)
                 self.schedule_repository.unbook_slot(schedule_id=target_schedule.id, slot_id=slot_oid)
                 raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))
