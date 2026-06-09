@@ -78,7 +78,6 @@ class AppointmentService:
         if dto.is_discount_used and dto.discount > 0:
             final_price = price * (1 - dto.discount / 100)
 
-        # Створення об'єкта Appointment
         appointment = Appointment(
             patient_id=patient_oid,
             slot_id=slot_oid,
@@ -208,17 +207,91 @@ class AppointmentService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Прийом ще не почався")
 
         self.appointment_repository.update_status(oid, "FINISHED")
+
         if self.reward_repository and appointment.patient_id:
-            if not self.reward_repository.has_first_visit_bonus(appointment.patient_id):
-                reward = Reward(
-                    patientId=appointment.patient_id,
-                    type=RewardType.BONUS,
-                    points=100,
-                    source=RewardSource.FIRST_VISIT_BONUS,
-                    description="Бонус за перший завершений візит"
-                )
-                self.reward_repository.create(reward)
-        return {"status": "FINISHED", "appointment_id": appointment_id}
+            patient_id = appointment.patient_id
+            finished_count = len(self.appointment_repository.get_finished_by_patient_id(patient_id))
+
+            if not self.reward_repository.has_first_visit_bonus(patient_id):
+                self._give_reward(patient_id, RewardSource.FIRST_VISIT_BONUS, 100,
+                                  "🎉 Перший крок до здоров'я!",
+                                  "Ви завершили свій перший візит до лікаря через нашу платформу. Так тримати!")
+
+            if finished_count >= 10 and not self.reward_repository.has_bonus(patient_id, "VISITS_10"):
+                self._give_reward(patient_id, RewardSource.VISITS_10, 150,
+                                  "🏅 Постійний пацієнт",
+                                  "Ви завершили 10 візитів до лікарів. Ваша турбота про здоров'я — це приклад для інших!")
+
+            if finished_count >= 100 and not self.reward_repository.has_bonus(patient_id, "VISITS_100"):
+                self._give_reward(patient_id, RewardSource.VISITS_100, 400,
+                                  "💎 Легенда здоров'я",
+                                  "Неймовірно! 100 завершених візитів. Ви справжній чемпіон у турботі про своє здоров'я!")
+
+            same_doctor_count = self.appointment_repository.count_finished_by_doctor(
+                patient_id, appointment.doctor_id)
+            if same_doctor_count >= 3 and not self.reward_repository.has_bonus(
+                patient_id, f"SAME_DOCTOR_3_{str(appointment.doctor_id)}"):
+                self._give_reward(patient_id,
+                                  RewardSource.SAME_DOCTOR_3, 150,
+                                  "🤝 Вірний пацієнт",
+                                  "Ви вже тричі відвідали одного лікаря. Постійність — запорука вашого здоров'я!",
+                                  source_suffix=str(appointment.doctor_id))
+
+            if self.user_repository:
+                doctor = self.user_repository.find_by_id(appointment.doctor_id)
+                if doctor and getattr(doctor, "specialization", None):
+                    spec = doctor.specialization
+                    spec_count = self.appointment_repository.get_finished_by_specialization(
+                        patient_id, spec, self.user_repository)
+                    if spec_count >= 5 and not self.reward_repository.has_bonus(
+                        patient_id, f"SAME_SPECIALIZATION_5_{spec}"):
+                        self._give_reward(patient_id,
+                                          RewardSource.SAME_SPECIALIZATION_5, 100,
+                                          "🔬 Знавець спеціалізації",
+                                          f"Ви завершили 5 візитів до лікарів напрямку «{spec}». Ви чудово знаєте свій організм!",
+                                          source_suffix=spec)
+
+            now = datetime.now(timezone.utc)
+            month_key = f"{now.year}_{now.month}"
+            monthly_count = self.appointment_repository.count_finished_in_period(
+                patient_id,
+                now.replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                now
+            )
+            if monthly_count >= 10 and not self.reward_repository.has_bonus(
+                patient_id, f"MONTHLY_VISITS_10_{month_key}"):
+                self._give_reward(patient_id,
+                                  RewardSource.MONTHLY_VISITS_10, 200,
+                                  "📅 Активний місяць",
+                                  f"Цього місяця ви завершили 10 візитів до лікарів. Неймовірна відданість своєму здоров'ю!",
+                                  source_suffix=month_key)
+
+            if self.user_repository:
+                patient = self.user_repository.find_by_id(patient_id)
+                if patient and getattr(patient, "created_at", None):
+                    reg_date = patient.created_at
+                    if reg_date.tzinfo is None:
+                        reg_date = reg_date.replace(tzinfo=timezone.utc)
+
+                    minutes_registered = (now - reg_date).total_seconds() / 60
+
+                    if (minutes_registered >= 8 and finished_count >= 4 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_6_MONTHS")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_6_MONTHS, 100,
+                                          "⭐ Пів року разом",
+                                          "Ви з нами вже півроку і завершили мінімум 3 візити. Дякуємо за довіру!")
+
+                    if (minutes_registered >= 10 and finished_count >= 6 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_1_YEAR")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_1_YEAR, 200,
+                                          "🥇 Рік з нами",
+                                          "Цілий рік ви дбаєте про своє здоров'я разом з нами. Це справжня відданість!")
+
+                    if (minutes_registered >= 12 and finished_count >= 8 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_2_YEARS")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_2_YEARS, 300,
+                                          "👑 Два роки разом",
+                                          "Два роки поруч — ви наш особливий пацієнт. Низький уклін за вашу вірність!")
 
     def cancel_appointment(self, appointment_id: str, patient_id: str) -> dict:
         try:
@@ -316,3 +389,20 @@ class AppointmentService:
         note = {"source": "DOCTOR", "message": message, "type": "RECEIPT", "createdAt": datetime.now(timezone.utc)}
         self.appointment_repository.add_note(oid, note)
         return {"status": "ok", "note": note}
+
+    def _give_reward(self, patient_id, source, points, title, description, source_suffix=None):
+        source_value = f"{source.value}_{source_suffix}" if source_suffix else source.value
+        reward = Reward(
+            patientId=patient_id,
+            type=RewardType.BONUS,
+            points=points,
+            source=source,
+            description=f"{title} (+{points} балів). {description}",
+        )
+        self.reward_repository.create(reward)
+        if self.notification_service:
+            self.notification_service.send_appointment_notification(
+                recipient_id=str(patient_id),
+                message=f"{title} — вам нараховано {points} бонусних балів! {description}",
+                appointment_id=None,
+            )
