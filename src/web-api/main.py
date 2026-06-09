@@ -22,6 +22,8 @@ from modules.payments_module.api.WebhookController import router as webhook_rout
 from modules.appointments_module.application.service.AppointmentCompleteScheduler import start_appointment_completer
 from modules.appointments_module.infrastructure.persistence.AppointmentRepository import AppointmentRepository
 from config.db import db
+from modules.feedback_module.api.FeedbackController import router as feedback_router
+
 
 
 
@@ -99,6 +101,8 @@ app.include_router(schedule_router)
 app.include_router(notification_router)
 app.include_router(payment_router)
 app.include_router(webhook_router)
+app.include_router(feedback_router)
+
 
 
 @app.get("/health", tags=["General"], summary="Health Status")
