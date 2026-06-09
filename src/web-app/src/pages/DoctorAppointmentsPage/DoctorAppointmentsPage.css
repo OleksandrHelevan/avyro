@@ -265,3 +265,88 @@
 .dap-card:hover .dap-action-btn {
   text-decoration: underline;
 }
+/* 📱 ── Mobile Responsive (Адаптив) ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .dap-page {
+    /* Зменшуємо бокові відступи, щоб картки були ширшими на вузьких екранах */
+    padding: 20px 12px 60px;
+  }
+
+  .dap-container {
+    gap: 16px;
+  }
+
+  .dap-header-title h1 {
+    font-size: 24px;
+  }
+
+  .dap-subtitle {
+    font-size: 14px;
+  }
+
+  /* Фільтри робимо трохи компактнішими */
+  .dap-filter-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* Сама картка візиту */
+  .dap-card {
+    padding: 16px;
+    border-radius: 20px;
+    gap: 12px;
+  }
+
+  .dap-card-middle {
+    gap: 12px;
+  }
+
+  .dap-avatar-img,
+  .dap-avatar-fallback {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+  }
+
+  .dap-patient-info h4 {
+    font-size: 15px;
+  }
+
+  /* Нижній блок: дата і кнопка "Деталі" */
+  .dap-card-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dap-datetime {
+    flex-wrap: wrap; /* Дозволяє перенести час на новий рядок, якщо телефон дуже вузький */
+    gap: 12px;
+  }
+
+  .dap-dt-item {
+    font-size: 13px;
+  }
+
+  /* Перетворюємо кнопку "Деталі" у велику таб-кнопку для зручного натискання пальцем */
+  .dap-action-btn {
+    width: 100%;
+    justify-content: center;
+    background: rgba(123, 81, 179, 0.08);
+    padding: 10px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Ультра-малі екрани (наприклад, старі iPhone) */
+  .dap-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .dap-header-title h1 {
+    font-size: 20px;
+  }
+}

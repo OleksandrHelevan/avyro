@@ -157,3 +157,35 @@
 .booking-note-input::placeholder {
   color: #94a3b8;
 }
+/* ── Add to DoctorProfilePage.css ─────────────────────────────────────── */
+
+.booking-profile-warn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #9a3412;
+  flex-wrap: wrap;
+}
+
+.booking-profile-warn strong { color: #7c2d12; }
+
+.booking-profile-warn button {
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.booking-profile-warn button:hover { background: #ea580c; }

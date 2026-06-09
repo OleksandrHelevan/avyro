@@ -1,15 +1,17 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Calendar, Clock, User, Stethoscope,
-  Phone, Mail, Coins, CheckCircle2, XCircle, Timer, MessageSquare
+  Phone, Mail, Coins, CheckCircle2, XCircle, Timer,
+  MessageSquare, ExternalLink, RefreshCw,
 } from "lucide-react";
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors.ts";
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
 import "./AppointmentDetailPage.css";
 import { useMemo } from "react";
 import { useAppointment } from "../../domains/appointments/useAppointments/useAppointments.ts";
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+// ── Status config ─────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: any }> = {
   PLANNED:   { label: "Заплановано", className: "status--reserved",  Icon: Timer },
@@ -17,6 +19,8 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: an
   FINISHED:  { label: "Завершено",   className: "status--finished",  Icon: CheckCircle2 },
   CANCELLED: { label: "Скасовано",   className: "status--cancelled", Icon: XCircle },
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("uk-UA", {
@@ -45,8 +49,9 @@ function Avatar({ name, url, size = 52 }: { name?: string; url?: string; size?: 
 export default function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isDoctor, isPatient } = useAuth();
 
-  const { data: appt, isLoading, isError} = useAppointment(id || "");
+  const { data: appt, isLoading, isError, refetch, isFetching } = useAppointment(id || "");
   const { data: rawDoctors = [] } = useGetDoctors();
 
   const doctorsList = useMemo(() => {
@@ -55,7 +60,7 @@ export default function AppointmentDetailPage() {
   }, [rawDoctors]);
 
   const doctor = useMemo(() => {
-    if (appt?.doctor) return appt.doctor;
+    if ((appt as any)?.doctor) return (appt as any).doctor;
     return doctorsList.find((d: any) => {
       const dId = d.id || d._id;
       return dId && appt?.doctorId && dId.toString() === appt.doctorId.toString();
@@ -65,69 +70,76 @@ export default function AppointmentDetailPage() {
   if (isLoading) return <div className="loading-screen"><Loader /></div>;
   if (isError || !appt) return (
     <div className="adp-error" style={{ paddingTop: "120px" }}>
-      <XCircle size={40} />
-      <p>Не вдалося завантажити запис</p>
+      <XCircle size={40} /><p>Не вдалося завантажити запис</p>
       <button onClick={() => navigate(-1)}>← Назад</button>
     </div>
   );
 
+  const apptData: any = appt;
   const statusCfg = STATUS_CONFIG[appt.status] || { label: appt.status, className: "status--reserved", Icon: Timer };
   const StatusIcon = statusCfg.Icon;
   const duration = appt.from && appt.to ? durationMin(appt.from, appt.to) : null;
 
-  // Шукаємо нотатку (в залежності від того, як бекенд її зберігає)
-// 🚀 ВИТЯГУЄМО НОТАТКУ (Обходимо TypeScript помилки через as any)
-  const apptData: any = appt; // Робимо "гнучку" копію об'єкта для пошуку
   const patientNoteObj = Array.isArray(apptData.notes)
-    ? apptData.notes.find((n: any) => n.source === 'PATIENT' || n.type === 'SPECIFICATION')
+    ? apptData.notes.find((n: any) => n.source === "PATIENT" || n.type === "SPECIFICATION")
     : null;
   const appointmentNote = patientNoteObj?.message || apptData.note || apptData.comment || apptData.description;
 
-  // 🚀 ВИТЯГУЄМО ЦІНУ (Супер-розумний пошук)
   const possiblePrices = [
     apptData.finalPrice, apptData.basePrice, apptData.price,
     apptData.payload?.price, apptData.payload?.pricePerSlot,
-    doctor?.price, doctor?.pricePerSlot, doctor?.consultationPrice, doctor?.fee
+    doctor?.price, doctor?.pricePerSlot, doctor?.consultationPrice,
   ];
+  const validPrice = possiblePrices.map(p => Number(p)).find(p => !isNaN(p) && p > 0);
 
-  // Перетворюємо все на числа (щоб "500" текст став цифрою 500)
-  const validPrice = possiblePrices
-    .map(p => Number(p))
-    .find(p => !isNaN(p) && p > 0);
+  // ── Routing helpers ───────────────────────────────────────────────────
+  const doctorId = appt.doctorId || doctor?._id || doctor?.id;
+  const patientId = appt.patientId;
 
+  // Doctor → navigate to patient public profile
+  // Patient → navigate to doctor public profile
+  const handleViewProfile = () => {
+    if (isDoctor && patientId) {
+      navigate(`/patients/${patientId}`);   // adjust to your actual route
+    } else if (isPatient && doctorId) {
+      navigate(`/doctors/${doctorId}`);     // existing DoctorProfilePage route: /doctors/:id
+    }
+  };
 
-  // 🕵️‍♂️ ШПИГУН ТІЛЬКИ ДЛЯ ЦІНИ (подивимося в консолі, якщо знову буде 0)
-  console.log("🕵️‍♂️ Масив усіх знайдених цін:", possiblePrices);
-  console.log("✅ Вибрана ціна (validPrice):", validPrice);
-  // 🕵️‍♂️ НАШ ШПИГУН
-  console.log("🕵️‍♂️ ДАНІ ВІЗИТУ З БЕКЕНДУ:", appt);
+  const profileLinkLabel = isDoctor
+    ? "Профіль пацієнта"
+    : "Профіль лікаря";
+
+  const canViewProfile = (isDoctor && !!patientId) || (isPatient && !!doctorId);
 
   return (
     <div className="adp-page" style={{ paddingTop: "120px" }}>
       <div className="adp-container">
 
-        {/* ── Back + refresh ── */}
+        {/* ── Topbar ── */}
         <div className="adp-topbar">
           <button className="adp-back" onClick={() => navigate(-1)}>
             <ArrowLeft size={18} /> Назад
           </button>
+          <button className="adp-refresh" onClick={() => refetch()} disabled={isFetching} title="Оновити">
+            <RefreshCw size={14} className={isFetching ? "adp-spin" : ""} />
+          </button>
         </div>
 
-        {/* ── UNIFIED CARD (ОДИН БЛОК) ── */}
+        {/* ── UNIFIED CARD ── */}
         <div className="adp-unified-card">
 
           {/* Header & Status */}
           <div className="adp-unified-header">
             <h2 className="adp-unified-title">Деталі візиту</h2>
             <div className={`adp-status-badge ${statusCfg.className}`}>
-              <StatusIcon size={14} />
-              <span>{statusCfg.label}</span>
+              <StatusIcon size={14} /><span>{statusCfg.label}</span>
             </div>
           </div>
 
-          <div className="adp-divider"></div>
+          <div className="adp-divider" />
 
-          {/* Date section */}
+          {/* Date */}
           <div className="adp-section">
             <div className="adp-section-label"><Calendar size={14} />Дата та час</div>
             <div className="adp-date-main">
@@ -144,12 +156,19 @@ export default function AppointmentDetailPage() {
             </div>
           </div>
 
-          {/* Doctor section */}
+          {/* Doctor (visible to patient) */}
           {doctor && (
             <>
-              <div className="adp-divider"></div>
+              <div className="adp-divider" />
               <div className="adp-section">
-                <div className="adp-section-label"><Stethoscope size={14} />Лікар</div>
+                <div className="adp-section-label-row">
+                  <div className="adp-section-label"><Stethoscope size={14} />Лікар</div>
+                  {isPatient && doctorId && (
+                    <button className="adp-profile-link" onClick={() => navigate(`/doctors/${doctorId}`)}>
+                      <ExternalLink size={12} /> Профіль лікаря
+                    </button>
+                  )}
+                </div>
                 <div className="adp-person-row">
                   <Avatar name={doctor.fullName || doctor.full_name} url={doctor.avatarUrl || doctor.avatar_url} />
                   <div className="adp-person-info">
@@ -160,68 +179,61 @@ export default function AppointmentDetailPage() {
                   </div>
                 </div>
                 <div className="adp-contacts">
-                  {(doctor.phone) && (
-                    <a href={`tel:${doctor.phone}`} className="adp-contact-row">
-                      <Phone size={14} />{doctor.phone}
-                    </a>
-                  )}
-                  {(doctor.email) && (
-                    <a href={`mailto:${doctor.email}`} className="adp-contact-row">
-                      <Mail size={14} />{doctor.email}
-                    </a>
-                  )}
+                  {doctor.phone && <a href={`tel:${doctor.phone}`} className="adp-contact-row"><Phone size={14} />{doctor.phone}</a>}
+                  {doctor.email && <a href={`mailto:${doctor.email}`} className="adp-contact-row"><Mail size={14} />{doctor.email}</a>}
                 </div>
               </div>
             </>
           )}
 
-          {/* Patient section */}
-          {appt.patient && (
+          {/* Patient (visible to doctor) */}
+          {apptData.patient && (
             <>
-              <div className="adp-divider"></div>
+              <div className="adp-divider" />
               <div className="adp-section">
-                <div className="adp-section-label"><User size={14} />Пацієнт</div>
+                <div className="adp-section-label-row">
+                  <div className="adp-section-label"><User size={14} />Пацієнт</div>
+                  {isDoctor && patientId && (
+                    <button className="adp-profile-link" onClick={() => navigate(`/patients/${patientId}`)}>
+                      <ExternalLink size={12} /> Профіль пацієнта
+                    </button>
+                  )}
+                </div>
                 <div className="adp-person-row">
-                  <Avatar name={appt.patient.fullName} url={appt.patient.avatarUrl} />
+                  <Avatar name={apptData.patient.fullName} url={apptData.patient.avatarUrl} />
                   <div className="adp-person-info">
-                    <div className="adp-person-name">{appt.patient.fullName}</div>
-                    {appt.patient.email && <div className="adp-person-spec">{appt.patient.email}</div>}
+                    <div className="adp-person-name">{apptData.patient.fullName}</div>
+                    {apptData.patient.email && <div className="adp-person-spec">{apptData.patient.email}</div>}
+                    {apptData.patient.phone && (
+                      <a href={`tel:${apptData.patient.phone}`} className="adp-contact-row" style={{ marginTop: 4 }}>
+                        <Phone size={13} />{apptData.patient.phone}
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          {/* 🚀 ДОДАНО: Секція нотатки */}
+          {/* Note */}
           {appointmentNote && (
             <>
-              <div className="adp-divider"></div>
+              <div className="adp-divider" />
               <div className="adp-section">
                 <div className="adp-section-label"><MessageSquare size={14} />Коментар до запису</div>
-                <div style={{
-                  background: 'rgba(241, 245, 249, 0.6)',
-                  padding: '16px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(226, 232, 240, 0.8)',
-                  color: '#334155',
-                  fontSize: '15px',
-                  lineHeight: '1.6',
-                  fontStyle: 'italic'
-                }}>
-                  "{appointmentNote}"
-                </div>
+                <div className="adp-note-block">"{appointmentNote}"</div>
               </div>
             </>
           )}
 
-          {/* Price section */}
-          {appt.price != null && (
+          {/* Price */}
+          {(validPrice || appt.price != null) && (
             <>
-              <div className="adp-divider"></div>
+              <div className="adp-divider" />
               <div className="adp-section adp-price-section">
                 <div className="adp-section-label"><Coins size={14} />Вартість</div>
                 <div className="adp-price-row">
-                  <div className="adp-price-val">{appt.price} ₴</div>
+                  <div className="adp-price-val">{validPrice ?? appt.price} ₴</div>
                   {appt.status === "FINISHED" && (
                     <div className="adp-paid-badge"><CheckCircle2 size={14} />Сплачено</div>
                   )}
@@ -231,6 +243,14 @@ export default function AppointmentDetailPage() {
           )}
 
         </div>
+
+        {/* ── View profile CTA (fallback if person not embedded) ── */}
+        {canViewProfile && !apptData.patient && !apptData.doctor && (
+          <button className="adp-view-profile-btn" onClick={handleViewProfile}>
+            <ExternalLink size={15} /> {profileLinkLabel}
+          </button>
+        )}
+
       </div>
     </div>
   );
