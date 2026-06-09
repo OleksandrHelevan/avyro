@@ -134,3 +134,4 @@ async def cancel_appointment(
         reason=body.reason,
     )
 
+
