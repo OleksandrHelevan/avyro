@@ -48,5 +48,12 @@ export const userApiClient = {
   // 🚀 ВИПРАВЛЕНО: Прибрали ID з URL і передаємо його в тіло запиту
   createFeedback: async (doctorId: string, request: CreateFeedbackRequest) =>
     apiClient.post('/feedback', { ...request, doctorId }),
+  createDoctorFeedback: async (request: {
+    doctor_id: string;
+    message: string;
+    rating: number;
+    visibility: string
+  }) =>
+    apiClient.post('/feedback/doctor-review', request),
 
 };

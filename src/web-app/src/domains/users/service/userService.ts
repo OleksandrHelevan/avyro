@@ -65,4 +65,12 @@ export const userService = {
   createFeedback: async (doctorId: string, request: CreateFeedbackRequest): Promise<any> => {
     return userApiClient.createFeedback(doctorId, request);
   },
+  createDoctorFeedback: async (request: {
+    doctor_id: string;
+    message: string;
+    rating: number;
+    visibility: string
+  }) => {
+    return userApiClient.createDoctorFeedback(request);
+  },
 };

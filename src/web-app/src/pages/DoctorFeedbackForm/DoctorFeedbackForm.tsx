@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./DoctorFeedbackForm.css";
-import { useCreateFeedback } from "../../domains/users/useCreateFeedback/useCreateFeedback";
+import { useCreateFeedback} from "../../domains/users/useCreateFeedbackDoc/useCreateFeedbackDoc";
 import { Star, Send, Loader2, MessageSquare } from "lucide-react";
 
 interface DoctorFeedbackFormProps {
@@ -19,21 +19,19 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
     e.preventDefault();
     if (rating === 0 || !message.trim()) return;
 
-    submitFeedback(
-      {
-        doctor_id: doctorId,
-        message,
-        rating,
-        visibility: "PUBLIC",
-      },
-      {
-        onSuccess: () => {
-          setIsOpen(false);
-          setRating(0);
-          setMessage("");
-        },
-      }
-    );
+    // Відправляємо чіткий об'єкт за схемою API
+    submitFeedback({
+      doctor_id: doctorId,
+      message: message.trim(),
+      rating: Number(rating),
+      visibility: "PUBLIC",
+    });
+
+    // Після успішного виклику, якщо помилок немає, очищаємо форму
+    // (Логіку onSuccess можна також перенести в сам хук)
+    setIsOpen(false);
+    setRating(0);
+    setMessage("");
   };
 
   if (!isOpen) {
@@ -82,6 +80,11 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
                       ? "#f59e0b"
                       : "transparent"
                   }
+                  stroke={
+                    (hoverRating || rating) >= star
+                      ? "#f59e0b"
+                      : "#9ca3af"
+                  }
                 />
               </button>
             ))}
@@ -98,7 +101,7 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
         <button
           type="submit"
           className="submit-feedback-btn"
-          disabled={isPending}
+          disabled={isPending || rating === 0}
         >
           {isPending ? (
             <>
