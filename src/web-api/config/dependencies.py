@@ -17,6 +17,9 @@ from modules.payments_module.infrastructure.persistence.AccountRepository import
 from modules.payments_module.application.AccountService import AccountService
 from modules.payments_module.application.StripeService import StripeService
 from modules.appointments_module.infrastructure.persistence.SlotRepository import SlotRepository
+from modules.feedback_module.application.FeedbackService import FeedbackService
+from modules.feedback_module.infrastructure.persistence.FeedbackRepository import FeedbackRepository
+
 
 
 
@@ -110,6 +113,16 @@ def get_appointment_service() -> AppointmentService:
         notification_service=notification_service,
         user_repository=user_repo,
     )
+
+def get_feedback_service() -> FeedbackService:
+    user_repo = UserRepository(db["Users"])
+    repo = FeedbackRepository(db["Feedbacks"])
+    return FeedbackService(repo, user_repo)
+
+def get_feedback_service() -> FeedbackService:
+    user_repo = UserRepository(db["Users"])
+    repo = FeedbackRepository(db["Feedbacks"], db["DoctorReviews"])
+    return FeedbackService(repo, user_repo)
 
 
 
