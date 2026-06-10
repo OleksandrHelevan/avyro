@@ -10,7 +10,7 @@ import BadgeUnlockOverlay from "../GamificationPage/components/BadgeUnlockOverla
 
 import "./PatientProfile.css";
 import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
-import ProfileCompletionBanner from "../Profilecompletionbanner/Profilecompletionbanner.tsx";
+import ProfileCompletionBanner from "../ProfileCompletionBanner/ProfileCompletionBanner.tsx";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
