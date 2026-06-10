@@ -133,7 +133,13 @@ export default function DoctorProfile() {
     }
 
     bookAppointment(
-      { slotId: slotIdToBook, doctorId: doctorIdToBook, pricePerSlot: consultationPrice, payment_method: paymentMethod } as any,
+      {
+        slotId: slotIdToBook,
+        doctorId: doctorIdToBook,
+        // 🚀 ТУТ ФІКС: Множимо ціну на 100, щоб перевести гривні в копійки для Stripe
+        pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
+        payment_method: paymentMethod
+      } as any,
       {
         onSuccess: (response: any) => {
           const data = response?.data || response;
