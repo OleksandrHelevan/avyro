@@ -3,45 +3,62 @@ import type {
   AdminRegistration,
   ApproveRegistrationResponse,
   RejectRegistrationResponse,
-  AdminScheduleRequest, SendNotificationResponse, SendNotificationRequest,
+  AdminScheduleRequest,
+  SendNotificationResponse,
+  SendNotificationRequest,
+  AdminFeedback
 } from "../types.ts";
 
 export const adminApiClient = {
 
+  /* ===== REGISTRATIONS ===== */
+  getAdminRegistrations: async () =>
+    apiClient.get<AdminRegistration[]>("/admin/registrations"),
+
   approveRegistration: async (request_id: string) =>
-    apiClient.post<ApproveRegistrationResponse>(`/admin/${request_id}/approve-registration`, {}),
+    apiClient.post<ApproveRegistrationResponse>(
+      `/admin/${request_id}/approve-registration`,
+      {}
+    ),
 
   rejectRegistration: async (request_id: string, comment: string) =>
-    apiClient.post<RejectRegistrationResponse>(`/admin/${request_id}/reject?comment=${encodeURIComponent(comment)}`, {}),
+    apiClient.post<RejectRegistrationResponse>(
+      `/admin/${request_id}/reject?comment=${encodeURIComponent(comment)}`,
+      {}
+    ),
 
-  getAdminRegistrations: async () =>
-    apiClient.get<AdminRegistration[]>('/admin/registrations'),
-
+  /* ===== SCHEDULES ===== */
   getAdminSchedules: async () =>
-    apiClient.get<AdminScheduleRequest[]>('/admin/schedules'),
+    apiClient.get<AdminScheduleRequest[]>("/admin/schedules"),
 
   approveSchedule: async (schedule_id: string) =>
     apiClient.post(`/admin/${schedule_id}/approve-schedule`, {}),
 
   rejectSchedule: async (schedule_id: string, comment: string) =>
-    apiClient.post(`/admin/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`, {}),
+    apiClient.post(
+      `/admin/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`,
+      {}
+    ),
 
+  /* ===== SPECIALIZATIONS ===== */
   getAdminSpecializations: async () =>
-    apiClient.get<any[]>('/admin/specializations'),
+    apiClient.get<any[]>("/admin/specializations"),
 
   approveSpecialization: async (request_id: string) =>
     apiClient.post(`/admin/${request_id}/approve-specialization`, {}),
 
   createSpecializationDirect: async (data: { name: string }) => {
-    console.log("Відправка на бекенд:", data.name);
-    return apiClient.post('/admin/specialization', {
+    return apiClient.post("/admin/specialization", {
       name: data.name.trim(),
       description: "Створено адміністратором"
     });
   },
 
-  sendNotification: async (data: SendNotificationRequest) => {
-    return apiClient.post<SendNotificationResponse>('/admin/notification', data);
-  },
+  /* ===== NOTIFICATIONS ===== */
+  sendNotification: async (data: SendNotificationRequest) =>
+    apiClient.post<SendNotificationResponse>("/admin/notification", data),
 
+  /* ===== FEEDBACK ===== */
+  getAllFeedbacks: async () =>
+    apiClient.get<AdminFeedback[]>("/feedback/all"),
 };

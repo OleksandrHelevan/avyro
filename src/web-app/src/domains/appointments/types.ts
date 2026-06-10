@@ -50,3 +50,6 @@ export interface AppointmentDetailResponse {
     email?: string;
   };
 }
+export interface CancelAppointmentRequest {
+  reason?: string;
+}

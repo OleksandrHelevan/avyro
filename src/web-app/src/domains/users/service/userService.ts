@@ -4,7 +4,7 @@ import type {
   GetPatientResponse, PatchPatientRequest, PatchPatientResponse,
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
-  DoctorListItem, DoctorApprovalResponse, GetNotificationsResponse
+  DoctorListItem, DoctorApprovalResponse, GetNotificationsResponse, CreateFeedbackRequest
 } from "../types.ts";
 
 export const userService = {
@@ -61,5 +61,8 @@ export const userService = {
   },
   markAllNotificationsAsRead: async (): Promise<any> => {
     return userApiClient.markAllNotificationsAsRead();
+  },
+  createFeedback: async (doctorId: string, request: CreateFeedbackRequest): Promise<any> => {
+    return userApiClient.createFeedback(doctorId, request);
   },
 };

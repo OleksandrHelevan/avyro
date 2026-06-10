@@ -1,21 +1,50 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { Zap, TrendingUp } from "lucide-react";
 import { useAuth } from "../../context/auth/useAuth.tsx";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 import { REWARD_LEVELS, type RewardLevel } from "../../domains/rewards/rewardsConfig.ts";
 import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
-import RewardBadge from "./components/RewardBadge.tsx";
+import RewardBadge, { REWARD_DICTIONARY } from "./components/RewardBadge.tsx"; // Імпортуємо словник
+import BadgeUnlockToast from "./components/BadgeUnlockToast.tsx"; // Імпортуємо тост
+import toast from "react-hot-toast";
 import "./GamificationPage.css";
 
 export default function GamificationPage() {
   const { userId } = useAuth();
   const { data: patient, isLoading } = usePatient(userId || "");
 
+  // Зберігаємо попередню кількість нагород, щоб відстежити появу нових
+  const prevRewardsCount = useRef<number>(0);
+
   const totalPoints = useMemo(() => {
     if (!patient?.rewards) return 0;
     return patient.rewards.reduce((sum, item) => sum + item.points, 0);
   }, [patient]);
+
+  // 🚀 ДОДАНО: Слідкуємо за новими нагородами
+  useEffect(() => {
+    if (patient?.rewards) {
+      const currentCount = patient.rewards.length;
+
+      // Якщо кількість нагород збільшилась (і це не перше завантаження)
+      if (currentCount > prevRewardsCount.current && prevRewardsCount.current !== 0) {
+        // Знаходимо нові нагороди (припускаємо, що вони додаються в кінець масиву)
+        const newRewards = patient.rewards.slice(prevRewardsCount.current);
+
+        newRewards.forEach((reward: any) => {
+          const config = REWARD_DICTIONARY[reward.source] || { title: "Спеціальний бонус" };
+
+          // Викликаємо кастомний тост
+          toast.custom((t) => (
+            <BadgeUnlockToast t={t} title={config.title} points={reward.points} />
+          ), { duration: 5000 });
+        });
+      }
+
+      prevRewardsCount.current = currentCount;
+    }
+  }, [patient?.rewards]);
 
   const currentLevelInfo = useMemo(() => {
     const levelKey =
@@ -38,7 +67,6 @@ export default function GamificationPage() {
       <div className="bg-shape shape-2" />
 
       <div className="layout-container main-content">
-        {/* ── Unified sidebar ── */}
         <PatientSidebar />
 
         <main className="profile-content">
@@ -67,8 +95,9 @@ export default function GamificationPage() {
 
           <div className="badges-grid">
             {patient?.rewards && patient.rewards.length > 0 ? (
-              patient.rewards.map((reward, idx) => (
-                <RewardBadge key={reward._id} item={reward} index={idx} />
+              // Сортуємо так, щоб нові нагороди були зверху
+              [...patient.rewards].reverse().map((reward, idx) => (
+                <RewardBadge key={reward._id || idx} item={reward} index={idx} />
               ))
             ) : (
               <div className="empty-rewards fade-in-up">

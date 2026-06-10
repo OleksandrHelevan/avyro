@@ -1,0 +1,14 @@
+.pfm-overlay {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.pfm-modal {
+  background: white; padding: 24px; border-radius: 20px;
+  width: 90%; max-width: 400px;
+}
+.pfm-rating { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+.star-active { fill: #f59e0b; color: #f59e0b; cursor: pointer; }
+.star-inactive { color: #d1d5db; cursor: pointer; }
+.pfm-modal textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 16px; }
+.pfm-modal button[type="submit"] { width: 100%; padding: 12px; background: #3bceb5; border: none; color: white; border-radius: 12px; font-weight: 600; cursor: pointer; }
