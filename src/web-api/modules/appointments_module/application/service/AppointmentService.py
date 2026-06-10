@@ -195,7 +195,7 @@ class AppointmentService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
         if str(appointment.doctor_id) != doctor_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
-        if appointment.status.value != "RESERVED":
+        if appointment.status.value not in ("RESERVED", "PLANNED"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}")
 
@@ -299,7 +299,7 @@ class AppointmentService:
             oid = ObjectId(appointment_id)
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
-
+        print(f"DEBUG cancel start: appointment_id={appointment_id}")
         appointment = self.appointment_repository.get_by_id(oid)
         if not appointment:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
@@ -309,7 +309,7 @@ class AppointmentService:
         if role == "DOCTOR" and str(appointment.doctor_id) != canceller_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
 
-        if appointment.status.value != "RESERVED":
+        if appointment.status.value not in ("RESERVED", "PLANNED"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Неможливо скасувати прийом зі статусом {appointment.status.value}"
@@ -347,23 +347,13 @@ class AppointmentService:
                 recipient_id=notify_user_id,
                 message=f"Візит {appointment_id} скасовано. Причина: {reason_text}",
                 appointment_id=appointment_id,
-                extra={
-                    "cancelled_by": cancelled_by,
-                    "canceller_id": canceller_id,
-                    "reason": reason_text,
-                    "slot_freed": slot_freed,
-                }
+
             )
             self.notification_service.send_appointment_notification(
                 recipient_id=canceller_id,
                 message=f"Ви скасували візит {appointment_id}. Причина: {reason_text}",
                 appointment_id=appointment_id,
-                extra={
-                    "cancelled_by": cancelled_by,
-                    "canceller_id": canceller_id,
-                    "reason": reason_text,
-                    "slot_freed": slot_freed,
-                }
+
             )
             if self.user_repository:
                 admins = self.user_repository.get_by_role("ADMIN")
@@ -372,13 +362,7 @@ class AppointmentService:
                         recipient_id=str(admin.id),
                         message=f"Візит {appointment_id} скасовано користувачем {canceller_id}. Причина: {reason_text}",
                         appointment_id=appointment_id,
-                        extra={
-                            "cancelled_by": cancelled_by,
-                            "canceller_id": canceller_id,
-                            "affected_user_id": notify_user_id,
-                            "reason": reason_text,
-                            "slot_freed": slot_freed,
-                        }
+
                     )
 
         return {

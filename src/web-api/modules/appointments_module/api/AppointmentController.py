@@ -94,44 +94,20 @@ async def finish_appointment(
         doctor_id=str(current_user["sub"])
     )
 
-@router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
-async def cancel_appointment(
-    appointment_id: str,
-    service: AppointmentService = Depends(get_appointment_service),
-    current_user: dict = Depends(get_current_user)
-):
-    appointment = service.get_by_id(appointment_id)
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Візит не знайдено")
-
-    if str(appointment.patient_id) != current_user["sub"]:
-        raise HTTPException(status_code=403, detail="Немає доступу до цього візиту")
-
-    slot = service.get_slot(appointment.slot_id)
-    now = datetime.now(timezone.utc)
-    time_until = (slot.from_time - now).total_seconds() / 3600
-
-    if time_until < 2:
-        raise HTTPException(
-            status_code=400,
-            detail="Скасування неможливе — до прийому менше 2 годин"
-        )
-
-    return service.cancel_appointment(appointment_id)
-
 
 @router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
 async def cancel_appointment(
     appointment_id: str,
-    body: CancelAppointmentRequest = CancelAppointmentRequest(),
     service: AppointmentService = Depends(get_appointment_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    body: Optional[CancelAppointmentRequest] = None,
 ):
+    reason = body.reason if body else None
     return service.cancel_appointment(
         appointment_id=appointment_id,
         canceller_id=current_user["sub"],
         role=current_user["role"],
-        reason=body.reason,
+        reason=reason,
     )
 
 
