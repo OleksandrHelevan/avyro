@@ -7,11 +7,10 @@ from modules.feedback_module.domains.DoctorReview import DoctorReview, ReviewVis
 from modules.feedback_module.application.dto.FeedbackDTOs import CreateDoctorReviewRequest
 
 class FeedbackService:
-    def __init__(self, feedback_repo: FeedbackRepository, user_repository, collection, collection_reviews):
+    def __init__(self, feedback_repo: FeedbackRepository, user_repository):
         self.feedback_repo = feedback_repo
         self.user_repository = user_repository
-        self.collection = collection
-        self.collection_reviews = collection_reviews
+
 
     def create_feedback(self, user_id: str, dto: CreateFeedbackRequest) -> dict:
         feedback = Feedback(
@@ -27,7 +26,7 @@ class FeedbackService:
         docs = self.feedback_repo.get_all()
         result = []
         for doc in docs:
-            user = self.user_repository.find_by_id(doc["user_id"])
+            user = self.user_repository.get_by_id(doc["user_id"])
             result.append({
                 "feedback_id": str(doc["_id"]),
                 "message": doc["message"],
@@ -59,7 +58,7 @@ class FeedbackService:
         result = []
         for doc in docs:
             is_public = doc.get("visibility") == "PUBLIC"
-            user = self.user_repository.find_by_id(doc["patient_id"]) if is_public else None
+            user = self.user_repository.get_by_id(doc["patient_id"]) if is_public else None
             result.append({
                 "review_id": str(doc["_id"]),
                 "message": doc["message"],
