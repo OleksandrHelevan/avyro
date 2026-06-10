@@ -7,11 +7,10 @@ from modules.feedback_module.domains.DoctorReview import DoctorReview, ReviewVis
 from modules.feedback_module.application.dto.FeedbackDTOs import CreateDoctorReviewRequest
 
 class FeedbackService:
-    def __init__(self, feedback_repo: FeedbackRepository, user_repository, collection, collection_reviews):
+    def __init__(self, feedback_repo: FeedbackRepository, user_repository):
         self.feedback_repo = feedback_repo
         self.user_repository = user_repository
-        self.collection = collection
-        self.collection_reviews = collection_reviews
+
 
     def create_feedback(self, user_id: str, dto: CreateFeedbackRequest) -> dict:
         feedback = Feedback(
