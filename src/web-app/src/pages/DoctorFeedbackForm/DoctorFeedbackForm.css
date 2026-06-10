@@ -1,0 +1,135 @@
+.open-feedback-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: white;
+  color: #3bceb5;
+  border: 1px solid #3bceb5;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.open-feedback-btn:hover {
+  background: #f0fdfa;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 206, 181, 0.2);
+}
+
+.feedback-form-container {
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.feedback-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover { color: #ef4444; }
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.rating-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.stars-container {
+  display: flex;
+  gap: 6px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #cbd5e1;
+  transition: transform 0.1s;
+}
+
+.star-btn:hover { transform: scale(1.1); }
+.star-btn.active { color: #f59e0b; }
+
+.message-section textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.message-section textarea:focus {
+  border-color: #3bceb5;
+  background: white;
+}
+
+.submit-feedback-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: #3bceb5;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submit-feedback-btn:hover:not(:disabled) {
+  background: #2ea793;
+  transform: translateY(-2px);
+}
+
+.submit-feedback-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }

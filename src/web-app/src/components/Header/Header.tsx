@@ -166,7 +166,6 @@ export default function Header() {
               )}
 
               <div className="notif-wrapper" ref={notifRef}>
-                {/* 🚀 ОНОВЛЕНО: Додано інлайн-стилі, щоб гарантовано прибрати бордер та фон */}
                 <button
                   className={`profile-icon-btn ${isNotifOpen ? "active-icon" : ""}`}
                   onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -198,20 +197,37 @@ export default function Header() {
                             <p>Немає нових сповіщень</p>
                           </div>
                         ) : (
-                          sortedNotifications.map((notif) => (
-                            <div key={notif.id} className={`notif-dropdown-item ${notif.is_read ? 'read' : 'unread'}`}>
-                              <div className="notif-item-icon">
-                                {notif.is_read ? <CheckCircle2 size={18} color="#94a3b8" /> : <Info size={18} color="#7b51b3" />}
+                          sortedNotifications.map((notif) => {
+                            // 🚀 Витягуємо appointmentId (може бути на верхньому рівні, або в payload)
+                            const n = notif as any; // 🚀 Кажемо TypeScript не сваритися
+                            const apptId = n.appointmentId || n.payload?.appointmentId || n.data?.appointmentId;
+                            return (
+                              <div
+                                key={notif.id}
+                                className={`notif-dropdown-item ${notif.is_read ? 'read' : 'unread'}`}
+                                // 🚀 ДОДАНО: Логіка кліку та курсор
+                                onClick={() => {
+                                  if (apptId) {
+                                    setIsNotifOpen(false);
+                                    closeMobileMenu();
+                                    navigate(`/appointments/${apptId}`);
+                                  }
+                                }}
+                                style={{ cursor: apptId ? 'pointer' : 'default' }}
+                              >
+                                <div className="notif-item-icon">
+                                  {notif.is_read ? <CheckCircle2 size={18} color="#94a3b8" /> : <Info size={18} color="#7b51b3" />}
+                                </div>
+                                <div className="notif-item-content">
+                                  <p>{notif.message}</p>
+                                  <span className="notif-item-time">
+                                    <Clock size={12} /> {formatDate(notif.sent_at)}
+                                  </span>
+                                </div>
+                                {!notif.is_read && <div className="notif-item-dot" />}
                               </div>
-                              <div className="notif-item-content">
-                                <p>{notif.message}</p>
-                                <span className="notif-item-time">
-                                  <Clock size={12} /> {formatDate(notif.sent_at)}
-                                </span>
-                              </div>
-                              {!notif.is_read && <div className="notif-item-dot" />}
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </motion.div>

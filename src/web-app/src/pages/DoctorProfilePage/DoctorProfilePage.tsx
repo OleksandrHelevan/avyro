@@ -15,6 +15,7 @@ import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import { useAuth } from "../../context/auth/useAuth.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
 import TopUpModal from "../../components/WalletModal/TopUpModal.tsx";
+import type { PaymentFailureState } from "../PaymentFailurePage/PaymentFailurePage.tsx";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
@@ -106,16 +107,12 @@ export default function DoctorProfile() {
 
   // ── Booking handler ───────────────────────────────────────────────────
   const handleBooking = () => {
-    // 🔒 Guard: profile must have name + phone
     if (profileIssues.length > 0) {
-      toast.error(
-        `Для запису заповніть профіль: ${profileIssues.join(", ")}`,
-        {
-          duration: 4000,
-          icon: "👤",
-          style: { maxWidth: 360 },
-        }
-      );
+      toast.error(`Для запису заповніть профіль: ${profileIssues.join(", ")}`, {
+        duration: 4000,
+        icon: "👤",
+        style: { maxWidth: 360 },
+      });
       return;
     }
 
@@ -136,33 +133,48 @@ export default function DoctorProfile() {
       {
         slotId: slotIdToBook,
         doctorId: doctorIdToBook,
-        // 🚀 ТУТ ФІКС: Множимо ціну на 100, щоб перевести гривні в копійки для Stripe
         pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
-        payment_method: paymentMethod
+        payment_method: paymentMethod,
       } as any,
       {
         onSuccess: (response: any) => {
           const data = response?.data || response;
           const appointmentId = data?._id || data?.id || data?.appointmentId;
-
           toast.success("Ви успішно записані! 🎉", { duration: 3000 });
-
-          // ✅ Navigate to appointment detail
           if (appointmentId) {
             setTimeout(() => navigate(`/appointments/${appointmentId}`), 800);
           } else {
             setSelectedTime(null);
           }
         },
+
+        // ── Патч: navigate to /payment-failure з повним контекстом ──────
         onError: (err: any) => {
           const errData = err?.response?.data || {};
-          const msg = errData?.message || err?.message || "";
-          if (msg.includes("INSUFFICIENT_FUNDS") || err?.response?.status === 402) {
-            toast.error("Недостатньо коштів. Поповніть гаманець.");
-            setShowTopUpModal(true);
-          } else {
-            toast.error(msg || "Сталася помилка при записі.");
-          }
+          const msg    = errData?.message || err?.message || "";
+          const status = err?.response?.status;
+
+          const reason: PaymentFailureState["reason"] =
+            msg.includes("INSUFFICIENT_FUNDS") || status === 402
+              ? "INSUFFICIENT_FUNDS"
+              : msg.includes("declined") || msg.includes("DECLINED")
+                ? "CARD_DECLINED"
+                : msg.includes("timeout") || msg.includes("TIMEOUT")
+                  ? "TIMEOUT"
+                  : "UNKNOWN";
+
+          const failureState: PaymentFailureState = {
+            doctorId:   doctorIdToBook,
+            doctorName: doctor?.fullName || doctor?.full_name || "Лікар",
+            date: selectedDate && selectedTime
+              ? `${format(selectedDate, "d MMMM yyyy", { locale: uk })}, ${selectedTime}`
+              : undefined,
+            amount:  consultationPrice ?? undefined,
+            reason,
+            slotId:  slotIdToBook,
+          };
+
+          navigate("/payment-failure", { state: failureState });
         },
       }
     );
@@ -218,7 +230,8 @@ export default function DoctorProfile() {
             <div className="no-schedule-state">
               <p className="no-schedule-title">У цього спеціаліста наразі немає доступних годин для запису.</p>
               <p className="no-schedule-desc">Не хвилюйтеся! У нас є інші чудові фахівці цього профілю.</p>
-              <button className="confirm-booking-btn find-other-doctors-btn" onClick={() => navigate(`/?spec=${encodeURIComponent(doctor?.specializationName || "Усі")}`)}>
+              <button className="confirm-booking-btn find-other-doctors-btn"
+                      onClick={() => navigate(`/?spec=${encodeURIComponent(doctor?.specializationName || "Усі")}`)}>
                 Знайти схожих лікарів
               </button>
             </div>
@@ -233,8 +246,10 @@ export default function DoctorProfile() {
                     const sd = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
                     const isWorkDay = sd?.daysOfWeek?.includes(getDay(day));
                     return (
-                      <button key={day.toString()} className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
-                              onClick={() => { setSelectedDate(day); setSelectedTime(null); }} disabled={!isWorkDay}>
+                      <button key={day.toString()}
+                              className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
+                              onClick={() => { setSelectedDate(day); setSelectedTime(null); }}
+                              disabled={!isWorkDay}>
                         <span className="day-name">{format(day, "EE", { locale: uk })}</span>
                         <span className="day-number">{format(day, "d")}</span>
                       </button>
@@ -249,7 +264,8 @@ export default function DoctorProfile() {
                 <div className="time-grid">
                   {availableSlots.length > 0 ? (
                     availableSlots.map(time => (
-                      <button key={time} className={`time-btn ${selectedTime === time ? "active" : ""}`} onClick={() => setSelectedTime(time)}>
+                      <button key={time} className={`time-btn ${selectedTime === time ? "active" : ""}`}
+                              onClick={() => setSelectedTime(time)}>
                         {time}
                       </button>
                     ))
@@ -261,21 +277,24 @@ export default function DoctorProfile() {
 
               {selectedTime && (
                 <div className="price-display">
-                  {consultationPrice ? `Вартість прийому: ${consultationPrice} ₴`
+                  {consultationPrice
+                    ? `Вартість прийому: ${consultationPrice} ₴`
                     : <span className="price-error-text">Ціна не вказана для цього часу</span>}
                 </div>
               )}
 
               {/* Payment method */}
               {selectedTime && consultationPrice && (
-                <div className="payment-method-section" style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div className="payment-method-section"
+                     style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "600", color: "#64748b" }}>
                     <CreditCard size={16} /> Спосіб оплати
                   </label>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
                     {(["MONEY", "POINTS", "MIXED"] as const).map((m) => (
                       <button key={m} className={`time-btn ${paymentMethod === m ? "active" : ""}`}
-                              onClick={() => setPaymentMethod(m)} style={{ padding: "10px 8px", fontSize: "13px" }}>
+                              onClick={() => setPaymentMethod(m)}
+                              style={{ padding: "10px 8px", fontSize: "13px" }}>
                         {m === "MONEY" ? "Грошима" : m === "POINTS" ? "Балами" : "Мікс"}
                       </button>
                     ))}
@@ -289,7 +308,8 @@ export default function DoctorProfile() {
                 disabled={!selectedTime || isBooking || (selectedTime !== null && !consultationPrice)}
                 onClick={handleBooking}
               >
-                {isBooking ? <span>Записуємось <Loader className="inline-loader" /></span>
+                {isBooking
+                  ? <span>Записуємось <Loader className="inline-loader" /></span>
                   : !selectedTime ? "Оберіть час візиту"
                     : !consultationPrice ? "Неможливо записатися (немає ціни)"
                       : "Оплатити та Записатися"}

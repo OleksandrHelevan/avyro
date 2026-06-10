@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { uk } from "date-fns/locale";
-import { CalendarDays, Clock, CheckCircle2, Clock3, ExternalLink } from "lucide-react";
+import { CalendarDays, Clock, CheckCircle2, Clock3, ExternalLink, XCircle } from "lucide-react"; // 🚀 ДОДАНО XCircle
 import { useNavigate } from "react-router-dom";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
@@ -26,14 +26,18 @@ export interface AppointmentInfo {
 interface AppointmentCardProps {
   appointment: AppointmentInfo;
   doctor?: DoctorInfo;
+  onCancel?: (appt: AppointmentInfo) => void; // 🚀 ДОДАНО
 }
 
-export default function AppointmentCard({ appointment, doctor }: AppointmentCardProps) {
+export default function AppointmentCard({ appointment, doctor, onCancel }: AppointmentCardProps) {
   const navigate = useNavigate();
 
   const startDate = appointment.from ? parseISO(appointment.from) : new Date();
   const endDate = appointment.to ? parseISO(appointment.to) : new Date();
   const isPast = appointment.to ? new Date(appointment.to) < new Date() : false;
+
+  // 🚀 ДОДАНО: Перевірка, чи можна скасувати (статус Planned/Reserved і час ще не минув)
+  const canCancel = !isPast && (appointment.status === "PLANNED" || appointment.status === "RESERVED");
 
   return (
     <div className={`appt-card glass-light ${isPast ? 'is-past' : 'is-upcoming'}`}>
@@ -66,23 +70,45 @@ export default function AppointmentCard({ appointment, doctor }: AppointmentCard
         </div>
       </div>
 
-      <div className="appt-footer">
+      <div className="appt-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className={`status-badge ${(appointment.status || "PLANNED").toLowerCase()}`}>
-          {isPast ? (
+          {isPast && appointment.status !== "CANCELLED" ? (
             <><CheckCircle2 size={14} /> Завершено</>
+          ) : appointment.status === "CANCELLED" ? (
+            <><XCircle size={14} /> Скасовано</>
           ) : (
-            <><Clock3 size={14} /> {appointment.status === "PLANNED" ? "Заплановано" : (appointment.status || "Очікує")}</>
+            <><Clock3 size={14} /> {appointment.status === "PLANNED" || appointment.status === "RESERVED" ? "Заплановано" : appointment.status}</>
           )}
         </div>
 
-        {appointment.doctorId && (
-          <button
-            className="btn-details"
-            onClick={() => navigate(`/doctor/${appointment.doctorId}`)}
-          >
-            Профіль лікаря <ExternalLink size={14} />
-          </button>
-        )}
+        <div style={{ display: "flex", gap: "8px" }}>
+          {/* 🚀 ДОДАНО: Кнопка скасування */}
+          {canCancel && (
+            <button
+              className="btn-details"
+              style={{ color: "#ef4444", backgroundColor: "#fef2f2", borderColor: "#fecaca" }}
+              onClick={(e) => {
+                e.stopPropagation(); // Щоб не спрацював перехід на сторінку деталей
+                e.preventDefault();
+                onCancel?.(appointment);
+              }}
+            >
+              Скасувати <XCircle size={14} />
+            </button>
+          )}
+
+          {appointment.doctorId && (
+            <button
+              className="btn-details"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/doctors/${appointment.doctorId}`);
+              }}
+            >
+              Профіль лікаря <ExternalLink size={14} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

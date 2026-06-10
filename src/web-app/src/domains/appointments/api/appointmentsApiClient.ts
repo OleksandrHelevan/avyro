@@ -2,7 +2,7 @@ import { apiClient } from "../../../services/apiClient.ts";
 import type {
   AppointmentResponse,
   AppointmentDetailResponse,
-  CreateAppointmentRequest,
+  CreateAppointmentRequest, CancelAppointmentRequest,
 } from "../types.ts";
 
 export const appointmentsApiClient = {
@@ -15,4 +15,6 @@ export const appointmentsApiClient = {
   // ── NEW: GET /appointments/{appointment_id} ────────────────────────────
   getAppointmentById: async (id: string) =>
     apiClient.get<AppointmentDetailResponse>(`/appointments/${id}`),
+  cancelAppointment: async (id: string, payload: CancelAppointmentRequest) =>
+    apiClient.patch<AppointmentResponse>(`/appointments/${id}/cancel`, payload),
 };

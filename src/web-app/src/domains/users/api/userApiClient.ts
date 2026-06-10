@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
   DoctorListItem, DoctorApprovalResponse,
-  GetNotificationsResponse // 🚀 ДОДАНО
+  GetNotificationsResponse, CreateFeedbackRequest // 🚀 ДОДАНО
 } from "../types.ts";
 
 export const userApiClient = {
@@ -45,4 +45,15 @@ export const userApiClient = {
   // 🚀 ДОДАНО: Метод для позначення всіх як прочитаних (за Swagger)
   markAllNotificationsAsRead: async () =>
     apiClient.post('/notifications/read-all', {}),
+  // 🚀 ВИПРАВЛЕНО: Прибрали ID з URL і передаємо його в тіло запиту
+  createFeedback: async (doctorId: string, request: CreateFeedbackRequest) =>
+    apiClient.post('/feedback', { ...request, doctorId }),
+  createDoctorFeedback: async (request: {
+    doctor_id: string;
+    message: string;
+    rating: number;
+    visibility: string
+  }) =>
+    apiClient.post('/feedback/doctor-review', request),
+
 };
