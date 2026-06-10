@@ -180,3 +180,171 @@
 /* ── Utils ───────────────────────────────────────────────────────────────── */
 .adp-spin { animation: adp-rotate 0.7s linear infinite; }
 @keyframes adp-rotate { to { transform: rotate(360deg); } }
+/* ── Add to AppointmentDetailPage.css ───────────────────────────────────── */
+
+/* Section label row with link */
+.adp-section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.adp-section-label-row .adp-section-label {
+  margin-bottom: 0; /* override default margin since row handles it */
+}
+
+/* "Профіль лікаря / Профіль пацієнта" inline link */
+.adp-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  background: #eef2ff;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.adp-profile-link:hover { background: #e0e7ff; color: #4338ca; }
+
+/* Note block */
+.adp-note-block {
+  background: rgba(241, 245, 249, 0.6);
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Fallback "View profile" button at bottom */
+.adp-view-profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px;
+  border-radius: 14px;
+  border: 1.5px solid #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.adp-view-profile-btn:hover { background: #e0e7ff; border-color: #a5b4fc; }
+
+/* Refresh spinner */
+.adp-spin { animation: adp-rotate 0.7s linear infinite; }
+@keyframes adp-rotate { to { transform: rotate(360deg); } }
+
+/* Refresh button */
+.adp-refresh {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  transition: all 0.15s;
+}
+.adp-refresh:hover { color: #1e293b; background: #f8fafc; }
+/* 📱 ── Mobile Responsive (Адаптив) ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .adp-page {
+    /* Перевизначаємо інлайн paddingTop="120px", щоб на мобілці шапка не займала пів екрана */
+    padding-top: 90px !important;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 30px;
+  }
+
+  .adp-unified-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  /* На дуже вузьких екранах заголовок і бейдж статусу стають у стовпчик */
+  .adp-unified-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .adp-unified-title {
+    font-size: 18px;
+  }
+
+  .adp-date-main {
+    gap: 12px;
+  }
+
+  .adp-date-day {
+    font-size: 15px;
+  }
+
+  .adp-date-time {
+    font-size: 13px;
+    flex-wrap: wrap; /* Дозволяє часу перенестися, якщо не влазить */
+  }
+
+  .adp-person-row {
+    gap: 10px;
+  }
+
+  .adp-person-name {
+    font-size: 15px;
+  }
+
+  .adp-person-spec {
+    font-size: 13px;
+  }
+
+  /* Кнопка "Профіль лікаря" стає на всю ширину для зручності натискання пальцем */
+  .adp-section-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .adp-profile-link {
+    width: 100%;
+    justify-content: center;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .adp-price-val {
+    font-size: 20px;
+  }
+
+  .adp-note-block {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .adp-view-profile-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Ультра-малі екрани (наприклад, iPhone SE) */
+  .adp-avatar-img,
+  .adp-avatar-fallback {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
+  }
+}
