@@ -17,4 +17,8 @@ export const appointmentsApiClient = {
     apiClient.get<AppointmentDetailResponse>(`/appointments/${id}`),
   cancelAppointment: async (id: string, payload: CancelAppointmentRequest) =>
     apiClient.patch<AppointmentResponse>(`/appointments/${id}/cancel`, payload),
+  finishAppointment: async (id: string, payload: { note: string }) =>
+    apiClient.post<AppointmentResponse>(`/appointments/${id}/finish`, payload),
+  addAppointmentNote: async (id: string, payload: { note: string }) =>
+    apiClient.post(`/appointments/${id}/note`, { message: payload.note }),
 };

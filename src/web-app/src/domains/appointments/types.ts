@@ -2,9 +2,11 @@ export interface CreateAppointmentRequest {
   slotId: string;
   doctorId: string; // Обов'язково додаємо doctorId
   pricePerSlot?: number;
-  payment_method: "MONEY" | "POINTS" | "MIXED"; // Нове поле оплати
+  payment_method: "MONEY" | "POINTS" | "MIXED"; // Поле оплати
+  note?: string; // 🚀 ДОДАНО: Поле для нотатки пацієнта
 }
 
+// ... інший код без змін ...
 export interface AppointmentResponse {
   _id: string;
   patientId: string;

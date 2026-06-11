@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Mail, CalendarDays, ArrowLeft, CreditCard } from "lucide-react";
+import { Mail, CalendarDays, ArrowLeft, CreditCard, FileText } from "lucide-react";
 import {
   format, isSameDay, isBefore, startOfToday,
   parse, isAfter, getDay, addDays
@@ -43,6 +43,8 @@ export default function DoctorProfile() {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"MONEY" | "POINTS" | "MIXED">("MONEY");
 
+  const [note, setNote] = useState("");
+
   const { data: rawDoctor, isLoading: isDocLoading } = useDoctor(id || "");
   const { data: patientResponse } = usePatient(userId || "");
   const { mutate: bookAppointment, isPending: isBooking } = useCreateAppointment();
@@ -70,17 +72,41 @@ export default function DoctorProfile() {
 
   const rollingDays = useMemo(() => Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i)), []);
 
+  // 🚀 ОНОВЛЕНО: Тепер ми показуємо ТІЛЬКИ вільні слоти (AVAILABLE)
   const availableSlots = useMemo(() => {
     const sd = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
     if (!sd) return [];
     if (!sd.daysOfWeek?.includes(getDay(selectedDate))) return [];
-    const all = generateTimeSlots(sd.startTime || sd.start_time, sd.endTime || sd.end_time, sd.slotDuration || sd.slot_duration || 30);
+
+    const allGeneratedTimes = generateTimeSlots(sd.startTime || sd.start_time, sd.endTime || sd.end_time, sd.slotDuration || sd.slot_duration || 30);
     const now = new Date();
-    return all.filter(t => {
-      if (!isSameDay(selectedDate, now)) return true;
-      return isAfter(parse(t, "HH:mm", selectedDate), now);
+    const formattedDate = format(selectedDate, "yyyy-MM-dd");
+
+    // Збираємо всі існуючі слоти з бекенду
+    const allSlots = [
+      ...(Array.isArray(doctor?.schedule) ? doctor.schedule : []),
+      ...(Array.isArray(activeSchedule?.slots) ? activeSchedule.slots : []),
+      ...(Array.isArray(activeSchedule?.payload?.slots) ? activeSchedule.payload.slots : []),
+    ];
+
+    return allGeneratedTimes.filter(time => {
+      // 1. Відкидаємо час, який вже минув сьогодні
+      if (isSameDay(selectedDate, now)) {
+        if (!isAfter(parse(time, "HH:mm", selectedDate), now)) {
+          return false;
+        }
+      }
+
+      // 2. Шукаємо відповідний слот у базі
+      const matchingSlot = allSlots.find((s: any) => {
+        const t = String(s.from || "");
+        return t.includes(formattedDate) && t.includes(time);
+      });
+
+      // 3. Залишаємо час ТІЛЬКИ якщо слот знайдено і він вільний
+      return matchingSlot && (matchingSlot.type === "AVAILABLE" || matchingSlot.status === "AVAILABLE");
     });
-  }, [selectedDate, activeSchedule]);
+  }, [selectedDate, activeSchedule, doctor]);
 
   const selectedSlotData = useMemo(() => {
     if (!selectedTime || !activeSchedule) return null;
@@ -92,7 +118,7 @@ export default function DoctorProfile() {
     ];
     return allSlots.find((s: any) => {
       const t = String(s.from || "");
-      return t.includes(formattedDate) && t.includes(selectedTime) && s.type === "AVAILABLE";
+      return t.includes(formattedDate) && t.includes(selectedTime) && (s.type === "AVAILABLE" || s.status === "AVAILABLE");
     });
   }, [selectedDate, selectedTime, activeSchedule, doctor]);
 
@@ -135,6 +161,7 @@ export default function DoctorProfile() {
         doctorId: doctorIdToBook,
         pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
         payment_method: paymentMethod,
+        note: note.trim() ? note.trim() : undefined,
       } as any,
       {
         onSuccess: (response: any) => {
@@ -145,10 +172,9 @@ export default function DoctorProfile() {
             setTimeout(() => navigate(`/appointments/${appointmentId}`), 800);
           } else {
             setSelectedTime(null);
+            setNote("");
           }
         },
-
-        // ── Патч: navigate to /payment-failure з повним контекстом ──────
         onError: (err: any) => {
           const errData = err?.response?.data || {};
           const msg    = errData?.message || err?.message || "";
@@ -198,7 +224,6 @@ export default function DoctorProfile() {
           <ArrowLeft size={18} /> Назад
         </button>
 
-        {/* Profile incomplete warning */}
         {profileIssues.length > 0 && (
           <div className="booking-profile-warn">
             <span>⚠️ Для запису потрібно заповнити: <strong>{profileIssues.join(", ")}</strong></span>
@@ -248,7 +273,7 @@ export default function DoctorProfile() {
                     return (
                       <button key={day.toString()}
                               className={`date-box ${isSelected ? "active" : ""} ${!isWorkDay ? "disabled" : ""}`}
-                              onClick={() => { setSelectedDate(day); setSelectedTime(null); }}
+                              onClick={() => { setSelectedDate(day); setSelectedTime(null); setNote(""); }}
                               disabled={!isWorkDay}>
                         <span className="day-name">{format(day, "EE", { locale: uk })}</span>
                         <span className="day-number">{format(day, "d")}</span>
@@ -280,6 +305,32 @@ export default function DoctorProfile() {
                   {consultationPrice
                     ? `Вартість прийому: ${consultationPrice} ₴`
                     : <span className="price-error-text">Ціна не вказана для цього часу</span>}
+                </div>
+              )}
+
+              {selectedTime && consultationPrice && (
+                <div className="appointment-note-section" style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "600", color: "#64748b" }}>
+                    <FileText size={16} /> Коментар для лікаря (необов'язково)
+                  </label>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Напишіть ваші симптоми або питання..."
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "12px",
+                      border: "1px solid #e2e8f0",
+                      background: "rgba(255, 255, 255, 0.5)",
+                      minHeight: "80px",
+                      resize: "vertical",
+                      fontSize: "14px",
+                      color: "#334155",
+                      outline: "none",
+                      fontFamily: "inherit"
+                    }}
+                  />
                 </div>
               )}
 

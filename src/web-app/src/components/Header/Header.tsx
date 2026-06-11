@@ -117,14 +117,12 @@ export default function Header() {
               </NavLink>
             )}
 
-            {/* 🚀 ОНОВЛЕНО: Для пацієнта залишаємо Мої записи */}
             {isAuthenticated && isPatient && (
               <NavLink to="/appointments" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Мої записи
               </NavLink>
             )}
 
-            {/* 🚀 ОНОВЛЕНО: Для лікаря вкладка "Пацієнти" видалена, залишили тільки розклад і додали "Мої візити" */}
             {isAuthenticated && isApprovedDoctor && (
               <>
                 <NavLink to="/schedule-edit" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
@@ -146,6 +144,10 @@ export default function Header() {
                 </NavLink>
                 <NavLink to="/admin/schedules" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Розклади
+                </NavLink>
+                {/* 🚀 ДОДАНО ВКЛАДКУ ВІДГУКІВ */}
+                <NavLink to="/admin/feedbacks" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+                  Відгуки
                 </NavLink>
               </>
             )}
@@ -198,14 +200,12 @@ export default function Header() {
                           </div>
                         ) : (
                           sortedNotifications.map((notif) => {
-                            // 🚀 Витягуємо appointmentId (може бути на верхньому рівні, або в payload)
-                            const n = notif as any; // 🚀 Кажемо TypeScript не сваритися
+                            const n = notif as any;
                             const apptId = n.appointmentId || n.payload?.appointmentId || n.data?.appointmentId;
                             return (
                               <div
                                 key={notif.id}
                                 className={`notif-dropdown-item ${notif.is_read ? 'read' : 'unread'}`}
-                                // 🚀 ДОДАНО: Логіка кліку та курсор
                                 onClick={() => {
                                   if (apptId) {
                                     setIsNotifOpen(false);

@@ -335,3 +335,52 @@
 
   .pub-book-btn { width: 100%; justify-content: center; }
 }
+.doctor-reviews-section {
+  margin-top: 32px;
+  width: 100%;
+}
+
+.reviews-section-title {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin-bottom: 16px;
+  font-weight: 700;
+  padding-left: 8px;
+}
+
+.no-reviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 4px solid #7b51b3; /* Акцентна лінія зліва */
+}
+
+.review-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.review-text {
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-style: italic;
+}

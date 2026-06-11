@@ -1,0 +1,52 @@
+/* ── Кнопка скасування (як на макеті) ── */
+.btn-cancel-appt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px; /* Більший відступ зліва, менший справа біля іконки */
+  background: #c91818; /* Насичений вишнево-червоний */
+  color: #ffffff;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  border-radius: 50px; /* Робить кнопку повністю круглою по краях */
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(201, 24, 24, 0.35); /* М'яке червоне світіння */
+  transition: all 0.2s ease;
+}
+
+/* Ефекти наведення */
+.btn-cancel-appt:hover {
+  background: #de1c1c;
+  box-shadow: 0 6px 16px rgba(201, 24, 24, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-cancel-appt:active {
+  transform: translateY(1px);
+}
+
+/* Налаштування для сусідньої кнопки "Профіль лікаря" (щоб вони гарно виглядали разом) */
+.btn-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #6b21a8; /* Фіолетовий текст як на вашому макеті */
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1.5px solid #e9d5ff; /* Світло-фіолетова рамка */
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-details:hover {
+  background: #faf5ff;
+  border-color: #d8b4fe;
+  transform: translateY(-2px);
+}

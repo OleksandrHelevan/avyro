@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, X, AlertTriangle, Loader2 } from "lucide-react"; // Додано іконки
+import { ArrowLeft, CalendarDays, X, AlertTriangle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors";
 import { appointmentsService } from "../../domains/appointments/service/appointmentsService.ts";
-import { useCancelAppointment } from "../../domains/appointments/useCancelAppointment/useCancelAppointment.ts"; // 🚀 ДОДАНО
+import { useCancelAppointment } from "../../domains/appointments/useCancelAppointment/useCancelAppointment.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 import "./PatientAppointmentsPage.css";
 import AppointmentCard, { type AppointmentInfo } from "./components/AppointmentCard.tsx";
@@ -15,7 +15,7 @@ export default function PatientAppointmentsPage() {
 
   const [filter, setFilter] = useState<"ALL" | "PLANNED" | "FINISHED" | "CANCELLED">("ALL");
 
-  // 🚀 ДОДАНО: Стейт для модалки скасування
+  // Стейт для модалки скасування
   const [apptToCancel, setApptToCancel] = useState<AppointmentInfo | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
@@ -54,7 +54,7 @@ export default function PatientAppointmentsPage() {
     });
   }, [appointments, filter]);
 
-  // 🚀 ДОДАНО: Обробник підтвердження
+  // Обробник підтвердження скасування
   const handleConfirmCancel = () => {
     if (!apptToCancel) return;
     const apptId = apptToCancel._id || apptToCancel.id;
@@ -75,50 +75,59 @@ export default function PatientAppointmentsPage() {
 
   return (
     <div className="aero-viewport light-theme appointments-page">
-      {/* 🚀 ДОДАНО: Модалка скасування (використовуємо існуючі класи або inline-стилі) */}
+      {/* 🚀 ОНОВЛЕНА: Модалка скасування з класами */}
       {apptToCancel && (
-        <div className="modal-backdrop" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0 }}>
-          <div className="modal-box" style={{ background: '#fff', padding: '24px', borderRadius: '20px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
-                <AlertTriangle color="#ef4444" size={20} /> Скасування візиту
+        <div className="cancel-modal-backdrop" onClick={() => !isCanceling && setApptToCancel(null)}>
+          <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-modal-header">
+              <h3 className="cancel-modal-title">
+                <AlertTriangle color="#ef4444" size={22} strokeWidth={2.5} />
+                Скасування візиту
               </h3>
-              <button onClick={() => setApptToCancel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+              <button
+                className="cancel-close-btn"
+                onClick={() => setApptToCancel(null)}
+                disabled={isCanceling}
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
-              Ви впевнені, що хочете скасувати цей запис? Це дія незворотна.
+            <p className="cancel-modal-text">
+              Ви впевнені, що хочете скасувати цей запис? Ця дія є незворотною, і обраний час знову стане доступним для інших.
             </p>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#64748b', marginBottom: '8px' }}>
+            <div className="cancel-textarea-wrapper">
+              <label className="cancel-textarea-label">
                 Причина скасування (необов'язково)
               </label>
               <textarea
+                className="cancel-textarea"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="Наприклад: змінилися плани, захворів..."
-                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', minHeight: '80px', fontSize: '14px', resize: 'none' }}
                 disabled={isCanceling}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="cancel-modal-actions">
               <button
+                className="btn-cancel-return"
                 onClick={() => setApptToCancel(null)}
                 disabled={isCanceling}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
               >
                 Повернутися
               </button>
               <button
+                className="btn-cancel-confirm"
                 onClick={handleConfirmCancel}
                 disabled={isCanceling}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px' }}
               >
-                {isCanceling ? <><Loader2 size={18} className="spin" /> Скасування...</> : "Скасувати візит"}
+                {isCanceling ? (
+                  <><Loader2 size={18} className="spin" /> Скасування...</>
+                ) : (
+                  "Скасувати візит"
+                )}
               </button>
             </div>
           </div>
@@ -196,7 +205,7 @@ export default function PatientAppointmentsPage() {
                     <AppointmentCard
                       appointment={appt}
                       doctor={doctor}
-                      onCancel={(a) => setApptToCancel(a)} // 🚀 Виклик модалки
+                      onCancel={(a) => setApptToCancel(a)} // Виклик модалки
                     />
                   </div>
                 );
