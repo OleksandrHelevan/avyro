@@ -1,76 +1,94 @@
+/* ── Кнопка відкриття форми ── */
 .open-feedback-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 14px;
-  background: white;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
   color: #3bceb5;
-  border: 1px solid #3bceb5;
+  border: 1.5px solid #3bceb5;
   border-radius: 16px;
-  font-size: 15px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
   margin-top: 16px;
 }
 
 .open-feedback-btn:hover {
-  background: #f0fdfa;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 206, 181, 0.2);
+  background: #3bceb5;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(59, 206, 181, 0.25);
 }
 
+/* ── Контейнер форми ── */
 .feedback-form-container {
-  margin-top: 24px;
+  margin-top: 20px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
 }
 
 .feedback-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 .feedback-header h3 {
   margin: 0;
-  font-size: 18px;
-  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
+.feedback-desc {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* ── Кнопка закриття ── */
 .close-btn {
   background: none;
   border: none;
-  font-size: 24px;
   color: #94a3b8;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.close-btn:hover { color: #ef4444; }
-
-.rating-section {
+  padding: 6px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #ef4444;
+}
+
+/* ── Рейтинг ── */
+.rating-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .rating-label {
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #475569;
 }
 
 .stars-container {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .star-btn {
@@ -79,31 +97,40 @@
   cursor: pointer;
   padding: 0;
   color: #cbd5e1;
-  transition: transform 0.1s;
+  display: flex;
 }
 
-.star-btn:hover { transform: scale(1.1); }
-.star-btn.active { color: #f59e0b; }
+.star-btn.active {
+  color: #f59e0b;
+}
 
+/* ── Текстове поле ── */
 .message-section textarea {
   width: 100%;
   padding: 16px;
-  border: 1px solid #cbd5e1;
-  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
   resize: vertical;
   font-family: inherit;
-  font-size: 14px;
-  margin-bottom: 20px;
+  font-size: 0.95rem;
+  min-height: 110px;
+  margin-bottom: 24px;
   background: #f8fafc;
+  color: #334155;
   outline: none;
-  transition: border-color 0.2s;
+}
+
+.message-section textarea::placeholder {
+  color: #94a3b8;
 }
 
 .message-section textarea:focus {
   border-color: #3bceb5;
-  background: white;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 206, 181, 0.15);
 }
 
+/* ── Кнопка відправки ── */
 .submit-feedback-btn {
   display: flex;
   align-items: center;
@@ -111,25 +138,31 @@
   gap: 8px;
   width: 100%;
   padding: 14px;
-  background: #3bceb5;
-  color: white;
+  background: linear-gradient(135deg, #3bceb5, #2bb59f);
+  color: #ffffff;
   border: none;
   border-radius: 14px;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 206, 181, 0.25);
 }
 
 .submit-feedback-btn:hover:not(:disabled) {
-  background: #2ea793;
-  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 206, 181, 0.35);
 }
 
 .submit-feedback-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+/* ── Анімації (лише функціональний лоадер) ── */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

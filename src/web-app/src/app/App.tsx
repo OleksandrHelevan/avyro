@@ -39,6 +39,7 @@ import ProfileDispatcher from "./router/dispatchers/ProfileDispatcher.tsx";
 import AdminRoute from "./router/guards/AdminRoute.tsx";
 import { AuthProvider } from "../context/auth/AuthProvider.tsx";
 import WalletPage from "../pages/WalletPage/WalletPage.tsx";
+import AdminFeedbacksPage from "../pages/AdminFeedbacksPage/AdminFeedbacksPage.tsx";
 
 export default function App() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
                     <Route path={ADMIN_SPECIALIZATIONS_PATH} element={<AdminNotifications />} />
                     <Route path={ADMIN_SCHEDULES_PATH} element={<AdminSchedules />} />
                     <Route path={ADMIN_NOTIFICATIONS_PATH} element={<AdminSendNotification />} />
+                    <Route path="/admin/feedbacks" element={<AdminFeedbacksPage />} />
                   </Route>
                 </Route>
 
