@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
+from calendar import monthrange
 from modules.requests_module.domains.Request import Request, RequestType
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from modules.appointments_module.application.mapper.ScheduleMapper import ScheduleMapper
@@ -80,3 +81,74 @@ class ScheduleService:
 
         created_schedule = self.repository.create(schedule_domain)
         return ScheduleMapper.to_dto(created_schedule)
+
+    def update_schedule(self, schedule_id: str, dto: CreateScheduleDTO) -> dict:
+        try:
+            oid = ObjectId(schedule_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Невалідний формат ID розкладу"
+            )
+
+        existing = self.repository.get_by_id(oid)
+        if not existing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Розклад не знайдено"
+            )
+
+
+        month = getattr(dto, 'month', existing.month)
+        year = getattr(dto, 'year', existing.year)
+
+        duplicate = self.repository.get_by_month(ObjectId(dto.doctorId), year, month)
+        if duplicate and duplicate.id != oid:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Для цього місяця вже існує інший розклад"
+            )
+
+        new_slots = self.slot_service.generate_monthly_slots(
+            doctor_id=dto.doctorId,
+            year=year,
+            month=month,
+            config=dto.repeating.model_dump()
+        )
+
+        slots_as_dicts = [
+            s.to_dict() if hasattr(s, "to_dict") else s for s in new_slots
+        ]
+
+        update_payload = {
+            "title": dto.title,
+            "isRepeated": dto.isRepeated,
+            "repeating": dto.repeating.model_dump(),
+            "slots": slots_as_dicts,
+            "pricePerSlot": dto.pricePerSlot,
+            "month": month,
+            "year": year,
+        }
+
+        updated = self.repository.update(oid, update_payload)
+        return ScheduleMapper.to_dto(updated)
+
+    def cleanup_expired_schedules(self) -> int:
+
+        now = datetime.now(timezone.utc)
+        deleted = 0
+
+        docs = list(self.repository.collection.find({
+            "$or": [
+                {"year": {"$lt": now.year}},
+                {"year": now.year, "month": {"$lt": now.month}}
+            ]
+        }))
+
+        for doc in docs:
+            self.repository.delete(doc["_id"])
+            deleted += 1
+
+        return deleted
+
+

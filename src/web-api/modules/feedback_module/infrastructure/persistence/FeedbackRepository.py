@@ -5,8 +5,9 @@ from modules.feedback_module.domains.DoctorReview import DoctorReview
 
 
 class FeedbackRepository:
-    def __init__(self, collection):
+    def __init__(self, collection, collection_reviews):
         self.collection = collection
+        self.collection_reviews = collection_reviews
 
     def create(self, feedback: Feedback) -> Feedback:
         data = {

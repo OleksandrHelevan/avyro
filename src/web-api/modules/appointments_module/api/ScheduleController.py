@@ -35,3 +35,11 @@ async def request_schedule_creation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Не вдалося створити запит: {str(e)}"
         )
+
+@router.put("/{schedule_id}")
+def update_schedule(
+    schedule_id: str,
+    dto: CreateScheduleDTO,
+    service: ScheduleService = Depends(get_schedule_service)
+):
+    return service.update_schedule(schedule_id, dto)
