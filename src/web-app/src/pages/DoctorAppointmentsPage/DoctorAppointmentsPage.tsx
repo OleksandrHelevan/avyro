@@ -24,6 +24,7 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
 }
 
+
 function Avatar({ name, url, size = 48 }: { name?: string; url?: string; size?: number }) {
   const initials = (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
   if (url) return <img src={url} alt={name} className="dap-avatar-img" style={{ width: size, height: size }} />;
