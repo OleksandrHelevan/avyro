@@ -116,11 +116,6 @@ def get_appointment_service() -> AppointmentService:
 
 def get_feedback_service() -> FeedbackService:
     user_repo = UserRepository(db["Users"])
-    repo = FeedbackRepository(db["Feedbacks"])
-    return FeedbackService(repo, user_repo)
-
-def get_feedback_service() -> FeedbackService:
-    user_repo = UserRepository(db["Users"])
     repo = FeedbackRepository(db["Feedbacks"], db["DoctorReviews"])
     return FeedbackService(repo, user_repo)
 

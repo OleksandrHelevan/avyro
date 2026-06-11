@@ -137,18 +137,10 @@ class AccountService:
             "new_balance": account.balance - amount,
         }
 
-    async def pay_for_appointment_combined(
-        self,
-        patient_id: str,
-        appointment_id: str,
-        amount: float,
-        doctor_name: str,
-        points_available: int,
-        payment_method: str = "MONEY",
-    ) -> dict:
+    async def pay_for_appointment_combined(self, patient_id, appointment_id, amount,
+                                           doctor_name, points_available, payment_method="MONEY") -> dict:
         oid = ObjectId(patient_id)
         account = self.account_repo.find_by_user_id(oid)
-        print(f"DEBUG: patient_id={patient_id}, oid={oid}, account={account}, money_to_charge будe={amount}")
         if not account:
             raise ValueError("Платіжний акаунт не знайдено. Створіть акаунт.")
 
@@ -157,9 +149,7 @@ class AccountService:
 
         if payment_method == "POINTS":
             if points_available < amount:
-                raise ValueError(
-                    f"Недостатньо балів. Є: {points_available}, потрібно: {int(amount)}"
-                )
+                raise ValueError(f"Недостатньо балів. Є: {points_available}, потрібно: {int(amount)}")
             points_to_use = int(amount)
             money_to_charge = 0.0
 
@@ -174,10 +164,7 @@ class AccountService:
 
         elif payment_method == "MONEY":
             if account.balance < amount:
-                raise ValueError(
-                    f"Недостатньо коштів. Баланс: {account.balance} грн, "
-                    f"потрібно: {amount} грн"
-                )
+                raise ValueError(f"Недостатньо коштів. Баланс: {account.balance} грн, потрібно: {amount} грн")
             money_to_charge = amount
             points_to_use = 0
 
@@ -186,13 +173,9 @@ class AccountService:
 
         invoice_id = None
         invoice_url = None
-        if money_to_charge > 0:
-            print(f"DEBUG: про deduct_balance, balance={account.balance}, money_to_charge={money_to_charge}")
-            success = self.account_repo.deduct_balance(oid, money_to_charge)
-            print(f"DEBUG: після deduct_balance, success={success}")
-            if not success:
-                raise ValueError("Помилка списання з балансу")
 
+        # 1. Спочатку Stripe — якщо впаде, гроші/бали не чіпаємо
+        if money_to_charge > 0:
             try:
                 invoice = await self.stripe_service.create_invoice(
                     customer_id=account.stripe_customer_id,
@@ -208,8 +191,15 @@ class AccountService:
                 invoice_id = invoice["invoice_id"]
                 invoice_url = invoice["hosted_invoice_url"]
             except Exception as e:
-                self.account_repo.update_balance(oid, account.balance)
-                raise ValueError(f"Помилка створення інвойсу: {str(e)}")
+                # Stripe впав — бали/гроші не чіпали, просто прокидаємо
+                raise ValueError(f"Помилка транзакції: {str(e)}")
+
+            # 2. Stripe успішний — тепер списуємо гроші
+            success = self.account_repo.deduct_balance(oid, money_to_charge)
+            if not success:
+                # Теоретично не має статися (перевірили вище), але якщо — повертаємо
+                raise ValueError("Помилка списання з балансу після успішної транзакції")
+
         return {
             "invoice_id": invoice_id,
             "invoice_url": invoice_url,
