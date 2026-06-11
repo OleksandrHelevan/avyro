@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
+from fastapi import Body
 
 
 from config.dependencies import get_appointment_service
@@ -100,7 +101,7 @@ async def cancel_appointment(
     appointment_id: str,
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(get_current_user),
-    body: Optional[CancelAppointmentRequest] = None,
+    body: Optional[CancelAppointmentRequest] = Body(default=None),
 ):
     reason = body.reason if body else None
     return service.cancel_appointment(

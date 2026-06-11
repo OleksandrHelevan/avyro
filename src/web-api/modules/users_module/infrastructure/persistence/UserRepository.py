@@ -5,6 +5,7 @@ from modules.users_module.domains.user.User import User
 from typing import Optional, Any, Dict
 
 
+
 class UserRepository:
     def __init__(self, collection: Collection):
         self.collection = collection
