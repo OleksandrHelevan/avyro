@@ -348,3 +348,36 @@
     font-size: 16px !important;
   }
 }
+.adp-cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #dc2626; /* Темно-червоний текст */
+  background: #fef2f2; /* Дуже світлий червоний фон */
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.adp-cancel-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.adp-cancel-btn:active {
+  transform: translateY(1px);
+}
+
+.adp-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

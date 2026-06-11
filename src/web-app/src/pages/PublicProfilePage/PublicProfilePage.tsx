@@ -1,10 +1,14 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { User, ArrowLeft, MapPin, Phone, Mail, Award, Stethoscope, Calendar } from "lucide-react";import { useAuth } from "../../context/auth/useAuth.tsx";
+import { User, ArrowLeft, MapPin, Phone, Mail, Award, Stethoscope, Calendar, Star, MessageSquare } from "lucide-react";
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor.ts";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 import "./PublicProfilePage.css";
 import DoctorFeedbackForm from "../DoctorFeedbackForm/DoctorFeedbackForm.tsx";
+
+// 🚀 Імпортуємо новий хук
+import { useGetDoctorReviews } from "../../domains/users/useGetDoctorReviews/useGetDoctorReviews.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=User&background=f1f5f9&color=475569&size=256";
 
@@ -14,12 +18,14 @@ export default function PublicProfilePage() {
   const location = useLocation();
   const { isDoctor: currentUserIsDoctor, isPatient: currentUserIsPatient } = useAuth();
 
-  // Визначаємо, кого ми зараз дивимось: лікаря чи пацієнта (по URL)
   const isViewingDoctor = location.pathname.includes("/doctors/");
 
-// Завантажуємо відповідні дані
   const { data: docData, isLoading: isLoadingDoc } = useDoctor(isViewingDoctor ? id || "" : "");
   const { data: patData, isLoading: isLoadingPat } = usePatient(!isViewingDoctor ? id || "" : "");
+
+  // 🚀 Отримуємо відгуки (тільки якщо ми дивимось лікаря)
+  const { data: reviews = [], isLoading: isLoadingReviews } = useGetDoctorReviews(isViewingDoctor ? id || "" : "");
+
   const isLoading = isLoadingDoc || isLoadingPat;
   const userToView: any = isViewingDoctor ? (docData as any)?.data || docData : patData;
 
@@ -34,20 +40,16 @@ export default function PublicProfilePage() {
     );
   }
 
-  // Збираємо потрібні поля (бекенд може віддавати їх по-різному)
   const fullName = userToView.fullName || userToView.full_name || "Невідомий користувач";
   const avatarUrl = userToView.avatarUrl || userToView.avatar_url || DEFAULT_AVATAR;
   const email = userToView.email;
   const phone = userToView.phone;
   const address = userToView.address;
   const specName = userToView.specializationName || userToView.specialization_name;
-
-  // Статистика (якщо бекенд її віддає, інакше покажемо красиві заглушки або приховаємо)
   const points = userToView.rewards?.reduce((acc: number, r: any) => acc + r.points, 0) || 0;
 
   return (
     <div className="pub-prof-page">
-      {/* Розкішний динамічний фон */}
       <div className="pub-prof-bg">
         <div className="pub-prof-blob blob-1"></div>
         <div className="pub-prof-blob blob-2"></div>
@@ -55,12 +57,10 @@ export default function PublicProfilePage() {
       </div>
 
       <div className="pub-prof-container">
-        {/* Кнопка назад */}
         <button className="pub-prof-back-btn" onClick={() => navigate(-1)}>
           <ArrowLeft size={18} /> <span>Повернутися</span>
         </button>
 
-        {/* Головна картка профілю */}
         <div className="pub-prof-card glass-panel">
           <div className="pub-prof-header">
             <div className="pub-prof-avatar-ring">
@@ -88,7 +88,6 @@ export default function PublicProfilePage() {
 
           <div className="pub-prof-divider" />
 
-          {/* Інформаційний блок */}
           <div className="pub-prof-info-grid">
             {phone && (
               <div className="pub-prof-info-item">
@@ -120,7 +119,6 @@ export default function PublicProfilePage() {
               </div>
             )}
 
-            {/* Статистика для пацієнта (якщо дивиться лікар) */}
             {!isViewingDoctor && currentUserIsDoctor && points > 0 && (
               <div className="pub-prof-info-item">
                 <div className="pub-info-icon highlight-icon"><Award size={18} /></div>
@@ -132,22 +130,59 @@ export default function PublicProfilePage() {
             )}
           </div>
         </div>
-        {/* 🚀 Вставляємо форму відгуку тут */}
+
         {isViewingDoctor && currentUserIsPatient && (
           <DoctorFeedbackForm doctorId={id || ""} />
         )}
-        {/* Додаткова картка (Опціонально) */}
+
         {isViewingDoctor && currentUserIsPatient && (
           <div className="pub-prof-action-card glass-panel fade-up">
             <div className="pub-action-content">
               <h3>Бажаєте записатись на прийом?</h3>
               <p>Перегляньте вільні години та оберіть зручний час для візиту.</p>
             </div>
-            <button className="pub-book-btn glow-effect" onClick={() => navigate(`/doctor/${id}`)}> {/* Або інший ваш роут бронювання */}
+            <button className="pub-book-btn glow-effect" onClick={() => navigate(`/doctor/${id}`)}>
               <Calendar size={18} /> Записатись
             </button>
           </div>
         )}
+
+        {/* 🚀 ВІДГУКИ ЛІКАРЯ ВІДОБРАЖАЮТЬСЯ ТУТ */}
+        {isViewingDoctor && (
+          <div className="doctor-reviews-section fade-up">
+            <h3 className="reviews-section-title">Відгуки пацієнтів</h3>
+
+            {isLoadingReviews ? (
+              <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+                <Loader />
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="no-reviews glass-panel">
+                <MessageSquare size={32} color="#cbd5e1" />
+                <p>Ще немає відгуків про цього лікаря. Будьте першим!</p>
+              </div>
+            ) : (
+              <div className="reviews-list">
+                {reviews.map((review: any, index: number) => (
+                  <div key={index} className="review-card glass-panel">
+                    <div className="review-rating">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={16}
+                          fill={star <= (review.rating || 5) ? "#f59e0b" : "transparent"}
+                          stroke={star <= (review.rating || 5) ? "#f59e0b" : "#cbd5e1"}
+                        />
+                      ))}
+                    </div>
+                    <p className="review-text">"{review.message || review}"</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

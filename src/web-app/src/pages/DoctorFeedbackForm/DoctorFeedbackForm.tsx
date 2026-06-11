@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./DoctorFeedbackForm.css";
-import { useCreateFeedback} from "../../domains/users/useCreateFeedbackDoc/useCreateFeedbackDoc";
-import { Star, Send, Loader2, MessageSquare } from "lucide-react";
+import { useCreateFeedback } from "../../domains/users/useCreateFeedbackDoc/useCreateFeedbackDoc";
+import { Star, Send, Loader2, MessageSquare, X } from "lucide-react";
 
 interface DoctorFeedbackFormProps {
   doctorId: string;
@@ -19,7 +19,6 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
     e.preventDefault();
     if (rating === 0 || !message.trim()) return;
 
-    // Відправляємо чіткий об'єкт за схемою API
     submitFeedback({
       doctor_id: doctorId,
       message: message.trim(),
@@ -27,8 +26,6 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
       visibility: "PUBLIC",
     });
 
-    // Після успішного виклику, якщо помилок немає, очищаємо форму
-    // (Логіку onSuccess можна також перенести в сам хук)
     setIsOpen(false);
     setRating(0);
     setMessage("");
@@ -40,7 +37,7 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
         className="open-feedback-btn glow-effect"
         onClick={() => setIsOpen(true)}
       >
-        <MessageSquare size={18} /> Залишити відгук
+        <MessageSquare size={18} /> Залишити відгук про лікаря
       </button>
     );
   }
@@ -53,10 +50,15 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
           type="button"
           className="close-btn"
           onClick={() => setIsOpen(false)}
+          title="Закрити"
         >
-          ×
+          <X size={20} />
         </button>
       </div>
+
+      <p className="feedback-desc">
+        Поділіться своїми враженнями від прийому. Це допоможе іншим пацієнтам зробити правильний вибір.
+      </p>
 
       <form onSubmit={handleSubmit} className="feedback-form">
         <div className="rating-section">
@@ -74,7 +76,8 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
                 onMouseLeave={() => setHoverRating(0)}
               >
                 <Star
-                  size={28}
+                  size={32}
+                  strokeWidth={1.5}
                   fill={
                     (hoverRating || rating) >= star
                       ? "#f59e0b"
@@ -83,7 +86,7 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
                   stroke={
                     (hoverRating || rating) >= star
                       ? "#f59e0b"
-                      : "#9ca3af"
+                      : "#cbd5e1"
                   }
                 />
               </button>
@@ -91,12 +94,14 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
           </div>
         </div>
 
-        <textarea
-          placeholder="Опишіть ваші враження..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          required
-        />
+        <div className="message-section">
+          <textarea
+            placeholder="Опишіть ваші враження (що сподобалося, чи був лікар уважним)..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            required
+          />
+        </div>
 
         <button
           type="submit"
@@ -109,7 +114,7 @@ export default function DoctorFeedbackForm({ doctorId }: DoctorFeedbackFormProps
             </>
           ) : (
             <>
-              <Send size={18} /> Надіслати
+              <Send size={18} /> Надіслати відгук
             </>
           )}
         </button>

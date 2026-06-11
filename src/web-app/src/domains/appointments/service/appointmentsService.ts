@@ -25,4 +25,12 @@ export const appointmentsService = {
     const res = await appointmentsApiClient.cancelAppointment(id, payload);
     return (res as any).data ?? res;
   },
+  finishAppointment: async (id: string, payload: { note: string }): Promise<AppointmentResponse> => {
+    const res = await appointmentsApiClient.finishAppointment(id, payload);
+    return (res as any).data ?? res;
+  },
+  addAppointmentNote: async (id: string, payload: { note: string }): Promise<any> => {
+    const res = await appointmentsApiClient.addAppointmentNote(id, payload);
+    return (res as any).data ?? res;
+  },
 };

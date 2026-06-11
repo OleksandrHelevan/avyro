@@ -103,3 +103,20 @@ class ScheduleRepository:
             docs = list(self.collection.find({"doctorId": str(doctor_id)}))
 
         return [Schedule.from_dict(doc) for doc in docs]
+
+    def update(self, schedule_id: ObjectId, dto_data: dict) -> Optional[Schedule]:
+        result = self.collection.find_one_and_update(
+            {"_id": schedule_id},
+            {
+                "$set": {
+                    **dto_data,
+                    "updatedAt": datetime.now(timezone.utc)
+                }
+            },
+            return_document=True
+        )
+        return Schedule.from_dict(result) if result else None
+
+    def delete(self, schedule_id: ObjectId) -> bool:
+        result = self.collection.delete_one({"_id": schedule_id})
+        return result.deleted_count > 0

@@ -73,4 +73,12 @@ export const userService = {
   }) => {
     return userApiClient.createDoctorFeedback(request);
   },
+  getAllFeedback: async (): Promise<any[]> => {
+    const response = await userApiClient.getAllFeedback();
+    return (response as any).data ?? response;
+  },
+  getDoctorReviews: async (doctorId: string): Promise<any[]> => {
+    const response = await userApiClient.getDoctorReviews(doctorId);
+    return (response as any).data ?? response;
+  },
 };

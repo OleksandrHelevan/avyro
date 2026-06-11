@@ -2,7 +2,7 @@ import { format, parseISO } from "date-fns";
 import { uk } from "date-fns/locale";
 import { CalendarDays, Clock, CheckCircle2, Clock3, ExternalLink, XCircle } from "lucide-react"; // 🚀 ДОДАНО XCircle
 import { useNavigate } from "react-router-dom";
-
+import './AppointmentCard.css'
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
 
 export interface DoctorInfo {
@@ -85,15 +85,14 @@ export default function AppointmentCard({ appointment, doctor, onCancel }: Appoi
           {/* 🚀 ДОДАНО: Кнопка скасування */}
           {canCancel && (
             <button
-              className="btn-details"
-              style={{ color: "#ef4444", backgroundColor: "#fef2f2", borderColor: "#fecaca" }}
+              className="btn-cancel-appt"
               onClick={(e) => {
-                e.stopPropagation(); // Щоб не спрацював перехід на сторінку деталей
+                e.stopPropagation();
                 e.preventDefault();
                 onCancel?.(appointment);
               }}
             >
-              Скасувати <XCircle size={14} />
+              Скасувати <XCircle size={20} fill="white" color="#c91818" />
             </button>
           )}
 

@@ -55,5 +55,8 @@ export const userApiClient = {
     visibility: string
   }) =>
     apiClient.post('/feedback/doctor-review', request),
-
+  getAllFeedback: async () =>
+    apiClient.get('/feedback/all'),
+  getDoctorReviews: async (doctorId: string) =>
+    apiClient.get(`/feedback/doctor/${doctorId}`),
 };
