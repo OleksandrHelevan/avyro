@@ -1,0 +1,256 @@
+/* ── Page ────────────────────────────────────────────────────────────────── */
+.pf-page {
+  height: calc(100vh - 70px); /* Змінили min-height на чітку висоту */
+  box-sizing: border-box; /* Тепер padding не буде збільшувати загальну висоту екрана */
+  margin-top: 60px; /* Прибрали зайві марджини */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px; /* Зменшили паддінги, flexbox сам усе відцентрує */
+  text-align: center;
+
+  /* Розкішний глибокий синій градієнт фону */
+  color: #ffffff;
+  position: relative;
+}
+
+/* Декоративні розмиті кола на фоні для глибини */
+.pf-page::before,
+.pf-page::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pf-page::before {
+  width: 400px;
+  height: 400px;
+  background: rgba(147, 197, 253, 0.4);
+  top: -100px;
+  left: -100px;
+}
+
+.pf-page::after {
+  width: 300px;
+  height: 300px;
+  background: rgba(30, 58, 138, 0.6);
+  bottom: 10%;
+  right: -50px;
+}
+
+/* Увесь контент піднімаємо над фоном */
+.pf-page > * {
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Icon ring ───────────────────────────────────────────────────────────── */
+.pf-icon-ring {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  /* Напівпрозорий білий фон для ефекту скла */
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  animation: pf-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pf-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Heading ─────────────────────────────────────────────────────────────── */
+.pf-heading {
+  max-width: 420px;
+}
+
+.pf-heading h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.pf-heading p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ── Detail card (Glassmorphism) ─────────────────────────────────────────── */
+.pf-detail-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  animation: pf-slide-up 0.6s ease-out;
+}
+
+@keyframes pf-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pf-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.pf-detail-row svg {
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.pf-detail-row strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.pf-detail-row--error {
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  /* Помилку виділяємо м'яким червоно-рожевим, щоб було видно на синьому */
+  color: #fca5a5;
+  font-weight: 500;
+}
+.pf-detail-row--error svg {
+  color: #fca5a5;
+}
+
+/* ── Top-up banner ───────────────────────────────────────────────────────── */
+.pf-topup-banner {
+  width: 100%;
+  max-width: 400px;
+  /* Жовтуватий/золотий акцент для банера на синьому фоні */
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.95) 100%);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  text-align: left;
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+  animation: pf-slide-in 0.4s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.pf-topup-icon {
+  color: #78350f; /* Темно-коричневий для контрасту на жовтому */
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.pf-topup-text { flex: 1; }
+
+.pf-topup-text p {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.pf-topup-text strong {
+  font-weight: 700;
+}
+
+.pf-topup-btn {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #78350f;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(120, 53, 15, 0.2);
+}
+.pf-topup-btn:hover {
+  background: #92400e;
+  transform: translateY(-1px);
+}
+
+/* ── Actions ─────────────────────────────────────────────────────────────── */
+.pf-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 10px;
+}
+
+.pf-btn-retry {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  /* Біла кнопка, яка яскраво виділяється на синьому */
+  background: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e3a8a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.pf-btn-retry:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.pf-btn-ghost {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.pf-btn-ghost:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}

@@ -1,8 +1,7 @@
 from typing import List
 from bson import ObjectId
 from pymongo.collection import Collection
-from modules.users_module.domains.reward.Reward import Reward, RewardSource
-
+from modules.users_module.domains.reward.Reward import Reward, RewardSource, RewardType
 class RewardRepository:
     def __init__(self, collection: Collection):
         self.collection = collection
@@ -17,13 +16,62 @@ class RewardRepository:
         return [Reward.from_dict(doc) for doc in cursor]
 
     def has_profile_bonus(self, patient_id: ObjectId) -> bool:
-        # Перевіряє, чи юзер вже отримував нагороду PROFILE_BONUS
         count = self.collection.count_documents({
             "patientId": patient_id,
-            "source.type": RewardSource.PROFILE_BONUS.value  # <--- ЗМІНА ТУТ: тепер шукаємо source.type
+            "source.type": RewardSource.PROFILE_BONUS.value
         })
         return count > 0
 
+    def get_all_by_patient_id(self, patient_id: ObjectId) -> list:
 
+        rewards = self.collection.find({"user_id": patient_id})
+        return list(rewards)
+
+    def has_first_visit_bonus(self, patient_id: ObjectId) -> bool:
+        count = self.collection.count_documents({
+            "patientId": patient_id,
+            "source.type": RewardSource.FIRST_VISIT_BONUS.value
+        })
+        return count > 0
+
+    def get_total_points(self, patient_id: ObjectId) -> int:
+        pipeline = [
+            {"$match": {"patientId": patient_id}},
+            {"$group": {"_id": None, "total": {"$sum": "$points"}}}
+        ]
+        result = list(self.collection.aggregate(pipeline))
+        return max(result[0]["total"] if result else 0, 0)
+
+    def spend_points(self, patient_id: ObjectId, points: int, description: str) -> None:
+        reward = Reward(
+            patientId=patient_id,
+            type=RewardType.SPEND,
+            points=-points,
+            source=RewardSource.APPOINTMENT_PAYMENT,
+            description=description
+        )
+        self.create(reward)
+
+    def has_bonus(self, patient_id: ObjectId, source: str) -> bool:
+        return self.collection.find_one({
+            "patientId": patient_id,
+            "description": {"$regex": source}
+        }) is not None
+
+    def count_finished_appointments(self, patient_id: ObjectId,
+                                    appointment_repo) -> int:
+        return len(appointment_repo.get_finished_by_patient_id(patient_id))
+
+    def count_monthly_appointments(self, patient_id: ObjectId,
+                                   appointment_repo) -> int:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return appointment_repo.count_finished_in_period(patient_id, start, now)
+
+    def count_same_doctor_appointments(self, patient_id: ObjectId,
+                                       doctor_id: ObjectId,
+                                       appointment_repo) -> int:
+        return appointment_repo.count_finished_by_doctor(patient_id, doctor_id)
 
 

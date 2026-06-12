@@ -2,13 +2,13 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
+from calendar import monthrange
 from modules.requests_module.domains.Request import Request, RequestType
 from modules.appointments_module.application.dto.CreateScheduleDTO import CreateScheduleDTO
 from modules.appointments_module.application.mapper.ScheduleMapper import ScheduleMapper
 from modules.appointments_module.application.service.SlotService import SlotService
 from modules.appointments_module.domains.schedule.Schedule import Schedule
 from modules.appointments_module.infrastructure.persistence.ScheduleRepository import ScheduleRepository
-
 
 class ScheduleService:
     def __init__(self, repository: ScheduleRepository, slot_service: SlotService, request_repository):
@@ -21,8 +21,7 @@ class ScheduleService:
         year = getattr(dto, 'year', datetime.now(timezone.utc).year)
         return self.create_monthly_schedule(dto.doctorId, year, month, dto)
 
-    def get_doctor_slots(self, doctor_id: str) -> list[dict]:
-        # 1. Валідація ObjectId
+    def get_doctor_slots(self, doctor_id: str) -> list:
         try:
             doc_oid = ObjectId(doctor_id)
         except (InvalidId, TypeError):
@@ -31,20 +30,22 @@ class ScheduleService:
                 detail="Невалідний формат ID лікаря"
             )
 
-        schedules = self.repository.get_all_by_doctor_id(doc_oid)
+        schedules = self.repository.get_by_doctor_id(doc_oid)
 
         if not schedules:
             return []
 
         all_slots = []
         for schedule in schedules:
-            slots = schedule.get("slots", []) if isinstance(schedule, dict) else getattr(schedule, "slots", [])
-
-
-            for slot in slots:
-                slot_dict = slot if isinstance(slot, dict) else slot.__dict__
-
-                all_slots.append(slot_dict)
+            for slot in schedule.slots:
+                all_slots.append({
+                    "slotId": str(slot.id) if hasattr(slot, "id") and slot.id else None,
+                    "from": slot.from_time if isinstance(slot.from_time, str) else (
+                        slot.from_time.isoformat() if hasattr(slot, "from_time") and slot.from_time else None),
+                    "to": slot.to_time.isoformat() if hasattr(slot, "to_time") and hasattr(slot.to_time, 'isoformat') else getattr(slot, "to_time", None),
+                    "type": slot.slot_type.value if hasattr(slot, "slot_type") and hasattr(slot.slot_type, "value") else str(getattr(slot, "slot_type", None)),
+                    "appointmentId": str(slot.appointment_id) if hasattr(slot, "appointment_id") and slot.appointment_id else None,
+                })
 
         return all_slots
 
@@ -52,7 +53,7 @@ class ScheduleService:
         request_obj = Request(
             creator_id=ObjectId(dto.doctorId),
             type=RequestType.SCHEDULE_CREATION,
-            payload=dto.dict()
+            payload=dto.model_dump()
         )
         saved_request = self.request_repository.create(request_obj)
         return str(saved_request.id)
@@ -62,7 +63,7 @@ class ScheduleService:
             doctor_id=doctor_id,
             year=year,
             month=month,
-            config=dto.repeating.dict()
+            config=dto.repeating.model_dump()
         )
 
         schedule_domain = Schedule(
@@ -71,11 +72,83 @@ class ScheduleService:
             year=year,
             title=dto.title,
             is_repeated=dto.isRepeated,
-            repeating=dto.repeating.dict(),
+            repeating=dto.repeating.model_dump(),
             slots=slots,
+            price_per_slot=dto.pricePerSlot,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
 
         created_schedule = self.repository.create(schedule_domain)
         return ScheduleMapper.to_dto(created_schedule)
+
+    def update_schedule(self, schedule_id: str, dto: CreateScheduleDTO) -> dict:
+        try:
+            oid = ObjectId(schedule_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Невалідний формат ID розкладу"
+            )
+
+        existing = self.repository.get_by_id(oid)
+        if not existing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Розклад не знайдено"
+            )
+
+
+        month = getattr(dto, 'month', existing.month)
+        year = getattr(dto, 'year', existing.year)
+
+        duplicate = self.repository.get_by_month(ObjectId(dto.doctorId), year, month)
+        if duplicate and duplicate.id != oid:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Для цього місяця вже існує інший розклад"
+            )
+
+        new_slots = self.slot_service.generate_monthly_slots(
+            doctor_id=dto.doctorId,
+            year=year,
+            month=month,
+            config=dto.repeating.model_dump()
+        )
+
+        slots_as_dicts = [
+            s.to_dict() if hasattr(s, "to_dict") else s for s in new_slots
+        ]
+
+        update_payload = {
+            "title": dto.title,
+            "isRepeated": dto.isRepeated,
+            "repeating": dto.repeating.model_dump(),
+            "slots": slots_as_dicts,
+            "pricePerSlot": dto.pricePerSlot,
+            "month": month,
+            "year": year,
+        }
+
+        updated = self.repository.update(oid, update_payload)
+        return ScheduleMapper.to_dto(updated)
+
+    def cleanup_expired_schedules(self) -> int:
+
+        now = datetime.now(timezone.utc)
+        deleted = 0
+
+        docs = list(self.repository.collection.find({
+            "$or": [
+                {"year": {"$lt": now.year}},
+                {"year": now.year, "month": {"$lt": now.month}}
+            ]
+        }))
+
+        for doc in docs:
+            self.repository.delete(doc["_id"])
+            deleted += 1
+
+        return deleted
+
+

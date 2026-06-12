@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, status
 from typing import List
 from bson import ObjectId
 
-from config.dependencies import get_admin_request_service, get_specialization_service # <--- Додано імпорт
+from config.dependencies import get_admin_request_service, get_specialization_service
 from config.permissions import allow_admin
 from modules.admin_module.application.service.AdminRequestService import AdminRequestService
-from modules.users_module.application.services.SpecializationService import SpecializationService # <--- Додано імпорт
-from modules.users_module.application.dto.SpecializationDto import CreateSpecializationRequest # <--- Додано імпорт
+from modules.users_module.application.services.SpecializationService import SpecializationService
+from modules.users_module.application.dto.SpecializationDto import CreateSpecializationRequest
 from modules.requests_module.domains.Request import RequestStatus
+
 
 router = APIRouter(
     prefix="/admin",
@@ -44,7 +45,6 @@ async def create_specialization_direct(
     spec_service: SpecializationService = Depends(get_specialization_service),
     current_admin: dict = Depends(allow_admin)
 ):
-    """Пряме створення спеціалізації адміністратором без заявок"""
     return spec_service.create_specialization_direct(request)
 
 @router.post("/{request_id}/approve-registration", status_code=status.HTTP_200_OK)
@@ -88,5 +88,7 @@ async def reject_request(
         comment
     )
     return {"status": "success" if success else "failed"}
+
+
 
 

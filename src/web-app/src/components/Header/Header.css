@@ -1,19 +1,23 @@
 .white-nav {
-  position: sticky;
+  position: fixed; /* або sticky, щоб не випадати з потоку */
   top: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  padding: 1rem 2rem;
+  left: 0;
+  width: 100%;
+  height: 70px; /* Жорстко задаємо висоту, на яку спирається мобільне меню */
+  background-color: #ffffff;
+  z-index: 100; /* Має бути більше, ніж у мобільного випадаючого меню (99) */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Легка тінь для відділення від контенту */
 }
-
 .nav-content {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  /* ДОДАЙТЕ ЦІ 2 РЯДКИ: */
+  height: 100%;       /* Щоб контент розтягнувся на всі 70px хедера і став чітко по центру */
+  padding: 0 20px;    /* Щоб на планшетах логотип і кнопки не прилипали до самих країв екрана */
 }
 
 .logo-group {
@@ -37,9 +41,12 @@
   font-weight: 800;
 }
 
+/* ОНОВЛЕНО: Центруємо лінки */
 .nav-links {
   display: flex;
   gap: 2rem;
+  flex-grow: 1; /* Займає весь доступний простір між лого і профілем */
+  justify-content: center; /* Ставить посилання чітко посередині */
 }
 
 .nav-link {
@@ -58,10 +65,12 @@
   border-bottom: 2px solid #7b51b3;
 }
 
+/* ОНОВЛЕНО: Притискаємо до правого краю */
 .auth-group {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  margin-left: auto; /* Відштовхує блок максимально вправо */
 }
 
 .user-profile {
@@ -126,4 +135,254 @@
 
 .btn-signup:hover {
   background: #623f91;
+}
+
+.profile-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a5568;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.profile-icon-btn:hover {
+  background-color: #f7fafc;
+  color: #2b6cb0;
+}
+
+.profile-icon-btn.active-icon {
+  color: #2b6cb0;
+  background-color: #ebf8ff;
+}
+
+/* ОНОВЛЕНО: Десктопна версія контейнера */
+.nav-links-container {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+/* Ховаємо бургер на десктопі */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+/* АДАПТИВНІСТЬ ДЛЯ МОБІЛОК */
+@media screen and (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* Перетворюємо контейнер у випадаюче меню */
+  .nav-links-container {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    /* Анімація появи */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    z-index: 99;
+  }
+
+  .nav-links-container.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .nav-link {
+    width: 100%;
+    display: block;
+    padding: 8px 0;
+  }
+
+  /* Лінія розділювача перед блоком авторизації/кабінету */
+  .auth-group {
+    width: 100%;
+    flex-direction: column;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+    gap: 12px;
+    margin-left: 0; /* ОНОВЛЕНО: скидаємо margin для мобілок, щоб меню не з'їжджало */
+  }
+
+  .btn-login, .btn-signup {
+    width: 100%;
+    text-align: center;
+  }
+}
+/* --- СТИЛІ ДЛЯ ДРОПДАУНУ СПОВІЩЕНЬ --- */
+.notif-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notif-badge {
+  position: absolute;
+  top: 0px;
+  right: -2px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: 50px;
+  right: -50px; /* Центруємо відносно іконки */
+  width: 320px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.notif-dropdown-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.notif-dropdown-body {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+/* Scrollbar для менюшки */
+.notif-dropdown-body::-webkit-scrollbar {
+  width: 6px;
+}
+.notif-dropdown-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+.notif-loader, .notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.notif-dropdown-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  transition: background 0.2s;
+  position: relative;
+}
+
+.notif-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.notif-dropdown-item.unread {
+  background: rgba(123, 81, 179, 0.03);
+}
+
+.notif-item-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notif-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notif-item-content p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.notif-dropdown-item.read .notif-item-content p {
+  color: #64748b;
+}
+
+.notif-item-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notif-item-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+/* Адаптивність для телефонів */
+@media (max-width: 768px) {
+  .notif-dropdown {
+    position: fixed;
+    top: 70px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
 }

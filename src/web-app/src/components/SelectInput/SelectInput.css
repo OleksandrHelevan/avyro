@@ -1,0 +1,55 @@
+.custom-select {
+  width: 100%;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-input-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box !important;
+  font-family: inherit;
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e9abf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding: 12px 40px 12px 14px;
+  line-height: normal;
+}
+
+.custom-select.has-icon {
+  padding-left: 42px;
+}
+
+.custom-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(108, 127, 216, 0.18);
+}
+
+.custom-select.input-error {
+  border-color: var(--color-error);
+  background-color: var(--color-error-bg);
+  box-shadow: 0 0 0 3px rgba(224, 82, 82, 0.12);
+}
+
+.custom-select.input-error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(224, 82, 82, 0.22);
+}
+
+.custom-select:invalid,
+.custom-select option[value=""][disabled] {
+  color: var(--color-text-muted);
+}
+
+.custom-select option {
+  color: var(--color-text);
+  background: #ffffff;
+  font-size: 15px;
+}

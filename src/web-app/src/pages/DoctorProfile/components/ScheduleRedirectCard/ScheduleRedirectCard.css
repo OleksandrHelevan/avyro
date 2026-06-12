@@ -1,0 +1,48 @@
+
+.schedule-redirect-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+  transition: all 0.3s ease;
+}
+
+.schedule-redirect-card:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(59, 206, 181, 0.3);
+}
+
+.redirect-info h3 {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+.redirect-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.btn-redirect-schedule {
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .schedule-redirect-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.2rem;
+  }
+
+  .btn-redirect-schedule {
+    width: 100%;
+    justify-content: center;
+  }
+}

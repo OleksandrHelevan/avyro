@@ -1,0 +1,383 @@
+/* ── Page ────────────────────────────────────────────────────────────────── */
+.adp-page {
+  min-height: calc(100vh - 70px);
+  padding: 32px 20px 60px;
+}
+
+.adp-container {
+  max-width: 540px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Topbar ──────────────────────────────────────────────────────────────── */
+.adp-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.adp-back:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+}
+
+.adp-refresh {
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 14px;
+  padding: 10px;
+  cursor: pointer;
+  color: #475569;
+  display: flex;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.adp-refresh:hover {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* ── UNIFIED CARD ────────────────────────────────────────────────────────── */
+.adp-unified-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(31, 38, 135, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header inside Card ──────────────────────────────────────────────────── */
+.adp-unified-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adp-unified-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* ── Status Badge ────────────────────────────────────────────────────────── */
+.adp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.status--reserved  { background: rgba(239, 246, 255, 0.9); color: #1d4ed8; border: 1px solid rgba(191, 219, 254, 0.5); }
+.status--reserved svg { color: #3b82f6; }
+.status--finished  { background: rgba(240, 253, 244, 0.9); color: #15803d; border: 1px solid rgba(187, 247, 208, 0.5); }
+.status--finished svg { color: #22c55e; }
+.status--cancelled { background: rgba(254, 242, 242, 0.9); color: #dc2626; border: 1px solid rgba(254, 202, 202, 0.5); }
+.status--cancelled svg { color: #ef4444; }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.adp-divider {
+  height: 1px;
+  background: rgba(203, 213, 225, 0.4); /* Дуже легка напівпрозора лінія */
+  margin: 20px 0;
+  border-radius: 2px;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.adp-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.adp-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.adp-section-label svg { color: #7b51b3; }
+
+/* ── Date Section ────────────────────────────────────────────────────────── */
+.adp-date-main { display: flex; align-items: flex-start; gap: 14px; }
+.adp-date-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: rgba(123, 81, 179, 0.1); display: flex; align-items: center;
+  justify-content: center; color: #7b51b3; flex-shrink: 0;
+}
+.adp-date-day { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 4px; text-transform: capitalize; }
+.adp-date-time { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; font-weight: 500; }
+.adp-duration { color: #94a3b8; }
+
+/* ── Person Row ──────────────────────────────────────────────────────────── */
+.adp-person-row { display: flex; align-items: center; gap: 14px; }
+.adp-avatar-img { border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.adp-avatar-fallback {
+  border-radius: 50%; background: linear-gradient(135deg, rgba(123, 81, 179, 0.1), rgba(123, 81, 179, 0.2));
+  color: #7b51b3; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.adp-person-info { flex: 1; min-width: 0; }
+.adp-person-name { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+.adp-person-spec { font-size: 14px; color: #7b51b3; font-weight: 500; }
+
+/* ── Contacts ────────────────────────────────────────────────────────────── */
+.adp-contacts { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.adp-contact-row {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #475569;
+  font-weight: 500; text-decoration: none; transition: color 0.2s;
+}
+.adp-contact-row:hover { color: #7b51b3; }
+.adp-contact-row svg { color: #94a3b8; }
+
+/* ── Price Section ───────────────────────────────────────────────────────── */
+.adp-price-row { display: flex; align-items: center; justify-content: space-between; }
+.adp-price-val { font-size: 24px; font-weight: 800; color: #1e293b; }
+.adp-paid-badge {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600;
+  color: #15803d; background: rgba(240, 253, 244, 0.9); padding: 6px 12px; border-radius: 999px;
+}
+
+/* ── Meta ────────────────────────────────────────────────────────────────── */
+.adp-meta {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; margin-top: 24px;
+  background: rgba(248, 250, 252, 0.5); border-radius: 12px; font-size: 12px; color: #94a3b8;
+  border: 1px dashed rgba(203, 213, 225, 0.6);
+}
+.adp-meta code { font-family: monospace; color: #64748b; font-size: 11px; }
+
+/* ── Utils ───────────────────────────────────────────────────────────────── */
+.adp-spin { animation: adp-rotate 0.7s linear infinite; }
+@keyframes adp-rotate { to { transform: rotate(360deg); } }
+/* ── Add to AppointmentDetailPage.css ───────────────────────────────────── */
+
+/* Section label row with link */
+.adp-section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.adp-section-label-row .adp-section-label {
+  margin-bottom: 0; /* override default margin since row handles it */
+}
+
+/* "Профіль лікаря / Профіль пацієнта" inline link */
+.adp-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  background: #eef2ff;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.adp-profile-link:hover { background: #e0e7ff; color: #4338ca; }
+
+/* Note block */
+.adp-note-block {
+  background: rgba(241, 245, 249, 0.6);
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Fallback "View profile" button at bottom */
+.adp-view-profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px;
+  border-radius: 14px;
+  border: 1.5px solid #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.adp-view-profile-btn:hover { background: #e0e7ff; border-color: #a5b4fc; }
+
+/* Refresh spinner */
+.adp-spin { animation: adp-rotate 0.7s linear infinite; }
+@keyframes adp-rotate { to { transform: rotate(360deg); } }
+
+/* Refresh button */
+.adp-refresh {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  transition: all 0.15s;
+}
+.adp-refresh:hover { color: #1e293b; background: #f8fafc; }
+/* 📱 ── Mobile Responsive (Адаптив) ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .adp-page {
+    /* Перевизначаємо інлайн paddingTop="120px", щоб на мобілці шапка не займала пів екрана */
+    padding-top: 90px !important;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 30px;
+  }
+
+  .adp-unified-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  /* На дуже вузьких екранах заголовок і бейдж статусу стають у стовпчик */
+  .adp-unified-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .adp-unified-title {
+    font-size: 18px;
+  }
+
+  .adp-date-main {
+    gap: 12px;
+  }
+
+  .adp-date-day {
+    font-size: 15px;
+  }
+
+  .adp-date-time {
+    font-size: 13px;
+    flex-wrap: wrap; /* Дозволяє часу перенестися, якщо не влазить */
+  }
+
+  .adp-person-row {
+    gap: 10px;
+  }
+
+  .adp-person-name {
+    font-size: 15px;
+  }
+
+  .adp-person-spec {
+    font-size: 13px;
+  }
+
+  /* Кнопка "Профіль лікаря" стає на всю ширину для зручності натискання пальцем */
+  .adp-section-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .adp-profile-link {
+    width: 100%;
+    justify-content: center;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .adp-price-val {
+    font-size: 20px;
+  }
+
+  .adp-note-block {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .adp-view-profile-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Ультра-малі екрани (наприклад, iPhone SE) */
+  .adp-avatar-img,
+  .adp-avatar-fallback {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
+  }
+}
+.adp-cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #dc2626; /* Темно-червоний текст */
+  background: #fef2f2; /* Дуже світлий червоний фон */
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.adp-cancel-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.adp-cancel-btn:active {
+  transform: translateY(1px);
+}
+
+.adp-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

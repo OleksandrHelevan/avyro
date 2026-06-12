@@ -1,3 +1,5 @@
+import type {Reward} from "../rewards/type.ts";
+
 export type Role = 'DOCTOR' | 'PATIENT' | 'ADMIN';
 
 export interface LoginRequest {
@@ -47,13 +49,16 @@ export interface GetPatientResponse {
   phone: string;
   avatarUrl: string;
   createdAt: Date;
+  address: string;
   lastLoginAt: Date;
+  rewards: Reward;
 }
 
 export interface PatchPatientRequest {
   fullName: string;
   phone: string;
   avatarUrl: string;
+  address: string;
 }
 
 export interface PatchPatientResponse {
@@ -65,6 +70,7 @@ export interface PatchPatientResponse {
   avatarUrl: string;
   createdAt: Date;
   lastLoginAt: Date;
+  rewards: Reward;
 }
 
 // --- Доктор ---
@@ -78,52 +84,77 @@ export interface GetDoctorResponse {
   createdAt: Date;
   lastLoginAt: Date;
   specializationName: string;
-
+  schedule: any[]; // Додайте це поле тут
+  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна за слот (глобальна для лікаря)
+  price?: number;        // 🚀 ДОДАНО: Залишив для зворотної сумісності (про всяк випадок)
 }
 
 export interface UpdateDoctorProfileRequest {
-  full_name: string;
+  fullName: string;
   phone: string;
   avatarUrl: string;
   specialization_id: string;
 }
 
 export interface UpdateProfileResponse {
- _id: string;
- email: string;
- isActive: boolean;
- fullName: string;
- phone: string;
- avatarUrl: string;
- createdAt: Date;
- lastLoginAt: Date;
+  _id: string;
+  email: string;
+  isActive: boolean;
+  fullName: string;
+  phone: string;
+  avatarUrl: string;
+  createdAt: Date;
+  lastLoginAt: Date;
 }
-
-// --- Спеціалізації (додано) ---
-export interface Specialization {
-  id: string;
-  name: string;
-  description: string;
-}
-
-// --- Розклад ---
 
 export interface RepeatingConfig {
-  type: "WEEKLY" | "DAILY" | "MONTHLY" | string; // Можна розширити за потреби
-  daysOfWeek: number[];                          // Масив днів тижня (наприклад, 1=Пн, 3=Ср)
-  startTime: string;                             // Формат "HH:mm" (наприклад, "09:00")
-  endTime: string;                               // Формат "HH:mm" (наприклад, "18:00")
-  slotDuration: number;                          // Тривалість слота у хвилинах
-  timezone: string;                              // Наприклад, "UTC" або "Europe/Kyiv"
+  type: "WEEKLY" | "DAILY" | "MONTHLY" | string;
+  daysOfWeek: number[];
+  startTime: string;
+  endTime: string;
+  slotDuration: number;
+  timezone: string;
+  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна всередині конфігу
 }
 
 export interface ScheduleRequest {
-  doctorId: string;              // Зверніть увагу: camelCase (doctorId), а не doctor_id
+  doctorId: string;
   month: number;
   year: number;
   title: string;
   isRepeated: boolean;
-  repeating?: RepeatingConfig;   // Робимо необов'язковим (?), якщо isRepeated = false
+  pricePerSlot: number;  // 🚀 ДОДАНО: Обов'язкова ціна на верхньому рівні запиту
+  repeating?: RepeatingConfig;
 }
 
 export type ScheduleResponse = Record<string, any>;
+
+export interface DoctorListItem {
+  id: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  specializationId: string | null;
+}
+
+export interface DoctorApprovalResponse {
+  isAuthenticated: boolean;
+  isPending: boolean;
+}
+
+export interface NotificationItem {
+  id: string;
+  message: string;
+  is_read: boolean;
+  sent_at: string;
+  recipient_id: string | null;
+}
+
+export interface GetNotificationsResponse {
+  notifications: NotificationItem[];
+  unread_count: number;
+}
+export interface CreateFeedbackRequest {
+  message: string;
+  rating: number; // від 1 до 5
+}

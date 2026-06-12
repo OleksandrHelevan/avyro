@@ -8,3 +8,4 @@ class CreateScheduleDTO(BaseModel):
     title: str
     isRepeated: bool
     repeating: RepeatingConfigDTO
+    pricePerSlot: float = Field(default=0.0, ge=0)

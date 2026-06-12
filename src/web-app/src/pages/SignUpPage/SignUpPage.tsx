@@ -1,17 +1,16 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useSignUp } from "../../domains/users/useSignUp/useSignUp.ts";
-import type { SignUpRequest, Role } from "../../domains/users/types.ts";
+import {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {useSignUp} from "../../domains/users/useSignUp/useSignUp.ts";
+import type {SignUpRequest, Role} from "../../domains/users/types.ts";
 import TextInput from "../../components/TextInput/TextInput.tsx";
 import Button from "../../components/Button/Button.tsx";
 import Form from "../../components/Form/Form.tsx";
-import {
-  type RadioOption,
-  RadioSelector,
-} from "../../components/RadioSelector/RadioSelector.tsx";
-import "./SignUpPage.css";
+import {type RadioOption, RadioSelector} from "../../components/RadioSelector/RadioSelector.tsx";
 import Checkbox from "../../components/Checkbox/Checkbox.tsx";
 import toast from "react-hot-toast";
+
+import {setInStorage} from "../../utils/localStorageUtil.ts";
+import "./SignUpPage.css";
 
 interface SignUpFormValues {
   email: string;
@@ -23,12 +22,12 @@ export default function SignUpPage() {
   const [selectedRole, setSelectedRole] = useState<Role>("PATIENT");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const { mutate, isPending } = useSignUp();
+  const {mutate, isPending} = useSignUp();
   const navigate = useNavigate();
 
   const roleOptions: RadioOption<Role>[] = [
-    { value: "PATIENT", label: "Пацієнт" },
-    { value: "DOCTOR", label: "Лікар" },
+    {value: "PATIENT", label: "Пацієнт"},
+    {value: "DOCTOR", label: "Лікар"},
   ];
 
   const onSubmit = (data: SignUpFormValues) => {
@@ -52,8 +51,15 @@ export default function SignUpPage() {
 
     mutate(requestData, {
       onSuccess: () => {
-        toast.success("Акаунт створено!");
-        navigate("/login");
+        if (selectedRole === "DOCTOR") {
+          setInStorage("savedDoctorEmail", requestData.email);
+          toast.success("Чекаємо підтвердження адміністратора");
+          navigate("/not-approved");
+        }
+        if (selectedRole === "PATIENT") {
+          toast.success("Акаунт створено!");
+          navigate("/login");
+        }
       },
       onError: () => {
         toast.error("Помилка реєстрації");
@@ -69,13 +75,9 @@ export default function SignUpPage() {
           title="Реєстрація"
           subtitle="Доєднайся до платформи"
           className="signup-form"
-          defaultValues={{
-            email: "",
-            password: "",
-            confirmPassword: "",
-          }}
+          defaultValues={{email: "", password: "", confirmPassword: ""}}
         >
-          {({ watch }) => {
+          {({watch}) => {
             const password = watch("password");
 
             return (
@@ -94,10 +96,7 @@ export default function SignUpPage() {
                   placeholder="Введіть email"
                   rules={{
                     required: "Email обов'язковий",
-                    pattern: {
-                      value: /^\S+@\S+\.\S+$/,
-                      message: "Некоректний email",
-                    },
+                    pattern: {value: /^\S+@\S+\.\S+$/, message: "Некоректний email"},
                   }}
                 />
 
@@ -108,10 +107,7 @@ export default function SignUpPage() {
                   placeholder="••••••••"
                   rules={{
                     required: "Пароль обов'язковий",
-                    minLength: {
-                      value: 6,
-                      message: "Мінімум 6 символів",
-                    },
+                    minLength: {value: 6, message: "Мінімум 6 символів"},
                   }}
                 />
 
@@ -122,8 +118,7 @@ export default function SignUpPage() {
                   placeholder="••••••••"
                   rules={{
                     required: "Підтвердіть пароль",
-                    validate: (value: string) =>
-                      value === password || "Паролі не збігаються",
+                    validate: (value: string) => value === password || "Паролі не збігаються",
                   }}
                 />
 
@@ -131,29 +126,16 @@ export default function SignUpPage() {
                   id="terms"
                   checked={termsAccepted}
                   onChange={setTermsAccepted}
-                  label={
-                    <>
-                      Погоджуюсь з{" "}
-                      <Link to="/terms">Умовами послуг</Link>
-                    </>
-                  }
+                  label={<>Погоджуюсь з <Link to="/terms">Умовами послуг</Link></>}
                 />
 
                 <div className="signup-form-footer">
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    className="w-full"
-                    disabled={isPending || !termsAccepted}
-                  >
-                    {isPending
-                      ? "Реєстрація..."
-                      : "Зареєструватись"}
+                  <Button variant="primary" type="submit" className="w-full" disabled={isPending || !termsAccepted}>
+                    {isPending ? "Реєстрація..." : "Зареєструватись"}
                   </Button>
 
                   <div className="back-to-login">
-                    Вже маєте акаунт?{" "}
-                    <Link to="/login">Увійти</Link>
+                    Вже маєте акаунт? <Link to="/login">Увійти</Link>
                   </div>
                 </div>
               </>

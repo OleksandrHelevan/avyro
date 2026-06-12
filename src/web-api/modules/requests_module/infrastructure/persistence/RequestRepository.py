@@ -1,10 +1,9 @@
 from typing import List, Optional
 from bson import ObjectId
 from pymongo.collection import Collection
-from datetime import datetime, UTC
-
+from datetime import datetime, timezone
 from modules.requests_module.domains.Request import (Request, RequestStatus, RequestType)
-
+from typing import Union
 
 class RequestRepository:
     def __init__(self, collection: Collection):
@@ -33,9 +32,9 @@ class RequestRepository:
                 "$set": {
                     "status": status.value,
                     "processedBy": admin_id,
-                    "processedAt": datetime.now(UTC),
+                    "processedAt": datetime.now(timezone.utc),
                     "adminComment": comment,
-                    "updatedAt": datetime.now(UTC)
+                    "updatedAt": datetime.now(timezone.utc)
                 }
             }
         )
@@ -75,6 +74,21 @@ class RequestRepository:
                 ]
             },
             "payload.name": name
+        })
+
+        return Request.from_dict(data) if data else None
+
+    def get_pending_request_by_email_and_type(
+        self,
+        email: str,
+        request_type: Union[str, RequestType]
+    ) -> Optional[Request]:
+        req_type_value = request_type.value if hasattr(request_type, "value") else request_type
+
+        data = self.collection.find_one({
+            "type": req_type_value,
+            "status": RequestStatus.PENDING.value,
+            "payload.email": email
         })
 
         return Request.from_dict(data) if data else None

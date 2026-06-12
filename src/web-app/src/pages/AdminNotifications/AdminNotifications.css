@@ -1,0 +1,310 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* --- ОСНОВНИЙ ФОН --- */
+.admin-spec-page {
+  padding: 2rem 1.5rem;
+  width: 100%; /* Розтягуємо на всю ширину */
+  height: calc(100vh - 70px);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  background-image:
+    radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, rgba(14, 165, 233, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+.admin-spec-title {
+  color: #0f172a;
+  margin-top: 50px;
+  margin-bottom: 2rem;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+
+.admin-spec-section-title {
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* --- БЛОК СТВОРЕННЯ --- */
+.admin-spec-create-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15);
+  border: 1px solid rgba(255, 255, 255, 1);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.admin-spec-create-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #4f46e5, #ec4899, #f59e0b);
+}
+
+.admin-spec-create-card-title {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.admin-spec-create-form {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.admin-spec-create-input {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  font-size: 1.05rem;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02) inset;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-spec-create-input:focus {
+  outline: none;
+  border-color: #818cf8;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.admin-spec-create-btn {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
+}
+
+.admin-spec-create-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -8px rgba(79, 70, 229, 0.6);
+}
+
+/* --- СІТКА КАРТОК --- */
+.admin-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 2rem;
+}
+
+.admin-spec-card {
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.admin-spec-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15);
+  border-color: #e0e7ff;
+}
+
+.admin-spec-card-header {
+  background: transparent;
+  padding: 1.5rem 1.5rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: none;
+}
+
+.admin-spec-card-header > div h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.admin-spec-card-header > div span {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.admin-spec-card-metrics {
+  padding: 1rem 1.5rem;
+  flex-grow: 1;
+}
+
+.admin-spec-card-metrics p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.admin-spec-card-metrics strong {
+  color: #0f172a;
+  font-weight: 600;
+  background: linear-gradient(90deg, #4f46e5, #db2777);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.admin-spec-card-actions {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  gap: 12px;
+}
+
+.admin-spec-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.admin-spec-btn-approve {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 15px -5px rgba(16, 185, 129, 0.4);
+}
+
+.admin-spec-btn-approve:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.6);
+}
+
+.admin-spec-btn-reject {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.admin-spec-btn-reject:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -6px rgba(239, 68, 68, 0.4);
+}
+
+.admin-spec-loader-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 150px;
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+/* =========================================
+   АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .admin-spec-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-spec-page {
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: auto;
+    overflow: auto;
+  }
+
+  .admin-spec-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .admin-spec-section-title {
+    text-align: center;
+  }
+
+  .admin-spec-create-card {
+    padding: 1.5rem;
+  }
+
+  .admin-spec-create-card-title {
+    font-size: 1.1rem;
+    justify-content: center;
+  }
+
+  .admin-spec-create-form {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .admin-spec-create-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-spec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-spec-card-header > div h3 {
+    font-size: 1.25rem;
+  }
+
+  .admin-spec-card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[SpecializationResponse])
+@router.get("", response_model=List[SpecializationResponse])
 def get_all_specializations(
     service: SpecializationService = Depends(get_specialization_service)
 ):
@@ -34,7 +34,7 @@ def get_specialization_by_id(
     return service.get_specialization_by_id(spec_id)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_specialization(
     request: CreateSpecializationRequest,
     current_doctor: dict = Depends(allow_doctor),
@@ -42,5 +42,5 @@ async def create_specialization(
 ):
     return service.create_specialization_request(
         request,
-        str(current_doctor["_id"])
+        str(current_doctor["sub"])
     )

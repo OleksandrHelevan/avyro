@@ -1,0 +1,493 @@
+/* ── Layout ── */
+.dap-page {
+  min-height: calc(100vh - 70px);
+  padding: 40px 20px 80px;
+  background: transparent; /* 🚀 БЕЗ ФОНУ */
+  position: relative;
+  z-index: 1;
+}
+
+.dap-container {
+  max-width: 600px;
+  padding-top: 80px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Header ── */
+.dap-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dap-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dap-header-title h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.dap-subtitle {
+  color: #000000;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* ── Filters ── */
+.dap-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none; /* Firefox */
+}
+.dap-filters::-webkit-scrollbar { display: none; }
+
+.dap-filter-btn {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.dap-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+}
+
+.dap-filter-btn.active {
+  background: #7b51b3;
+  color: white;
+  border-color: #7b51b3;
+  box-shadow: 0 4px 12px rgba(123, 81, 179, 0.2);
+}
+
+/* ── List & Empty State ── */
+.dap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dap-empty-state {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  border: 1px dashed rgba(203, 213, 225, 0.8);
+  border-radius: 24px;
+  padding: 60px 20px;
+  text-align: center;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dap-empty-state h3 {
+  color: #1e293b;
+  margin: 0;
+  font-size: 18px;
+}
+
+.dap-empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dap-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  text-align: center;
+  color: #1e293b;
+}
+
+/* ── Cards ── */
+.dap-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dap-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(123, 81, 179, 0.08);
+}
+
+/* Card Top */
+.dap-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status--planned   { background: rgba(239, 246, 255, 0.9); color: #2563eb; }
+.status--finished  { background: rgba(240, 253, 244, 0.9); color: #16a34a; }
+.status--cancelled { background: rgba(254, 242, 242, 0.9); color: #dc2626; }
+
+.dap-card-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* Card Middle (Patient Info) */
+.dap-card-middle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dap-avatar-img {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.dap-avatar-fallback {
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(123, 81, 179, 0.1), rgba(123, 81, 179, 0.2));
+  color: #7b51b3;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dap-patient-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dap-patient-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dap-patient-info h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Card Divider */
+.dap-divider {
+  height: 1px;
+  background: rgba(203, 213, 225, 0.4);
+  border-radius: 2px;
+}
+
+/* Card Bottom */
+.dap-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dap-datetime {
+  display: flex;
+  gap: 16px;
+}
+
+.dap-dt-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.dap-dt-item svg {
+  color: #7b51b3;
+}
+
+.dap-action-btn {
+  background: none;
+  border: none;
+  color: #7b51b3;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dap-card:hover .dap-action-btn {
+  text-decoration: underline;
+}
+/* 📱 ── Mobile Responsive (Адаптив) ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .dap-page {
+    /* Зменшуємо бокові відступи, щоб картки були ширшими на вузьких екранах */
+    padding: 20px 12px 60px;
+  }
+
+  .dap-container {
+    gap: 16px;
+  }
+
+  .dap-header-title h1 {
+    font-size: 24px;
+  }
+
+  .dap-subtitle {
+    font-size: 14px;
+  }
+
+  /* Фільтри робимо трохи компактнішими */
+  .dap-filter-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* Сама картка візиту */
+  .dap-card {
+    padding: 16px;
+    border-radius: 20px;
+    gap: 12px;
+  }
+
+  .dap-card-middle {
+    gap: 12px;
+  }
+
+  .dap-avatar-img,
+  .dap-avatar-fallback {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+  }
+
+  .dap-patient-info h4 {
+    font-size: 15px;
+  }
+
+  /* Нижній блок: дата і кнопка "Деталі" */
+  .dap-card-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dap-datetime {
+    flex-wrap: wrap; /* Дозволяє перенести час на новий рядок, якщо телефон дуже вузький */
+    gap: 12px;
+  }
+
+  .dap-dt-item {
+    font-size: 13px;
+  }
+
+  /* Перетворюємо кнопку "Деталі" у велику таб-кнопку для зручного натискання пальцем */
+  .dap-action-btn {
+    width: 100%;
+    justify-content: center;
+    background: rgba(123, 81, 179, 0.08);
+    padding: 10px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Ультра-малі екрани (наприклад, старі iPhone) */
+  .dap-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .dap-header-title h1 {
+    font-size: 20px;
+  }
+}
+/* ── Кнопка швидкого завершення на картці ── */
+.dap-quick-finish-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #ecfdf5; /* Світло-зелений фон */
+  color: #10b981; /* Смарагдовий текст */
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.dap-quick-finish-btn:hover {
+  background-color: #10b981;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.dap-quick-finish-btn:active {
+  transform: translateY(1px);
+}
+
+/* ── Модальне вікно (якщо класи не були глобальними) ── */
+.cancel-modal-backdrop {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.cancel-modal-box {
+  background: #ffffff; padding: 24px; border-radius: 24px;
+  width: 90%; max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(226, 232, 240, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cancel-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cancel-modal-title { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 700; }
+.cancel-close-btn { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 50%; transition: all 0.2s ease; }
+.cancel-close-btn:hover { background: #f1f5f9; color: #475569; }
+.cancel-modal-text { color: #475569; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; }
+.cancel-textarea-wrapper { margin-bottom: 24px; }
+.cancel-textarea-label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; }
+.cancel-textarea { width: 100%; padding: 14px; border-radius: 16px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; resize: none; font-family: inherit; transition: all 0.2s ease; }
+.cancel-textarea:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+.cancel-modal-actions { display: flex; gap: 12px; }
+.btn-cancel-return { flex: 1; padding: 14px; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+.btn-cancel-return:hover { background: #f8fafc; color: #1e293b; }
+.btn-cancel-confirm { flex: 1; padding: 14px; border-radius: 14px; border: none; color: #fff; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s ease; }
+.btn-cancel-confirm:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.1); }
+.btn-cancel-confirm:active:not(:disabled) { transform: translateY(1px); }
+.btn-cancel-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+/* 🚀 Стилі для візиту, який відбувається ПРЯМО ЗАРАЗ */
+.dap-card--active-now {
+  transform: scale(1.02);
+  border: 2px solid #3bceb5 !important; /* Яскрава бірюзова рамка */
+  box-shadow: 0 12px 32px rgba(59, 206, 181, 0.25) !important;
+  z-index: 10;
+  position: relative;
+  background: linear-gradient(to bottom right, #ffffff, #f0fdfa);
+}
+
+.dap-card--active-now:hover {
+  transform: scale(1.03) translateY(-4px);
+  box-shadow: 0 16px 40px rgba(59, 206, 181, 0.35) !important;
+}
+
+/* 🚀 Пульсуюча мітка "Йде зараз" */
+.dap-now-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid #a7f3d0;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+/* ── Кнопка додавання нотатки ── */
+.dap-add-note-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #eef2ff; /* Світло-індиго фон */
+  color: #6366f1; /* Індиго текст */
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.dap-add-note-btn:hover {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+  border-color: #a5b4fc;
+  transform: translateY(-1px);
+}
+
+.dap-add-note-btn:active {
+  transform: translateY(1px);
+}

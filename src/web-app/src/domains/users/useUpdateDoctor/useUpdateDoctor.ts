@@ -7,12 +7,12 @@ export const useUpdateDoctor = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateDoctorProfileRequest }) =>
-      userService.patchDoctor(id, data),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ data }: {  data: UpdateDoctorProfileRequest }) =>
+      userService.patchDoctor(data),
+    onSuccess: (_ ) => {
       toast.success("Профіль успішно оновлено!");
       // Примусово оновлюємо дані лікаря в кеші після успішного збереження
-      queryClient.invalidateQueries({ queryKey: ["doctor", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["doctor"] });
     },
     onError: () => {
       toast.error("Не вдалося оновити профіль. Спробуйте ще раз.");

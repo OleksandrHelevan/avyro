@@ -8,3 +8,4 @@ class CreateProfileRequest(BaseModel):
     phone: Optional[str] = None
     specializationId: Optional[str] = None
     avatarUrl: Optional[str] = None
+    address: Optional[str] = None
