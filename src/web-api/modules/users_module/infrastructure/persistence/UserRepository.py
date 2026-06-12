@@ -21,11 +21,19 @@ class UserRepository:
             return None
         return User.from_dict(doc)
 
+    # Аліас для get_by_id — використовується в AppointmentService
+    def find_by_id(self, user_id: ObjectId) -> Optional[User]:
+        return self.get_by_id(user_id)
+
     def get_by_email(self, email: str) -> Optional[User]:
         doc = self.collection.find_one({"email": email})
         if not doc:
             return None
         return User.from_dict(doc)
+
+    def get_by_role(self, role: str) -> list:
+        cursor = self.collection.find({"role": role.upper()})
+        return [User.from_dict(doc) for doc in cursor]
 
     def update_profile(self, user_id: ObjectId, profile: dict) -> None:
         self.collection.update_one(
@@ -54,7 +62,6 @@ class UserRepository:
                 return []
 
         cursor = self.collection.find(query)
-
         return [User.from_dict(doc) for doc in cursor]
 
     def get_all_non_admin(self) -> list:

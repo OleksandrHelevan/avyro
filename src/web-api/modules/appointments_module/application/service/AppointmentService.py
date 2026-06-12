@@ -132,16 +132,26 @@ class AppointmentService:
                     rewards = self.reward_repository.get_by_patient_id(patient_oid)
                     points_available = sum(r.points for r in rewards if r.type.value == "BONUS")
 
+                # Отримуємо дані лікаря для Stripe Connect і імені
+                doctor_name = str(doctor_oid)
+                doctor_stripe_account_id = None
+                if self.user_repository:
+                    doctor = self.user_repository.find_by_id(doctor_oid)
+                    if doctor:
+                        if doctor.profile:
+                            doctor_name = doctor.profile.full_name or doctor_name
+                            doctor_stripe_account_id = doctor.profile.stripe_account_id
+
                 payment = await self.account_service.pay_for_appointment_combined(
                     patient_id=patient_id,
                     appointment_id=str(created.id),
                     amount=final_price,
-                    doctor_name=str(doctor_oid),
+                    doctor_name=doctor_name,
                     points_available=points_available,
                     payment_method=getattr(dto, "payment_method", "MONEY"),
+                    doctor_stripe_account_id=doctor_stripe_account_id,
                 )
 
-                # Бали списуємо ТІЛЬКИ після успішного підтвердження транзакції
                 if self.reward_repository and payment.get("points_used", 0) > 0:
                     self.reward_repository.spend_points(
                         patient_id=patient_oid,
@@ -149,11 +159,17 @@ class AppointmentService:
                         description=f"Оплата візиту {str(created.id)}"
                     )
 
-                self.appointment_repository.update_payment_status(created.id, "PAID", payment.get("invoice_id"))
+                self.appointment_repository.update_payment_status(
+                    created.id, "PAID", payment.get("invoice_id")
+                )
+                self.appointment_repository.update_payment_details(
+                    created.id,
+                    points_used=payment.get("points_used", 0),
+                    money_charged=payment.get("money_charged", 0.0),
+                )
                 created.payment_status = "PAID"
 
             except Exception as e:
-                # Stripe або списання впало — скасовуємо запис, бали НЕ чіпали
                 self.appointment_repository.delete(created.id)
                 self.schedule_repository.unbook_slot(schedule_id=target_schedule.id, slot_id=slot_oid)
                 raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))
@@ -313,7 +329,7 @@ class AppointmentService:
             oid = ObjectId(appointment_id)
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
-        print(f"DEBUG cancel start: appointment_id={appointment_id}")
+
         appointment = self.appointment_repository.get_by_id(oid)
         if not appointment:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
@@ -343,27 +359,44 @@ class AppointmentService:
 
         self.appointment_repository.update_status(oid, "CANCELLED")
 
-        # Повернення коштів та балів при скасуванні
+        # Форматуємо дату/час візиту
+        from_time = appointment.from_time
+        if isinstance(from_time, str):
+            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
+        formatted_time = from_time.strftime("%d/%m/%Y %H:%M") if isinstance(from_time, datetime) else "невідомий час"
+
+        # Отримуємо ім'я лікаря
+        doctor_name = str(appointment.doctor_id)
+        if self.user_repository:
+            doctor = self.user_repository.find_by_id(appointment.doctor_id)
+            if doctor and doctor.profile:
+                doctor_name = doctor.profile.full_name or doctor_name
+
+        # Отримуємо ім'я пацієнта
+        patient_name = str(appointment.patient_id)
+        if self.user_repository:
+            patient = self.user_repository.find_by_id(appointment.patient_id)
+            if patient and patient.profile:
+                patient_name = patient.profile.full_name or patient_name
+
         if self.account_service and self.reward_repository and appointment.payment_status == "PAID":
             patient_oid = appointment.patient_id
             account = self.account_service.account_repo.find_by_user_id(patient_oid)
 
-            # Повертаємо гроші
-            if appointment.final_price and appointment.final_price > 0:
-                points_used = getattr(appointment, "points_used", 0) or 0
-                money_paid = appointment.final_price - points_used
-                if money_paid > 0 and account:
-                    self.account_service.account_repo.update_balance(
-                        patient_oid, account.balance + money_paid
-                    )
+            points_used = getattr(appointment, "points_used", 0) or 0
+            money_charged = getattr(appointment, "money_charged", 0.0) or 0.0
 
-            # Повертаємо бали
+            if money_charged > 0 and account:
+                self.account_service.account_repo.update_balance(
+                    patient_oid, account.balance + money_charged
+                )
+
             if points_used > 0:
                 reward = Reward(
                     patientId=patient_oid,
                     type=RewardType.BONUS,
                     points=points_used,
-                    source=RewardSource.FIRST_VISIT_BONUS,  # або окремий RewardSource.REFUND
+                    source=RewardSource.FIRST_VISIT_BONUS,
                     description=f"Повернення балів за скасований візит {appointment_id}",
                 )
                 self.reward_repository.create(reward)
@@ -382,26 +415,35 @@ class AppointmentService:
         reason_text = reason or ("Скасовано пацієнтом" if role == "PATIENT" else "Скасовано лікарем")
 
         if self.notification_service:
-            self.notification_service.send_appointment_notification(
-                recipient_id=notify_user_id,
-                message=f"Візит {appointment_id} скасовано. Причина: {reason_text}",
-                appointment_id=appointment_id,
-
-            )
+            # Повідомлення тому, хто скасував
             self.notification_service.send_appointment_notification(
                 recipient_id=canceller_id,
-                message=f"Ви скасували візит {appointment_id}. Причина: {reason_text}",
+                message=f"Ви скасували візит на {formatted_time} до лікаря {doctor_name}. Причина: {reason_text}",
                 appointment_id=appointment_id,
-
             )
+            # Повідомлення іншій стороні
+            if role == "PATIENT":
+                # Пацієнт скасував — повідомляємо лікаря
+                self.notification_service.send_appointment_notification(
+                    recipient_id=notify_user_id,
+                    message=f"Пацієнт {patient_name} скасував візит на {formatted_time}. Причина: {reason_text}",
+                    appointment_id=appointment_id,
+                )
+            else:
+                # Лікар скасував — повідомляємо пацієнта
+                self.notification_service.send_appointment_notification(
+                    recipient_id=notify_user_id,
+                    message=f"Лікар {doctor_name} скасував ваш візит на {formatted_time}. Причина: {reason_text}",
+                    appointment_id=appointment_id,
+                )
+
             if self.user_repository:
                 admins = self.user_repository.get_by_role("ADMIN")
                 for admin in admins:
                     self.notification_service.send_appointment_notification(
                         recipient_id=str(admin.id),
-                        message=f"Візит {appointment_id} скасовано користувачем {canceller_id}. Причина: {reason_text}",
+                        message=f"Візит на {formatted_time} (пацієнт: {patient_name}, лікар: {doctor_name}) скасовано. Причина: {reason_text}",
                         appointment_id=appointment_id,
-
                     )
 
         return {
