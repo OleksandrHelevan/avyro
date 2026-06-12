@@ -34,7 +34,11 @@ async def get_account(
     current_user: dict = Depends(get_current_user),
     service: AccountService = Depends(get_account_service),
 ):
-    account = await service.get_account(current_user["sub"])
+    account = await service.get_or_create_account(
+        user_id=current_user["sub"],
+        email=current_user.get("email", ""),
+        name=current_user.get("name", ""),
+    )
     return {
         "balance": account.balance,
         "cards": [
@@ -50,7 +54,6 @@ async def get_account(
         ],
         "has_pin": account.pin is not None,
     }
-
 
 
 @router.post("/account/top-up")
