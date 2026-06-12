@@ -136,7 +136,7 @@ export default function PatientProfile() {
   if (error || !userId) return <div className="error-message">Не вдалося завантажити профіль</div>;
 
   return (
-    <div className="aero-viewport light-theme profile-page" style={{ height: "calc(100vh - 70px)", overflow: "hidden" }}>
+    <div className="aero-viewport light-theme profile-page">
       <input
         type="file"
         ref={fileInputRef}
@@ -153,8 +153,8 @@ export default function PatientProfile() {
         />
       )}
 
-      <div className="main-content" style={{ height: "100%", position: "relative", zIndex: 1 }}>
-        <div className="layout-container" style={{ height: "100%", display: "flex" }}>
+      <div className="main-content">
+        <div className="layout-container">
 
           {/* ── Sidebar ── */}
           <aside className="sidebar">
@@ -173,7 +173,7 @@ export default function PatientProfile() {
           </aside>
 
           {/* ── Main content ── */}
-          <main className="profile-content" style={{ flex: 1, overflowY: "auto", paddingBottom: "40px" }}>
+          <main className="profile-content">
 
             {/* ── Profile completion banner ── */}
             <ProfileCompletionBanner
@@ -210,7 +210,6 @@ export default function PatientProfile() {
                 </div>
                 <div className="avatar-info">
                   <h2>{formData.firstName} {formData.lastName}</h2>
-                  <span className="status-badge">Базовий акаунт</span>
                   <button type="button" className="change-photo-btn" onClick={() => fileInputRef.current?.click()}>
                     <UploadCloud size={16} style={{ marginRight: "8px" }} /> Оновити фото
                   </button>

@@ -12,7 +12,7 @@ import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
 import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations";
 import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
 import { useAuth } from "../../context/auth/useAuth.tsx";
-import { useCreateSpecialization } from "../../domains/specializations/useCreateSpecialization/useCreateSpecialization.ts"; // 🚀 ДОДАНО ХУК
+import { useCreateSpecialization } from "../../domains/specializations/useCreateSpecialization/useCreateSpecialization.ts";
 
 import ScheduleRedirectCard from "./components/ScheduleRedirectCard/ScheduleRedirectCard.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
@@ -38,9 +38,10 @@ export default function DoctorProfile() {
     avatarUrl: "",
   });
 
-  // 🚀 Стейт для нової спеціалізації
+  // 🚀 Стейт для нової спеціалізації (назва та опис)
   const [showNewSpecForm, setShowNewSpecForm] = useState(false);
   const [newSpecName, setNewSpecName] = useState("");
+  const [newSpecDesc, setNewSpecDesc] = useState("");
 
   useEffect(() => {
     if (doctor && specializations) {
@@ -93,18 +94,25 @@ export default function DoctorProfile() {
     navigate("/login");
   };
 
+  // 🚀 Обробник створення нової спеціалізації (тепер передаємо і description)
   const handleCreateSpec = () => {
     if (!newSpecName.trim()) {
       toast.error("Введіть назву спеціалізації");
       return;
     }
+    if (!newSpecDesc.trim()) {
+      toast.error("Введіть короткий опис");
+      return;
+    }
 
     createSpecialization(
-      { name: newSpecName },
+      // Переконайся, що твій хук та apiClient приймають description!
+      { name: newSpecName, description: newSpecDesc } as any,
       {
         onSuccess: () => {
           toast.success("Спеціалізацію запропоновано!");
           setNewSpecName("");
+          setNewSpecDesc("");
           setShowNewSpecForm(false);
         }
       }
@@ -203,7 +211,7 @@ export default function DoctorProfile() {
                     onChange={(val) => setFormData({...formData, specializationId: val.toString()})}
                   />
 
-                  {/* 🚀 ДОДАНО: Кнопка для відкриття форми нової спеціалізації */}
+                  {/* Кнопка для відкриття форми нової спеціалізації */}
                   {!showNewSpecForm ? (
                     <button
                       type="button"
@@ -225,39 +233,54 @@ export default function DoctorProfile() {
                       <label style={{ fontSize: '13px', color: '#475569', marginBottom: '8px', display: 'block' }}>
                         Запропонуйте нову спеціалізацію:
                       </label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+
+                      {/* 🚀 Оновлена форма з полем для опису */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <input
                           type="text"
                           value={newSpecName}
                           onChange={(e) => setNewSpecName(e.target.value)}
-                          placeholder="Введіть назву..."
+                          placeholder="Назва (наприклад: Кардіолог)"
                           style={{
-                            flex: 1, padding: '10px 14px', borderRadius: '8px',
+                            padding: '10px 14px', borderRadius: '8px',
                             border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none'
                           }}
                         />
-                        <button
-                          type="button"
-                          onClick={handleCreateSpec}
-                          disabled={isCreatingSpec}
+                        <textarea
+                          value={newSpecDesc}
+                          onChange={(e) => setNewSpecDesc(e.target.value)}
+                          placeholder="Короткий опис діяльності..."
                           style={{
-                            background: '#7b51b3', color: 'white', border: 'none',
-                            borderRadius: '8px', padding: '0 16px', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600'
+                            padding: '10px 14px', borderRadius: '8px',
+                            border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none',
+                            resize: 'vertical', minHeight: '60px', fontFamily: 'inherit'
                           }}
-                        >
-                          {isCreatingSpec ? "..." : <><Check size={16} /> Додати</>}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowNewSpecForm(false); setNewSpecName(""); }}
-                          style={{
-                            background: 'white', color: '#64748b', border: '1px solid #e2e8f0',
-                            borderRadius: '8px', padding: '0 12px', cursor: 'pointer', fontWeight: '600'
-                          }}
-                        >
-                          Скасувати
-                        </button>
+                        />
+
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={handleCreateSpec}
+                            disabled={isCreatingSpec}
+                            style={{
+                              background: '#7b51b3', color: 'white', border: 'none',
+                              borderRadius: '8px', padding: '8px 16px', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600'
+                            }}
+                          >
+                            {isCreatingSpec ? "..." : <><Check size={16} /> Запропонувати</>}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setShowNewSpecForm(false); setNewSpecName(""); setNewSpecDesc(""); }}
+                            style={{
+                              background: 'white', color: '#64748b', border: '1px solid #e2e8f0',
+                              borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '600'
+                            }}
+                          >
+                            Скасувати
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

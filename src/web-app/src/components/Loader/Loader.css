@@ -47,8 +47,8 @@
   transform: translateY(1px);
 }
 .inline-loader{
-  display: inline-block;
-}
+  display: flex;
+ justify-content: center;}
 
 @keyframes med-spin {
   to {

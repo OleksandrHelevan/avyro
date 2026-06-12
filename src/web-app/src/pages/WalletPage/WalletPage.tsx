@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Wallet, CreditCard, ArrowUpCircle, RefreshCw,
-  Loader2, Plus, ShieldCheck, Gift
+  Loader2, Plus, ShieldCheck
 } from "lucide-react";
 import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
 import TopUpModal from "../../components/WalletModal/TopUpModal.tsx";
@@ -21,8 +21,6 @@ export default function WalletPage() {
   const balance = account ? (account.balance / 100).toFixed(2) : "0.00";
   const currency = account?.currency?.toUpperCase() || "UAH";
 
-  // Безпечно дістаємо бали, щоб TypeScript не видавав помилку, якщо тип ще не оновлено
-  const points = (account as any)?.points || 0;
 
   return (
     <div className="aero-viewport light-theme" style={{ height: "calc(100vh - 70px)", overflow: "hidden" }}>
@@ -93,19 +91,12 @@ export default function WalletPage() {
 
                       {/* Бали */}
                       <div>
-                        <div className="balance-card__label" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <Gift size={14} /> Бонусні бали
-                        </div>
-                        <div className="balance-card__amount">
-                          <span className="balance-big">{points}</span>
-                          <span className="balance-currency" style={{ fontSize: "14px", marginLeft: "4px" }}>БАЛІВ</span>
-                        </div>
+
+
                       </div>
                     </div>
 
-                    <div className="balance-card__stripe-id" style={{ marginTop: "16px" }}>
-                      Stripe ID: {account.stripeCustomerId?.slice(0, 20)}...
-                    </div>
+
                   </div>
                   <button className="balance-card__topup" onClick={() => setShowTopUp(true)}>
                     <ArrowUpCircle size={18} /> Поповнити
