@@ -55,8 +55,26 @@ class AppointmentRepository:
             }
         }
         if invoice_id:
-            update["$set"]["stripeInvoiceId"] = invoice_id
+            update["$set"]["invoiceId"] = invoice_id
         result = self.collection.update_one({"_id": appointment_id}, update)
+        return result.modified_count > 0
+
+    def update_payment_details(
+        self,
+        appointment_id: ObjectId,
+        points_used: int,
+        money_charged: float,
+    ) -> bool:
+        result = self.collection.update_one(
+            {"_id": appointment_id},
+            {
+                "$set": {
+                    "pointsUsed": points_used,
+                    "moneyCharged": money_charged,
+                    "updatedAt": datetime.utcnow(),
+                }
+            }
+        )
         return result.modified_count > 0
 
     def delete(self, appointment_id: ObjectId) -> bool:
@@ -74,7 +92,6 @@ class AppointmentRepository:
             },
             {"$set": {"notes": []}}
         )
-
         result = self.collection.update_one(
             {"_id": appointment_id},
             {
@@ -83,3 +100,35 @@ class AppointmentRepository:
             }
         )
         return result.modified_count > 0
+
+    def get_finished_by_patient_id(self, patient_id: ObjectId) -> List[Appointment]:
+        cursor = self.collection.find({"patientId": patient_id, "status": "FINISHED"})
+        return [Appointment.from_dict(doc) for doc in cursor]
+
+    def count_finished_by_doctor(self, patient_id: ObjectId, doctor_id: ObjectId) -> int:
+        return self.collection.count_documents({
+            "patientId": patient_id,
+            "doctorId": doctor_id,
+            "status": "FINISHED",
+        })
+
+    def get_finished_by_specialization(self, patient_id: ObjectId, spec: str, user_repository) -> int:
+        appointments = self.collection.find({"patientId": patient_id, "status": "FINISHED"})
+        count = 0
+        for doc in appointments:
+            doctor_id = doc.get("doctorId")
+            if not doctor_id:
+                continue
+            doctor = user_repository.find_by_id(doctor_id)
+            if doctor and getattr(doctor, "specialization", None) == spec:
+                count += 1
+        return count
+
+    def count_finished_in_period(
+        self, patient_id: ObjectId, start: datetime, end: datetime
+    ) -> int:
+        return self.collection.count_documents({
+            "patientId": patient_id,
+            "status": "FINISHED",
+            "updatedAt": {"$gte": start, "$lte": end},
+        })

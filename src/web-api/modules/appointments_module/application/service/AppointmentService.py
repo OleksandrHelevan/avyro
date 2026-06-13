@@ -381,42 +381,27 @@ class AppointmentService:
         notify_user_id = str(appointment.doctor_id) if role == "PATIENT" else str(appointment.patient_id)
         reason_text = reason or ("Скасовано пацієнтом" if role == "PATIENT" else "Скасовано лікарем")
 
-        from_time = appointment.from_time
-        if isinstance(from_time, str):
-            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
-        formatted_time = from_time.strftime("%d/%m/%Y %H:%M") if isinstance(from_time, datetime) else "невідомий час"
-
-        doctor_name = "лікаря"
-        if self.user_repository:
-            doctor = self.user_repository.get_by_id(appointment.doctor_id)
-            if doctor:
-                first = getattr(doctor, "first_name", "") or ""
-                last = getattr(doctor, "last_name", "") or ""
-                doctor_name = f"лікаря {first} {last}".strip()
-
         if self.notification_service:
             self.notification_service.send_appointment_notification(
-                recipient_id=canceller_id,
-                message=f"Ви скасували візит на {formatted_time} до {doctor_name}. Причина: {reason_text}",
+                recipient_id=notify_user_id,
+                message=f"Візит {appointment_id} скасовано. Причина: {reason_text}",
                 appointment_id=appointment_id,
-            )
-            other_message = (
-                f"Пацієнт скасував візит на {formatted_time}. Причина: {reason_text}"
-                if role == "PATIENT"
-                else f"Лікар скасував ваш візит на {formatted_time}. Причина: {reason_text}"
+
             )
             self.notification_service.send_appointment_notification(
-                recipient_id=notify_user_id,
-                message=other_message,
+                recipient_id=canceller_id,
+                message=f"Ви скасували візит {appointment_id}. Причина: {reason_text}",
                 appointment_id=appointment_id,
+
             )
             if self.user_repository:
                 admins = self.user_repository.get_by_role("ADMIN")
                 for admin in admins:
                     self.notification_service.send_appointment_notification(
                         recipient_id=str(admin.id),
-                        message=f"Візит на {formatted_time} до {doctor_name} скасовано користувачем {canceller_id}. Причина: {reason_text}",
+                        message=f"Візит {appointment_id} скасовано користувачем {canceller_id}. Причина: {reason_text}",
                         appointment_id=appointment_id,
+
                     )
 
         return {

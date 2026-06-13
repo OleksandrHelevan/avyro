@@ -9,12 +9,14 @@ class Profile:
         specialization_id: Optional[ObjectId] = None,
         avatar_url: Optional[str] = None,
         address: Optional[str] = None,
+        stripe_account_id: Optional[str] = None,
     ):
         self.full_name = full_name
         self.phone = phone
         self.specialization_id = specialization_id
         self.avatar_url = avatar_url
         self.address = address
+        self.stripe_account_id = stripe_account_id
 
     def to_dict(self) -> dict:
         return {
@@ -23,6 +25,7 @@ class Profile:
             "specializationId": self.specialization_id,
             "avatarUrl": self.avatar_url,
             "address": self.address,
+            "stripeAccountId": self.stripe_account_id,
         }
 
     @staticmethod
@@ -36,4 +39,5 @@ class Profile:
             specialization_id=data.get("specializationId") or data.get("specialization_id"),
             avatar_url=data.get("avatarUrl") or data.get("avatar_url"),
             address=data.get("address"),
+            stripe_account_id=data.get("stripeAccountId") or data.get("stripe_account_id"),
         )

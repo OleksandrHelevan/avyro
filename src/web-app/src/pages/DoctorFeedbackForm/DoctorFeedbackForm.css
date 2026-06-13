@@ -106,7 +106,7 @@
 
 /* ── Текстове поле ── */
 .message-section textarea {
-  width: 100%;
+  width: 90%;
   padding: 16px;
   border: 1.5px solid #e2e8f0;
   border-radius: 16px;

@@ -21,11 +21,8 @@ export default function PlatformFeedbackModal({ onClose }: Props) {
     }
 
     // Формуємо повідомлення
-    const finalMessage = `Оцінка: ${rating} зірочок\nМеседж: ${message}`;
 
     setIsPending(true);
-    // Тут виклик вашого API для фідбеку
-    console.log("Відправляємо на бекенд:", finalMessage);
 
     setTimeout(() => {
       toast.success("Дякуємо за ваш відгук!");

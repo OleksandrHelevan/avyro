@@ -46,14 +46,14 @@ export const adminService = {
     return adminApiClient.getAdminSpecializations();
   },
 
-  createSpecializationDirect: async (data: { name: string }) => {
+  // 🚀 ОНОВЛЕНО: Додали description у тип data
+  createSpecializationDirect: async (data: { name: string; description?: string }) => {
     return adminApiClient.createSpecializationDirect(data);
   },
 
   approveSpecialization: async (requestId: string) => {
     return adminApiClient.approveSpecialization(requestId);
   },
-
   /* ===== NOTIFICATIONS ===== */
   sendNotification: async (
     data: SendNotificationRequest

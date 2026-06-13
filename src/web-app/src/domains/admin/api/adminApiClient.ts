@@ -39,7 +39,6 @@ export const adminApiClient = {
       `/admin/${schedule_id}/reject?comment=${encodeURIComponent(comment)}`,
       {}
     ),
-
   /* ===== SPECIALIZATIONS ===== */
   getAdminSpecializations: async () =>
     apiClient.get<any[]>("/admin/specializations"),
@@ -47,13 +46,13 @@ export const adminApiClient = {
   approveSpecialization: async (request_id: string) =>
     apiClient.post(`/admin/${request_id}/approve-specialization`, {}),
 
-  createSpecializationDirect: async (data: { name: string }) => {
+  // 🚀 ОНОВЛЕНО: Тепер приймаємо description і передаємо його на бекенд
+  createSpecializationDirect: async (data: { name: string; description?: string }) => {
     return apiClient.post("/admin/specialization", {
       name: data.name.trim(),
-      description: "Створено адміністратором"
+      description: data.description?.trim() || "Створено адміністратором"
     });
   },
-
   /* ===== NOTIFICATIONS ===== */
   sendNotification: async (data: SendNotificationRequest) =>
     apiClient.post<SendNotificationResponse>("/admin/notification", data),
