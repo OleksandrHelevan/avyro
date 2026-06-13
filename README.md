@@ -1,104 +1,228 @@
-🏥 Avyro — Health Journey Gamification Platform
-Avyro — це медична платформа, що перетворює рутинну турботу про здоров'я на захопливий процес досягнення цілей. Ми розв'язуємо проблему браку мотивації до регулярних чекапів, впроваджуючи систему нагород, що конвертуються у реальні фінансові бонуси.
+<div align="center">
 
-Vision: Сформувати у користувачів стійку звичку до профілактики через гру та відчутне позитивне підкріплення.
+# 🏥 Avyro — Health Journey Platform
 
-✨ Ключові можливості (Features)
-🏆 Killer-фіча: Gamification Engine
-На відміну від звичайних сервісів запису, Avyro використовує систему "Health Journey":
+**Повнофункціональна медична платформа для онлайн-запису до лікарів**
 
-Миттєві нагороди: Отримання балів та бейджа "Перший крок" одразу після реєстрації.
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Stripe](https://img.shields.io/badge/Payments-Stripe-635BFF?logo=stripe&logoColor=white)](https://stripe.com)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-Прогресія: Нарахування 100 балів за кожен завершений візит.
+[🌐 Live Demo](https://avyro-drab.vercel.app/) • [📖 API Docs](https://avyro.onrender.com/docs) • [💻 Repository](https://github.com/OleksandrHelevan/avyro)
 
-Фінансова вигода: Безшовна конвертація накопичених балів у реальні знижки або кешбек під час оплати наступних послуг.
-
-📅 Основний функціонал (MVP Scope)
-Smart Booking: Пошук лікаря за спеціальністю та бронювання слота в один клік.
-
-Role Selection: Окремі кабінети для Пацієнта (контроль здоров'я) та Лікаря (управління потоком пацієнтів).
-
-Appointment Dashboard: Зручний список майбутніх візитів із можливістю скасування.
-
-Secure Payments: Інтегрована система оплати з можливістю використання бонусів.
-
-🛠 Технологічний стек (Tech Stack)
-Frontend: React 18, TypeScript, SCSS Modules (BEM).
-
-Backend: Python 3.12, FastAPI, Pydantic v2.
-
-Database: Mongo DB.
-
-Payment Integration: Monobank API.
-
-DevOps: ESLint (Airbnb), Prettier, EditorConfig.
-
-🎯 Бізнес-цілі (Business Goals)
-Retention & Engagement: Досягти залученості 60%+ через ігрові механіки.
-
-Monetization: Конверсія 15% у оплачені візити.
-
-Data Integrity: 100% точність ігрових транзакцій та відсутність конфліктів у розкладі.
-
-🚀 Початок роботи (Getting Started)
-Prerequisites
-Node.js: v20.x (LTS)
-
-Python: v3.12+
-
-Quick Start
-Встановлення: npm install (для фронтенду) та pip install -r requirements.txt (для бекенду).
-
-Налаштування: Скопіюйте .env.example у .env та додайте ваші ключі.
-
-Запуск:
-
-Frontend: npm run dev
-
-Backend: uvicorn main:app --reload
-
-👥 Команда (Team)
-
-Гелеван Олександр - PM
-
-Руснак Василь — Frontend Developer (React)
-
-Островський Владислав — Backend Developer (Python)
-
-Невмивана Дар'я — QA
-
-Федорюк Мірча - DB
-
-
+</div>
 
 ---
 
-### Naming Convention
+## ✨ Функціонал
 
-#### Python / FastAPI
+| Модуль | Опис |
+|--------|------|
+| 🗓 **Запис до лікаря** | Перегляд розкладу, вибір слота, бронювання з підтвердженням |
+| 💳 **Оплата** | Списання з балансу, бонусні бали (MONEY / POINTS / MIXED), Stripe-інтеграція |
+| 🎮 **Гейміфікація** | Бонусні бали за візити, бейджі, прогрес пацієнта |
+| ❌ **Скасування** | З перевіркою 2-годинного ліміту та поверненням коштів |
+| ✅ **Завершення прийому** | Лікар фіналізує візит, пацієнт отримує бонуси |
+| 🛡 **Адмін-панель** | Управління реєстрацією лікарів і спеціалізаціями |
+| 🔔 **Сповіщення** | Push-нотифікації при бронюванні, скасуванні та завершенні |
+| 💬 **Фідбек** | Відгуки про платформу та відгуки про лікарів |
+| 📊 **Swagger UI** | Інтерактивна документація API |
 
-* **Файли:** snake_case (booking_service.py, payment_handler.py)
-* **Класи:** PascalCase (UserProfile, RewardCalculator)
-* **Функції / методи:** snake_case (calculate_rewards(), get_upcoming_appointments())
-* **Константи:** UPPER_SNAKE_CASE (MAX_REWARD_POINTS, PAYMENT_TIMEOUT)
-* **Пакети / модулі:** нижній регістр із підкресленням (auth, gamification, dashboard)
-* **Pydantic моделі:** PascalCase (UserCreate, AppointmentResponse)
+---
 
-#### React / TypeScript
+## 🏗 Архітектура
 
-* **Файли компонентів:** PascalCase (AppointmentCard.tsx, BookingForm.tsx)
-* **Функціональні компоненти:** PascalCase (BookingDashboard, GamificationBadge)
-* **Хуки:** useCamelCase (useAuth, useRewardPoints)
-* **Змінні та функції:** camelCase (selectedDoctor, fetchAppointments)
-* **Сторінки:** PascalCase + index.tsx у папці (Dashboard/index.tsx)
-* **Стилі / SCSS модулі:** camelCase із префіксом модуля (.bookingForm.module.scss)
-* **Props / Types:** PascalCase (AppointmentProps, UserProfileType)
+```
+┌─────────────┐     HTTP      ┌─────────────┐     PyMongo    ┌──────────────┐
+│  web-app    │ ────────────► │   web-api   │ ─────────────► │   mongo-db   │
+│  React/Vite │               │  FastAPI    │                │  MongoDB 7.0 │
+│  :3000      │               │  :8000      │                │  :27017      │
+└─────────────┘               └─────────────┘                └──────────────┘
+                                      │                               │
+                               ┌──────▼──────┐               ┌───────▼──────┐
+                               │   Stripe    │               │ mongo-admin  │
+                               │  Payments   │               │   :8081      │
+                               └─────────────┘               └──────────────┘
+```
 
-#### MongoDB
+### Модульна структура бекенду (DDD)
 
-* **Колекції:** нижній регістр із множиною (users, appointments, rewards)
-* **Документи / поля:** camelCase (firstName, lastLogin, rewardPoints)
-* **Індекси:** collection_field_idx (appointments_doctorId_idx)
-* **Схеми Mongoose / Pydantic:** PascalCase (UserSchema, AppointmentSchema)
+```
+modules/
+├── appointments_module/   # Записи, розклади, слоти
+├── payments_module/       # Баланс, Stripe, інвойси
+├── users_module/          # Лікарі, пацієнти, авторизація
+├── admin_module/          # Адміністрування запитів
+├── notifications_module/  # Push-сповіщення
+├── feedback_module/       # Відгуки та оцінки
+└── requests_module/       # Черга запитів на розгляд
+```
 
- *`docker compose down -v` - якщо бд не оновилась після зміни seed.js то треба видалити volume з даними*
+---
+
+## 🛠 Технологічний стек
+
+| Шар | Технологія | Версія |
+|-----|-----------|--------|
+| Backend | Python, FastAPI, PyMongo | 3.12 / 0.100+ / 4.x |
+| Frontend | React, Vite, TypeScript | 18 / 5.x / 5.x |
+| База даних | MongoDB | 7.0 |
+| Оплата | Stripe API | Latest |
+| Авторизація | JWT (Bearer token) | — |
+| Контейнеризація | Docker, Docker Compose | 24+ / 2.0+ |
+| Тестування | pytest, pytest-asyncio | — |
+
+---
+
+## 🚀 Швидкий старт
+
+### Вимоги
+
+- Docker >= 24.0
+- Docker Compose >= 2.0
+
+### Запуск
+
+```bash
+# 1. Клонуй репозиторій
+git clone https://github.com/OleksandrHelevan/avyro.git
+cd avyro
+
+# 2. Скопіюй змінні середовища
+cp .env.example .env
+
+# 3. Заповни .env (мінімум: STRIPE_SECRET_KEY, JWT_SECRET)
+nano .env
+
+# 4. Запусти
+docker compose up --build
+```
+
+### Сервіси після запуску
+
+| Сервіс | URL | Опис |
+|--------|-----|------|
+| 🌐 Frontend | http://localhost:3000 | React застосунок |
+| ⚡ Backend API | http://localhost:8000 | FastAPI сервер |
+| 📖 Swagger UI | http://localhost:8000/docs | Документація API |
+| 🗄 Mongo Express | http://localhost:8081 | Адмін БД (`admin` / `pass`) |
+
+---
+
+## 🔐 Змінні середовища
+
+Скопіюй `.env.example` → `.env` і заповни значення.
+
+| Змінна | Обов'язкова | Опис |
+|--------|:-----------:|------|
+| `JWT_SECRET` | ✅ | Секрет для підпису JWT токенів (мін. 32 символи) |
+| `STRIPE_SECRET_KEY` | ✅ | Секретний ключ Stripe (`sk_test_...` або `sk_live_...`) |
+| `STRIPE_PUBLISHABLE_KEY` | ✅ | Публічний ключ Stripe (`pk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` | ✅ | Секрет Stripe Webhook (`whsec_...`) |
+| `VITE_STRIPE_PUBLIC_KEY` | ✅ | Публічний ключ для фронтенду |
+| `MONGO_URL` | ✅ | URI підключення до MongoDB |
+| `MONGO_DB_NAME` | ✅ | Назва бази даних |
+| `JWT_ALGORITHM` | — | Алгоритм JWT (за замовчуванням `HS256`) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | — | Час життя токена в хвилинах |
+| `WEB_APP_PORT` | — | Порт фронтенду (за замовчуванням `3000`) |
+| `WEB_API_PORT` | — | Порт бекенду (за замовчуванням `8000`) |
+
+> 💡 Для тестування Stripe використовуй тестові ключі з [dashboard.stripe.com](https://dashboard.stripe.com/test/apikeys)
+
+---
+
+## 📖 API документація
+
+🔗 **Live:** https://avyro.onrender.com/docs
+
+Основні групи ендпоінтів:
+
+| Prefix | Метод | Опис |
+|--------|-------|------|
+| `POST /login` | Public | Авторизація, отримання JWT |
+| `POST /register` | Public | Реєстрація пацієнта |
+| `/appointments` | Patient/Doctor | Записи, скасування, завершення |
+| `/schedules` | Doctor/Admin | Розклади лікарів |
+| `/payments` | Patient | Баланс, поповнення, оплата |
+| `/admin` | Admin | Адміністрування запитів |
+| `/feedback` | Patient/Admin | Відгуки про платформу |
+| `/feedback/doctor-review` | Patient | Відгуки про лікарів |
+| `/notifications` | All | Сповіщення |
+
+---
+
+## 🧪 Тести
+
+```bash
+# Запуск через Docker
+docker compose run --rm web-api pytest
+
+# Або локально (з активованим venv)
+cd src/web-api
+pytest -v
+```
+
+---
+
+## 📁 Структура проєкту
+
+```
+avyro/
+├── src/
+│   ├── web-api/                      # FastAPI backend
+│   │   ├── main.py                   # Точка входу, lifespan, middleware
+│   │   ├── config/
+│   │   │   ├── db.py                 # MongoDB підключення
+│   │   │   ├── dependencies.py       # DI-контейнер
+│   │   │   ├── permissions.py        # RoleChecker, JWT guard
+│   │   │   └── security.py           # JWT утиліти
+│   │   ├── modules/
+│   │   │   ├── appointments_module/  # Записи, розклади, слоти
+│   │   │   ├── payments_module/      # Stripe, баланс, інвойси
+│   │   │   ├── users_module/         # Користувачі, нагороди
+│   │   │   ├── admin_module/         # Адмін-запити
+│   │   │   ├── notifications_module/ # Сповіщення
+│   │   │   ├── feedback_module/      # Відгуки
+│   │   │   └── requests_module/      # Черга запитів
+│   │   └── tests/
+│   │       ├── unit/
+│   │       └── integrations/
+│   └── web-app/                      # React frontend
+│       ├── src/
+│       └── vite.config.ts
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+---
+
+## 🔗 Project Resources
+
+| Ресурс | Посилання |
+|--------|-----------|
+| 🌐 Frontend (Production) | https://avyro-drab.vercel.app/ |
+| 📖 API Swagger (Production) | https://avyro.onrender.com/docs |
+| 💻 GitHub Repository | https://github.com/OleksandrHelevan/avyro |
+
+---
+
+## 👥 Команда
+
+| Роль | Відповідальність |
+|------|-----------------|
+| Backend | FastAPI, MongoDB, Stripe, архітектура |
+| Frontend | React, Vite, TypeScript, UI/UX |
+
+---
+
+<div align="center">
+
+Made with ❤️ by Avyro Team · [MIT License](LICENSE)
+
+</div>
