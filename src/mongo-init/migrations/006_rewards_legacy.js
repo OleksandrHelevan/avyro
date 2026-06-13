@@ -65,7 +65,7 @@ createOrUpdateCollection('Rewards', {
         required: ['type'],
         properties: {
           name: { bsonType: ['string', 'null'] },
-          type: { enum: ['PROFILE_BONUS', 'FIRST_VISIT_BONUS', 'APPOINTMENT_PAYMENT', 'APPOINTMENT', 'OTHER'] },
+          type: { enum: ['PROFILE_BONUS', 'FIRST_VISIT_BONUS', 'APPOINTMENT_PAYMENT', 'VISITS_10', 'VISITS_100', 'SAME_DOCTOR_3', 'SAME_SPECIALIZATION_5', 'MONTHLY_VISITS_10', 'LOYALTY_1_YEAR', 'LOYALTY_2_YEARS', 'LOYALTY_6_MONTHS', 'APPOINTMENT', 'OTHER'] },
           referenceId: { bsonType: ['objectId', 'string', 'null'] }
         }
       },

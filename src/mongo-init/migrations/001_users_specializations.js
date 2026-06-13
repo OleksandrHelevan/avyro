@@ -75,7 +75,9 @@ createOrUpdateCollection('Users', {
           specializationId: { bsonType: ['objectId', 'string', 'null'] },
           specialization_id: { bsonType: ['objectId', 'string', 'null'] },
           avatarUrl: { bsonType: ['string', 'null'] },
-          address: { bsonType: ['string', 'null'] }
+          address: { bsonType: ['string', 'null'] },
+          stripeAccountId: { bsonType: ['string', 'null'] },
+          stripe_account_id: { bsonType: ['string', 'null'] }
         }
       },
       createdAt: { bsonType: ['date', 'string'] },
@@ -99,6 +101,8 @@ avyroDb.Users.find({ profile: { $type: 'object' } }).forEach(function(user) {
   if (p.phone === undefined) set['profile.phone'] = null;
   if (p.avatarUrl === undefined && p.avatar_url === undefined) set['profile.avatarUrl'] = null;
   if (p.address === undefined) set['profile.address'] = null;
+  if (p.stripeAccountId === undefined && p.stripe_account_id !== undefined) set['profile.stripeAccountId'] = p.stripe_account_id;
+  if (p.stripeAccountId === undefined && p.stripe_account_id === undefined) set['profile.stripeAccountId'] = null;
   if (p.specializationId === undefined && p.specialization_id === undefined) set['profile.specializationId'] = null;
 
   if (Object.keys(set).length > 0) {

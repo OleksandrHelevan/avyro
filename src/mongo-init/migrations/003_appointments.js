@@ -78,6 +78,9 @@ avyroDb.Appointments.find().forEach(function(app) {
   if (app.discount === undefined || app.discount === null) set.discount = 0.0;
   if (app.isDiscountUsed === undefined || app.isDiscountUsed === null) set.isDiscountUsed = false;
   if (app.appointmentType === undefined || app.appointmentType === null) set.appointmentType = 'VISIT';
+  if (app.invoiceId === undefined) set.invoiceId = app.stripeInvoiceId || null;
+  if (app.pointsUsed === undefined || app.pointsUsed === null) set.pointsUsed = 0;
+  if (app.moneyCharged === undefined || app.moneyCharged === null) set.moneyCharged = 0.0;
   if (app.bookedAt === undefined || app.bookedAt === null) set.bookedAt = app.createdAt || now;
   if (app.createdAt === undefined || app.createdAt === null) set.createdAt = now;
   if (app.updatedAt === undefined || app.updatedAt === null) set.updatedAt = now;
@@ -119,7 +122,10 @@ createOrUpdateCollection('Appointments', {
       completedAt: { bsonType: ['date', 'string', 'null'] },
       cancelledAt: { bsonType: ['date', 'string', 'null'] },
       cancelReason: { bsonType: ['string', 'null'] },
+      invoiceId: { bsonType: ['string', 'null'] },
       stripeInvoiceId: { bsonType: ['string', 'null'] },
+      pointsUsed: { bsonType: ['int', 'long', 'double', 'null'] },
+      moneyCharged: { bsonType: ['double', 'int', 'long', 'decimal', 'null'] },
       notes: {
         bsonType: ['array', 'null'],
         items: {
