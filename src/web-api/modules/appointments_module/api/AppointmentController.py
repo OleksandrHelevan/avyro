@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime, timezone
+from fastapi import HTTPException
+
 
 from config.dependencies import get_appointment_service
 from config.permissions import allow_patient, allow_doctor
@@ -16,10 +19,13 @@ class BookAppointmentRequest(BaseModel):
     discount: float = 0.0
     is_discount_used: bool = False
     note: Optional[str] = None
-
+    payment_method: str = "MONEY"
 
 class AddNoteRequest(BaseModel):
     message: str
+
+class CancelAppointmentRequest(BaseModel):
+    reason: Optional[str] = None
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -87,3 +93,21 @@ async def finish_appointment(
         appointment_id=appointment_id,
         doctor_id=str(current_user["sub"])
     )
+
+
+@router.patch("/{appointment_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_appointment(
+    appointment_id: str,
+    service: AppointmentService = Depends(get_appointment_service),
+    current_user: dict = Depends(get_current_user),
+    body: Optional[CancelAppointmentRequest] = None,
+):
+    reason = body.reason if body else None
+    return service.cancel_appointment(
+        appointment_id=appointment_id,
+        canceller_id=current_user["sub"],
+        role=current_user["role"],
+        reason=reason,
+    )
+
+

@@ -21,6 +21,7 @@ export default function WalletPage() {
   const balance = account ? (account.balance / 100).toFixed(2) : "0.00";
   const currency = account?.currency?.toUpperCase() || "UAH";
 
+
   return (
     <div className="aero-viewport light-theme" style={{ height: "calc(100vh - 70px)", overflow: "hidden" }}>
       <div className="main-content" style={{ height: "100%", position: "relative", zIndex: 1 }}>
@@ -77,21 +78,30 @@ export default function WalletPage() {
                 <div className="balance-card">
                   <div className="balance-card__bg" />
                   <div className="balance-card__inner">
-                    <div className="balance-card__label">Поточний баланс</div>
-                    <div className="balance-card__amount">
-                      <span className="balance-big">{balance}</span>
-                      <span className="balance-currency">{currency}</span>
+
+                    <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                      {/* Основний баланс */}
+                      <div>
+                        <div className="balance-card__label">Поточний баланс</div>
+                        <div className="balance-card__amount">
+                          <span className="balance-big">{balance}</span>
+                          <span className="balance-currency">{currency}</span>
+                        </div>
+                      </div>
+
+                      {/* Бали */}
+                      <div>
+
+
+                      </div>
                     </div>
-                    <div className="balance-card__stripe-id">
-                      Stripe ID: {account.stripeCustomerId?.slice(0, 20)}...
-                    </div>
+
+
                   </div>
                   <button className="balance-card__topup" onClick={() => setShowTopUp(true)}>
                     <ArrowUpCircle size={18} /> Поповнити
                   </button>
                 </div>
-
-
 
                 {/* Security note */}
                 <div className="security-note">

@@ -1,0 +1,177 @@
+/* ── Фон та контейнер ── */
+.pfm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pfm-fadeIn 0.2s ease-out;
+}
+
+.pfm-modal {
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(226, 232, 240, 0.5);
+  animation: pfm-slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Шапка та текст ── */
+.pfm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pfm-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pfm-close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.pfm-close-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.pfm-desc {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ── Блок з рейтингом (Зірочки) ── */
+.pfm-rating-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pfm-rating-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.pfm-rating {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.star-active {
+  fill: #f59e0b;
+  color: #f59e0b;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.star-active:hover {
+  transform: scale(1.15);
+}
+
+.star-inactive {
+  fill: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.star-inactive:hover {
+  transform: scale(1.15);
+  color: #94a3b8;
+}
+
+/* ── Текстове поле ── */
+.pfm-textarea {
+  width: 90%;
+  padding: 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  color: #334155;
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.pfm-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.pfm-textarea:focus {
+  outline: none;
+  border-color: #3bceb5;
+  box-shadow: 0 0 0 3px rgba(59, 206, 181, 0.15);
+}
+
+/* ── Кнопка відправки ── */
+.pfm-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #3bceb5, #2bb59f);
+  border: none;
+  color: #ffffff;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(59, 206, 181, 0.25);
+  transition: all 0.2s ease;
+}
+
+.pfm-submit-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(59, 206, 181, 0.35);
+  transform: translateY(-2px);
+}
+
+.pfm-submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.pfm-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ── Анімації ── */
+@keyframes pfm-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pfm-slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

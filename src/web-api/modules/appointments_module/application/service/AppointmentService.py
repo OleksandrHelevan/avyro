@@ -1,7 +1,7 @@
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import HTTPException, status
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from modules.appointments_module.domains.appointment.Appointment import Appointment
 from modules.appointments_module.domains.slot.Slot import SlotType
@@ -78,7 +78,6 @@ class AppointmentService:
         if dto.is_discount_used and dto.discount > 0:
             final_price = price * (1 - dto.discount / 100)
 
-        # Створення об'єкта Appointment
         appointment = Appointment(
             patient_id=patient_oid,
             slot_id=slot_oid,
@@ -128,13 +127,29 @@ class AppointmentService:
 
         if self.account_service and final_price > 0:
             try:
-                points_available = self.reward_repository.get_total_points(patient_oid) if self.reward_repository else 0
+                points_available = 0
+                if self.reward_repository:
+                    rewards = self.reward_repository.get_by_patient_id(patient_oid)
+                    points_available = sum(r.points for r in rewards if r.type.value == "BONUS")
+
+                # Отримуємо дані лікаря для Stripe Connect і імені
+                doctor_name = str(doctor_oid)
+                doctor_stripe_account_id = None
+                if self.user_repository:
+                    doctor = self.user_repository.find_by_id(doctor_oid)
+                    if doctor:
+                        if doctor.profile:
+                            doctor_name = doctor.profile.full_name or doctor_name
+                            doctor_stripe_account_id = doctor.profile.stripe_account_id
+
                 payment = await self.account_service.pay_for_appointment_combined(
                     patient_id=patient_id,
                     appointment_id=str(created.id),
                     amount=final_price,
-                    doctor_name=str(doctor_id),
+                    doctor_name=doctor_name,
                     points_available=points_available,
+                    payment_method=getattr(dto, "payment_method", "MONEY"),
+                    doctor_stripe_account_id=doctor_stripe_account_id,
                 )
 
                 if self.reward_repository and payment.get("points_used", 0) > 0:
@@ -144,9 +159,17 @@ class AppointmentService:
                         description=f"Оплата візиту {str(created.id)}"
                     )
 
-                self.appointment_repository.update_payment_status(created.id, "PAID", payment.get("invoice_id"))
+                self.appointment_repository.update_payment_status(
+                    created.id, "PAID", payment.get("invoice_id")
+                )
+                self.appointment_repository.update_payment_details(
+                    created.id,
+                    points_used=payment.get("points_used", 0),
+                    money_charged=payment.get("money_charged", 0.0),
+                )
                 created.payment_status = "PAID"
-            except ValueError as e:
+
+            except Exception as e:
                 self.appointment_repository.delete(created.id)
                 self.schedule_repository.unbook_slot(schedule_id=target_schedule.id, slot_id=slot_oid)
                 raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))
@@ -180,37 +203,284 @@ class AppointmentService:
     def finish_appointment(self, appointment_id: str, doctor_id: str) -> dict:
         try:
             oid = ObjectId(appointment_id)
+            doctor_oid = ObjectId(doctor_id)
         except (InvalidId, TypeError):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
+
         appointment = self.appointment_repository.get_by_id(oid)
         if not appointment:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
         if str(appointment.doctor_id) != doctor_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
-        if appointment.status.value != "RESERVED":
+        if appointment.status.value not in ("RESERVED", "PLANNED"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Неможливо завершити прийом зі статусом {appointment.status.value}")
 
+        # ─── ЗАЛІЗОБЕТОННИЙ ОДНОПЛОЩИННИЙ ФІКС ЧАСУ ─────────────────────────
         from_time = appointment.from_time
-        if isinstance(from_time, str):
-            from_time = datetime.fromisoformat(from_time.replace('Z', '+00:00'))
 
-        now = datetime.now(timezone.utc)
-        if now < from_time.replace(tzinfo=timezone.utc):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Прийом ще не почався")
+        if isinstance(from_time, str):
+            if from_time.endswith('Z'):
+                from_time = from_time.replace('Z', '+00:00')
+            from_time = datetime.fromisoformat(from_time)
+
+        now_utc = datetime.now(timezone.utc)
+        now_kyiv = now_utc + timedelta(hours=3)
+
+        now_comparison = now_kyiv.replace(tzinfo=None)
+        from_comparison = from_time.replace(tzinfo=None)
+
+        if now_comparison + timedelta(minutes=30) < from_comparison:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Прийом ще не почався. Зараз за Києвом: {now_comparison.strftime('%H:%M:%S')}, "
+                       f"час прийому в базі: {from_comparison.strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+        # ───────────────────────────────────────────────────────────────────
 
         self.appointment_repository.update_status(oid, "FINISHED")
+
+        # ─── НАРАХУВАННЯ ГРОШЕЙ ЛІКАРЮ ТІЛЬКИ ПРИ ЗАВЕРШЕННІ (FINISH) ───────
+        if self.account_service and getattr(appointment, "payment_status", "PENDING") == "PAID":
+            money_charged = getattr(appointment, "money_charged", 0.0) or 0.0
+            if money_charged > 0:
+                # Віднімаємо 2.5% комісії платформи
+                commission = money_charged * 0.025
+                amount_to_doctor = round(money_charged - commission, 2)
+
+                doctor_account = self.account_service.account_repo.find_by_user_id(doctor_oid)
+                if doctor_account:
+                    self.account_service.account_repo.update_balance(
+                        doctor_oid, doctor_account.balance + amount_to_doctor
+                    )
+        # ───────────────────────────────────────────────────────────────────
+
         if self.reward_repository and appointment.patient_id:
-            if not self.reward_repository.has_first_visit_bonus(appointment.patient_id):
-                reward = Reward(
-                    patientId=appointment.patient_id,
+            patient_id = appointment.patient_id
+            finished_count = len(self.appointment_repository.get_finished_by_patient_id(patient_id))
+
+            if not self.reward_repository.has_first_visit_bonus(patient_id):
+                self._give_reward(patient_id, RewardSource.FIRST_VISIT_BONUS, 100,
+                                  "🎉 Перший крок до здоров'я!",
+                                  "Ви завершили свій перший візит до лікаря через нашу платформу. Так тримати!")
+
+            if finished_count >= 10 and not self.reward_repository.has_bonus(patient_id, "VISITS_10"):
+                self._give_reward(patient_id, RewardSource.VISITS_10, 150,
+                                  "🏅 Постійний пацієнт",
+                                  "Ви завершили 10 візитів до лікарів. Ваша турбота про здоров'я — це приклад для інших!")
+
+            if finished_count >= 100 and not self.reward_repository.has_bonus(patient_id, "VISITS_100"):
+                self._give_reward(patient_id, RewardSource.VISITS_100, 400,
+                                  "💎 Легенда здоров'я",
+                                  "Неймовірно! 100 завершених візитів. Ви справжній чемпіон у турботі про своє здоров'я!")
+
+            same_doctor_count = self.appointment_repository.count_finished_by_doctor(
+                patient_id, appointment.doctor_id)
+            if same_doctor_count >= 3 and not self.reward_repository.has_bonus(
+                patient_id, f"SAME_DOCTOR_3_{str(appointment.doctor_id)}"):
+                self._give_reward(patient_id,
+                                  RewardSource.SAME_DOCTOR_3, 150,
+                                  "🤝 Вірний пацієнт",
+                                  "Ви вже тричі відвідали одного лікаря. Постійність — запорука вашого здоров'я!",
+                                  source_suffix=str(appointment.doctor_id))
+
+            if self.user_repository:
+                doctor = self.user_repository.find_by_id(appointment.doctor_id)
+                if doctor and getattr(doctor, "specialization", None):
+                    spec = doctor.specialization
+                    spec_count = self.appointment_repository.get_finished_by_specialization(
+                        patient_id, spec, self.user_repository)
+                    if spec_count >= 5 and not self.reward_repository.has_bonus(
+                        patient_id, f"SAME_SPECIALIZATION_5_{spec}"):
+                        self._give_reward(patient_id,
+                                          RewardSource.SAME_SPECIALIZATION_5, 100,
+                                          "🔬 Знавець спеціалізації",
+                                          f"Ви завершили 5 візитів до лікарів напрямку «{spec}». Ви чудово знаєте свій організм!",
+                                          source_suffix=spec)
+
+            now_dt = datetime.now(timezone.utc)
+            month_key = f"{now_dt.year}_{now_dt.month}"
+            monthly_count = self.appointment_repository.count_finished_in_period(
+                patient_id,
+                now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                now_dt
+            )
+            if monthly_count >= 10 and not self.reward_repository.has_bonus(
+                patient_id, f"MONTHLY_VISITS_10_{month_key}"):
+                self._give_reward(patient_id,
+                                  RewardSource.MONTHLY_VISITS_10, 200,
+                                  "📅 Активний місяць",
+                                  f"Цього місяця ви завершили 10 візитів до лікарів. Неймовірна відданість вашому здоров'ю!",
+                                  source_suffix=month_key)
+
+            if self.user_repository:
+                patient = self.user_repository.find_by_id(patient_id)
+                if patient and getattr(patient, "created_at", None):
+                    reg_date = patient.created_at
+                    if reg_date.tzinfo is None:
+                        reg_date = reg_date.replace(tzinfo=timezone.utc)
+
+                    minutes_registered = (now_dt - reg_date).total_seconds() / 60
+
+                    if (minutes_registered >= 8 and finished_count >= 4 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_6_MONTHS")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_6_MONTHS, 100,
+                                          "⭐ Пів року разом",
+                                          "Ви з нами вже півроку і завершили мінімум 3 візити. Дякуємо за довіру!")
+
+                    if (minutes_registered >= 10 and finished_count >= 6 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_1_YEAR")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_1_YEAR, 200,
+                                          "🥇 Рік з нами",
+                                          "Цілий рік ви дбаєте про своє здоров'я разом з нами. Це справжня відданість!")
+
+                    if (minutes_registered >= 12 and finished_count >= 8 and
+                        not self.reward_repository.has_bonus(patient_id, "LOYALTY_2_YEARS")):
+                        self._give_reward(patient_id, RewardSource.LOYALTY_2_YEARS, 300,
+                                          "👑 Два роки разом",
+                                          "Два роки поруч — ви наш особливий пацієнт. Низький уклін за вашу вірність!")
+
+            if self.reward_repository and appointment.payment_status == "PAID":
+                doctor_reward = Reward(
+                    patientId=appointment.doctor_id,
                     type=RewardType.BONUS,
-                    points=100,
-                    source=RewardSource.FIRST_VISIT_BONUS,
-                    description="Бонус за перший завершений візит"
+                    points=50,
+                    source=RewardSource.APPOINTMENT,
+                    description=f"Нарахування за проведений оплачений візит {appointment_id}",
+                )
+                self.reward_repository.create(doctor_reward)
+
+        if appointment.payment_status != "PAID":
+            self.appointment_repository.update_payment_status(oid, "PAID", None)
+
+        return {"status": "FINISHED"}
+
+    def cancel_appointment(self, appointment_id: str, canceller_id: str, role: str, reason: str = None) -> dict:
+        try:
+            oid = ObjectId(appointment_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Невалідний формат ID")
+
+        appointment = self.appointment_repository.get_by_id(oid)
+        if not appointment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Прийом не знайдено")
+
+        if role == "PATIENT" and str(appointment.patient_id) != canceller_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Немає доступу до цього візиту")
+        if role == "DOCTOR" and str(appointment.doctor_id) != canceller_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви не є лікарем цього прийому")
+
+        if appointment.status.value not in ("RESERVED", "PLANNED"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неможливо скасувати прийом зі статусом {appointment.status.value}"
+            )
+
+        # ─── СИНХРОНІЗОВАНА ПЕРЕВІРКА ЧАСУ ДЛЯ СКАСУВАННЯ ───────────────────
+        from_time = appointment.from_time
+        if isinstance(from_time, str):
+            from_time = datetime.fromisoformat(from_time.replace('Z', ''))
+
+        now_kyiv = datetime.now(timezone.utc) + timedelta(hours=3)
+
+        now_comparison = now_kyiv.replace(tzinfo=None)
+        from_comparison = from_time.replace(tzinfo=None)
+
+        if role == "PATIENT":
+            if (from_comparison - now_comparison).total_seconds() / 3600 < 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Скасування неможливе — до прийому менше 2 годин"
+                )
+        # ───────────────────────────────────────────────────────────────────
+
+        self.appointment_repository.update_status(oid, "CANCELLED")
+
+        formatted_time = from_comparison.strftime("%d/%m/%Y %H:%M") if isinstance(from_comparison, datetime) else "невідомий час"
+
+        doctor_name = str(appointment.doctor_id)
+        if self.user_repository:
+            doctor = self.user_repository.find_by_id(appointment.doctor_id)
+            if doctor and doctor.profile:
+                doctor_name = doctor.profile.full_name or doctor_name
+
+        patient_name = str(appointment.patient_id)
+        if self.user_repository:
+            patient = self.user_repository.find_by_id(appointment.patient_id)
+            if patient and patient.profile:
+                patient_name = patient.profile.full_name or patient_name
+
+        # ─── ПОВЕРНЕННЯ КОШТІВ ПАЦІЄНТУ ──────────────────────────────────
+        if self.account_service and self.reward_repository and appointment.payment_status == "PAID":
+            patient_oid = appointment.patient_id
+            account = self.account_service.account_repo.find_by_user_id(patient_oid)
+
+            points_used = getattr(appointment, "points_used", 0) or 0
+            money_charged = getattr(appointment, "money_charged", 0.0) or 0.0
+
+            if money_charged > 0 and account:
+                self.account_service.account_repo.update_balance(
+                    patient_oid, account.balance + money_charged
+                )
+
+            if points_used > 0:
+                reward = Reward(
+                    patientId=patient_oid,
+                    type=RewardType.BONUS,
+                    points=points_used,
+                    source=RewardSource.APPOINTMENT,
+                    description=f"Повернення балів за скасований візит {appointment_id}",
                 )
                 self.reward_repository.create(reward)
-        return {"status": "FINISHED", "appointment_id": appointment_id}
+
+        slot_freed = False
+        schedules = self.schedule_repository.get_by_doctor_id(appointment.doctor_id)
+        for schedule in schedules:
+            for slot in schedule.slots:
+                if str(slot.id) == str(appointment.slot_id):
+                    self.schedule_repository.unbook_slot(schedule_id=schedule.id, slot_id=appointment.slot_id)
+                    slot_freed = True
+                    break
+
+        cancelled_by = "PATIENT" if role == "PATIENT" else "DOCTOR"
+        notify_user_id = str(appointment.doctor_id) if role == "PATIENT" else str(appointment.patient_id)
+        reason_text = reason or ("Скасовано пацієнтом" if role == "PATIENT" else "Скасовано лікарем")
+
+        if self.notification_service:
+            self.notification_service.send_appointment_notification(
+                recipient_id=canceller_id,
+                message=f"Ви скасували візит на {formatted_time} до лікаря {doctor_name}. Причина: {reason_text}",
+                appointment_id=appointment_id,
+            )
+            if role == "PATIENT":
+                self.notification_service.send_appointment_notification(
+                    recipient_id=notify_user_id,
+                    message=f"Пацієнт {patient_name} скасував візит на {formatted_time}. Причина: {reason_text}",
+                    appointment_id=appointment_id,
+                )
+            else:
+                self.notification_service.send_appointment_notification(
+                    recipient_id=notify_user_id,
+                    message=f"Лікар {doctor_name} скасував ваш візит на {formatted_time}. Причина: {reason_text}",
+                    appointment_id=appointment_id,
+                )
+
+            if self.user_repository:
+                admins = self.user_repository.get_by_role("ADMIN")
+                for admin in admins:
+                    self.notification_service.send_appointment_notification(
+                        recipient_id=str(admin.id),
+                        message=f"Візит на {formatted_time} (пацієнт: {patient_name}, лікар: {doctor_name}) скасовано. Причина: {reason_text}",
+                        appointment_id=appointment_id,
+                    )
+
+        return {
+            "status": "CANCELLED",
+            "appointment_id": appointment_id,
+            "cancelled_by": cancelled_by,
+            "reason": reason_text,
+            "slot_freed": slot_freed,
+        }
 
     def _format_appointment(self, appointment: Appointment) -> dict:
         notes = getattr(appointment, "notes", [])
@@ -256,3 +526,19 @@ class AppointmentService:
         note = {"source": "DOCTOR", "message": message, "type": "RECEIPT", "createdAt": datetime.now(timezone.utc)}
         self.appointment_repository.add_note(oid, note)
         return {"status": "ok", "note": note}
+
+    def _give_reward(self, patient_id, source, points, title, description, source_suffix=None):
+        reward = Reward(
+            patientId=patient_id,
+            type=RewardType.BONUS,
+            points=points,
+            source=RewardSource.APPOINTMENT,
+            description=f"{title} (+{points} балів). {description}",
+        )
+        self.reward_repository.create(reward)
+        if self.notification_service:
+            self.notification_service.send_appointment_notification(
+                recipient_id=str(patient_id),
+                message=f"{title} — вам нараховано {points} бонусних балів! {description}",
+                appointment_id=None,
+            )

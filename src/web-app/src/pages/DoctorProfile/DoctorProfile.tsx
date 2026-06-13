@@ -1,31 +1,34 @@
-import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Stethoscope,
   UserCircle,
   LayoutDashboard,
-  LogOut, Wallet
+  LogOut, Wallet, PlusCircle, Check
 } from "lucide-react";
 
-import {useDoctor} from "../../domains/users/useDoctor/useDoctor";
-import {useSpecializations} from "../../domains/specializations/useSpecializations/useSpecializations";
-import {useUpdateDoctor} from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
-import {useAuth} from "../../context/auth/useAuth.tsx";
+import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
+import { useSpecializations } from "../../domains/specializations/useSpecializations/useSpecializations";
+import { useUpdateDoctor } from "../../domains/users/useUpdateDoctor/useUpdateDoctor";
+import { useAuth } from "../../context/auth/useAuth.tsx";
+import { useCreateSpecialization } from "../../domains/specializations/useCreateSpecialization/useCreateSpecialization.ts";
+
 import ScheduleRedirectCard from "./components/ScheduleRedirectCard/ScheduleRedirectCard.tsx";
 import Loader from "../../components/Loader/Loader.tsx";
-import SelectInput from "../../components/SelectInput/SelectInput.tsx"; // Імпорт твого компонента
+import SelectInput from "../../components/SelectInput/SelectInput.tsx";
 
 import "./DoctorProfile.css";
 import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
-  const {userId, logout} = useAuth();
+  const { userId, logout } = useAuth();
 
-  const {data: doctor, isLoading: isDoctorLoading} = useDoctor(userId || "");
-  const {data: specializations, isLoading: isSpecsLoading} = useSpecializations();
-  const {mutate: updateDoctor, isPending: isUpdating} = useUpdateDoctor();
+  const { data: doctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
+  const { data: specializations, isLoading: isSpecsLoading } = useSpecializations();
+  const { mutate: updateDoctor, isPending: isUpdating } = useUpdateDoctor();
+  const { mutate: createSpecialization, isPending: isCreatingSpec } = useCreateSpecialization();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -34,6 +37,11 @@ export default function DoctorProfile() {
     phone: "",
     avatarUrl: "",
   });
+
+  // 🚀 Стейт для нової спеціалізації (назва та опис)
+  const [showNewSpecForm, setShowNewSpecForm] = useState(false);
+  const [newSpecName, setNewSpecName] = useState("");
+  const [newSpecDesc, setNewSpecDesc] = useState("");
 
   useEffect(() => {
     if (doctor && specializations) {
@@ -86,6 +94,31 @@ export default function DoctorProfile() {
     navigate("/login");
   };
 
+  // 🚀 Обробник створення нової спеціалізації (тепер передаємо і description)
+  const handleCreateSpec = () => {
+    if (!newSpecName.trim()) {
+      toast.error("Введіть назву спеціалізації");
+      return;
+    }
+    if (!newSpecDesc.trim()) {
+      toast.error("Введіть короткий опис");
+      return;
+    }
+
+    createSpecialization(
+      // Переконайся, що твій хук та apiClient приймають description!
+      { name: newSpecName, description: newSpecDesc } as any,
+      {
+        onSuccess: () => {
+          toast.success("Спеціалізацію запропоновано!");
+          setNewSpecName("");
+          setNewSpecDesc("");
+          setShowNewSpecForm(false);
+        }
+      }
+    );
+  };
+
   const specializationOptions = specializations?.map((spec: any) => ({
     value: spec.id || spec._id,
     label: spec.name,
@@ -103,7 +136,6 @@ export default function DoctorProfile() {
               <span>Кабінет лікаря</span>
             </button>
 
-            {/* ── Wallet menu item — navigates to /wallet ── */}
             <button
               className="menu-item"
               onClick={() => navigate("/wallet")}
@@ -178,6 +210,80 @@ export default function DoctorProfile() {
                     value={formData.specializationId}
                     onChange={(val) => setFormData({...formData, specializationId: val.toString()})}
                   />
+
+                  {/* Кнопка для відкриття форми нової спеціалізації */}
+                  {!showNewSpecForm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewSpecForm(true)}
+                      style={{
+                        background: 'none', border: 'none', color: '#7b51b3',
+                        fontSize: '13px', fontWeight: '600', display: 'flex',
+                        alignItems: 'center', gap: '4px', marginTop: '8px',
+                        cursor: 'pointer', padding: 0
+                      }}
+                    >
+                      <PlusCircle size={14} /> Не знайшли свою спеціалізацію?
+                    </button>
+                  ) : (
+                    <div style={{
+                      marginTop: '12px', padding: '16px', background: '#f8fafc',
+                      borderRadius: '12px', border: '1px dashed #cbd5e1'
+                    }}>
+                      <label style={{ fontSize: '13px', color: '#475569', marginBottom: '8px', display: 'block' }}>
+                        Запропонуйте нову спеціалізацію:
+                      </label>
+
+                      {/* 🚀 Оновлена форма з полем для опису */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <input
+                          type="text"
+                          value={newSpecName}
+                          onChange={(e) => setNewSpecName(e.target.value)}
+                          placeholder="Назва (наприклад: Кардіолог)"
+                          style={{
+                            padding: '10px 14px', borderRadius: '8px',
+                            border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none'
+                          }}
+                        />
+                        <textarea
+                          value={newSpecDesc}
+                          onChange={(e) => setNewSpecDesc(e.target.value)}
+                          placeholder="Короткий опис діяльності..."
+                          style={{
+                            padding: '10px 14px', borderRadius: '8px',
+                            border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none',
+                            resize: 'vertical', minHeight: '60px', fontFamily: 'inherit'
+                          }}
+                        />
+
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={handleCreateSpec}
+                            disabled={isCreatingSpec}
+                            style={{
+                              background: '#7b51b3', color: 'white', border: 'none',
+                              borderRadius: '8px', padding: '8px 16px', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600'
+                            }}
+                          >
+                            {isCreatingSpec ? "..." : <><Check size={16} /> Запропонувати</>}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setShowNewSpecForm(false); setNewSpecName(""); setNewSpecDesc(""); }}
+                            style={{
+                              background: 'white', color: '#64748b', border: '1px solid #e2e8f0',
+                              borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '600'
+                            }}
+                          >
+                            Скасувати
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

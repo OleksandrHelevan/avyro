@@ -23,9 +23,12 @@ import AdminSchedules from "../pages/AdminSchedules/AdminSchedules.tsx";
 import AdminRequests from "../pages/AdminRequests/AdminRequests.tsx";
 import AdminNotifications from "../pages/AdminNotifications/AdminNotifications.tsx";
 import PatientAppointmentsPage from "../pages/PatientAppointmentsPage/PatientAppointmentsPage.tsx";
-import DoctorAppointmentsPage from "../pages/DoctorAppointmentsPage/DoctorAppointmentsPage.tsx"; // 🚀 ДОДАНО ІМПОРТ
+import DoctorAppointmentsPage from "../pages/DoctorAppointmentsPage/DoctorAppointmentsPage.tsx";
 import GamificationPage from "../pages/GamificationPage/GamificationPage.tsx";
 import AdminSendNotification from "../pages/AdminSendNotification/AdminSendNotification.tsx";
+import AppointmentDetailPage from "../pages/AppointmentDetailPage/AppointmentDetailPage.tsx";
+import PaymentFailurePage from "../pages/PaymentFailurePage/PaymentFailurePage.tsx";
+import PublicProfilePage from "../pages/PublicProfilePage/PublicProfilePage.tsx"; // 🚀 ДОДАНО: Імпорт публічного профілю
 
 import RootLayout from "../layouts/RootLayout/RootLayout.tsx";
 import { queryClient } from "../services/queryClient.ts";
@@ -36,7 +39,7 @@ import ProfileDispatcher from "./router/dispatchers/ProfileDispatcher.tsx";
 import AdminRoute from "./router/guards/AdminRoute.tsx";
 import { AuthProvider } from "../context/auth/AuthProvider.tsx";
 import WalletPage from "../pages/WalletPage/WalletPage.tsx";
-import AppointmentDetailPage from "../pages/AppointmentDetailPage/AppointmentDetailPage.tsx";
+import AdminFeedbacksPage from "../pages/AdminFeedbacksPage/AdminFeedbacksPage.tsx";
 
 export default function App() {
   return (
@@ -61,17 +64,18 @@ export default function App() {
                   <Route path={GAMIFICATION_PATH} element={<GamificationPage />} />
                   <Route path={DOCTOR_PROFILE_PATH} element={<DoctorProfilePage />} />
 
-                  {/* Записи для пацієнта */}
                   <Route path={APPOINTMENTS_PATH} element={<PatientAppointmentsPage />} />
-
-                  {/* 🚀 ДОДАНО: Записи для лікаря */}
                   <Route path="/doctor/appointments" element={<DoctorAppointmentsPage />} />
-
-                  {/* Спільна сторінка деталей запису (працює і для лікаря, і для пацієнта) */}
                   <Route path="/appointments/:id" element={<AppointmentDetailPage />} />
 
-                  <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />
+                  {/* 🚀 ДОДАНО: Роути для публічних профілів лікарів та пацієнтів */}
+                  <Route path="/doctors/:id" element={<PublicProfilePage />} />
+                  <Route path="/patients/:id" element={<PublicProfilePage />} />
 
+                  {/* ── NEW: Payment failure page ── */}
+                  <Route path="/payment-failure" element={<PaymentFailurePage />} />
+
+                  <Route path={PROFILE_PATH} element={<ProfileDispatcher />} />
                   <Route path={SCHEDULE_EDIT_PATH} element={<ScheduleEditor />} />
                   <Route path={PATIENTS_PATH} element={<div>Сторінка пацієнтів</div>} />
 
@@ -80,6 +84,7 @@ export default function App() {
                     <Route path={ADMIN_SPECIALIZATIONS_PATH} element={<AdminNotifications />} />
                     <Route path={ADMIN_SCHEDULES_PATH} element={<AdminSchedules />} />
                     <Route path={ADMIN_NOTIFICATIONS_PATH} element={<AdminSendNotification />} />
+                    <Route path="/admin/feedbacks" element={<AdminFeedbacksPage />} />
                   </Route>
                 </Route>
 

@@ -1,25 +1,34 @@
-import {adminApiClient} from "../api/adminApiClient.ts";
+import { adminApiClient } from "../api/adminApiClient.ts";
 import type {
   AdminRegistration,
   ApproveRegistrationResponse,
-  RejectRegistrationResponse, SendNotificationRequest,
-  SendNotificationResponse
+  RejectRegistrationResponse,
+  SendNotificationRequest,
+  SendNotificationResponse,
+  AdminFeedback
 } from "../types.ts";
 
 export const adminService = {
 
+  /* ===== REGISTRATIONS ===== */
   getAdminRegistrations: async (): Promise<AdminRegistration[]> => {
     return adminApiClient.getAdminRegistrations();
   },
 
-  approveRegistration: async (requestId: string): Promise<ApproveRegistrationResponse> => {
+  approveRegistration: async (
+    requestId: string
+  ): Promise<ApproveRegistrationResponse> => {
     return adminApiClient.approveRegistration(requestId);
   },
 
-  rejectRegistration: async (requestId: string, comment: string): Promise<RejectRegistrationResponse> => {
+  rejectRegistration: async (
+    requestId: string,
+    comment: string
+  ): Promise<RejectRegistrationResponse> => {
     return adminApiClient.rejectRegistration(requestId, comment);
   },
 
+  /* ===== SCHEDULES ===== */
   getAdminSchedules: async () => {
     return adminApiClient.getAdminSchedules();
   },
@@ -32,21 +41,28 @@ export const adminService = {
     return adminApiClient.rejectSchedule(scheduleId, comment);
   },
 
-  getAdminSpecializations: async (): Promise<any[]> => {
+  /* ===== SPECIALIZATIONS ===== */
+  getAdminSpecializations: async () => {
     return adminApiClient.getAdminSpecializations();
   },
 
-  createSpecializationDirect: async (data: { name: string }): Promise<any> => {
+  // 🚀 ОНОВЛЕНО: Додали description у тип data
+  createSpecializationDirect: async (data: { name: string; description?: string }) => {
     return adminApiClient.createSpecializationDirect(data);
   },
 
-  approveSpecialization: async (requestId: string): Promise<any> => {
+  approveSpecialization: async (requestId: string) => {
     return adminApiClient.approveSpecialization(requestId);
   },
-
-  sendNotification: async (data: SendNotificationRequest): Promise<SendNotificationResponse> => {
-    const response = await adminApiClient.sendNotification(data);
-    return (response as any).data ?? response;
+  /* ===== NOTIFICATIONS ===== */
+  sendNotification: async (
+    data: SendNotificationRequest
+  ): Promise<SendNotificationResponse> => {
+    return adminApiClient.sendNotification(data);
   },
 
+  /* ===== FEEDBACK ===== */
+  getAllFeedbacks: async (): Promise<AdminFeedback[]> => {
+    return adminApiClient.getAllFeedbacks();
+  },
 };

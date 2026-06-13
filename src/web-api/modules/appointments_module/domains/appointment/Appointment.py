@@ -4,13 +4,16 @@ from bson import ObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
+
 class NoteSource(str, Enum):
     PATIENT = "PATIENT"
     DOCTOR = "DOCTOR"
 
+
 class NoteType(str, Enum):
     SPECIFICATION = "SPECIFICATION"
     RECEIPT = "RECEIPT"
+
 
 class AppointmentNote(BaseModel):
     source: NoteSource
@@ -18,12 +21,14 @@ class AppointmentNote(BaseModel):
     type: NoteType
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class AppointmentStatus(Enum):
     PLANNED = "PLANNED"
     RESERVED = "RESERVED"
     FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
     COMPLETED = "COMPLETED"
+
 
 class Appointment(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
@@ -46,6 +51,10 @@ class Appointment(BaseModel):
     booked_at: Optional[datetime] = None
     notes: List[AppointmentNote] = Field(default_factory=list)
 
+    invoice_id: Optional[str] = None
+    points_used: int = 0
+    money_charged: float = 0.0
+
     def to_dict(self) -> dict:
         now = datetime.now(timezone.utc)
         data = {
@@ -62,6 +71,9 @@ class Appointment(BaseModel):
             "finalPrice": self.final_price,
             "appointmentType": self.appointment_type,
             "bookedAt": self.booked_at or now,
+            "invoiceId": self.invoice_id,
+            "pointsUsed": self.points_used,
+            "moneyCharged": self.money_charged,
             "notes": [
                 {
                     "source": n.source.value,
@@ -101,5 +113,11 @@ class Appointment(BaseModel):
             status=AppointmentStatus(data.get("status", "PLANNED")),
             created_at=data.get("createdAt"),
             updated_at=data.get("updatedAt"),
+            payment_status=data.get("paymentStatus", "PENDING"),
+            base_price=data.get("basePrice", 0.0),
+            final_price=data.get("finalPrice", 0.0),
+            invoice_id=data.get("invoiceId"),
+            points_used=data.get("pointsUsed", 0),
+            money_charged=data.get("moneyCharged", 0.0),
             notes=notes,
         )

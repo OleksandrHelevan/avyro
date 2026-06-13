@@ -154,3 +154,7 @@ export interface GetNotificationsResponse {
   notifications: NotificationItem[];
   unread_count: number;
 }
+export interface CreateFeedbackRequest {
+  message: string;
+  rating: number; // від 1 до 5
+}

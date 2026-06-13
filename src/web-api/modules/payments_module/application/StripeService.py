@@ -65,20 +65,25 @@ class StripeService:
         description: str,
         metadata: dict = None,
     ) -> dict:
-
-        stripe.InvoiceItem.create(
+        await stripe.InvoiceItem.create_async(
             customer=customer_id,
             amount=int(amount * 100),
             currency="uah",
             description=description,
             metadata=metadata or {},
         )
-
-        invoice = stripe.Invoice.create(
+        invoice = await stripe.Invoice.create_async(
             customer=customer_id,
             auto_advance=True,
             metadata=metadata or {},
         )
+        finalized = await stripe.Invoice.finalize_invoice_async(invoice.id)
+        return {
+            "invoice_id": finalized.id,
+            "status": finalized.status,
+            "amount": amount,
+            "hosted_invoice_url": finalized.hosted_invoice_url,
+        }
 
         finalized = stripe.Invoice.finalize_invoice(invoice["id"])
 
@@ -88,3 +93,17 @@ class StripeService:
             "amount": amount,
             "hosted_invoice_url": finalized.get("hosted_invoice_url"),
         }
+
+    async def transfer_to_doctor(
+        self,
+        doctor_stripe_account_id: str,
+        amount_uah: float,
+        appointment_id: str,
+    ) -> dict:
+        transfer = await stripe.Transfer.create_async(
+            amount=int(round(amount_uah * 100)),  # гривні → копійки для Stripe
+            currency="uah",
+            destination=doctor_stripe_account_id,
+            metadata={"appointment_id": appointment_id},
+        )
+        return {"transfer_id": transfer.id, "amount": amount_uah}

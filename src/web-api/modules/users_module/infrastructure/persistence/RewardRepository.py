@@ -52,5 +52,26 @@ class RewardRepository:
         )
         self.create(reward)
 
+    def has_bonus(self, patient_id: ObjectId, source: str) -> bool:
+        return self.collection.find_one({
+            "patientId": patient_id,
+            "description": {"$regex": source}
+        }) is not None
+
+    def count_finished_appointments(self, patient_id: ObjectId,
+                                    appointment_repo) -> int:
+        return len(appointment_repo.get_finished_by_patient_id(patient_id))
+
+    def count_monthly_appointments(self, patient_id: ObjectId,
+                                   appointment_repo) -> int:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return appointment_repo.count_finished_in_period(patient_id, start, now)
+
+    def count_same_doctor_appointments(self, patient_id: ObjectId,
+                                       doctor_id: ObjectId,
+                                       appointment_repo) -> int:
+        return appointment_repo.count_finished_by_doctor(patient_id, doctor_id)
 
 

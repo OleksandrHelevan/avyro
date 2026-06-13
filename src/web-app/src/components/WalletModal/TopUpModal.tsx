@@ -13,8 +13,7 @@ import "./TopUpModal.css";
 import { PAYMENT_ACCOUNT_QUERY_KEY } from "../../domains/payments/usePaymentAccount/usePaymentAccount.ts";
 import { useTopUpBalance } from "../../domains/payments/useTopUpBalance/useTopUpBalance.ts";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
-
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 // ─── Inner form (needs Elements context) ──────────────────────────────────
 
 interface CheckoutFormProps {

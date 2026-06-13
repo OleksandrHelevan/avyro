@@ -44,7 +44,6 @@ export default function LoginPage() {
         }
 
       } catch (error) {
-        console.log("Помилка автоперевірки", error);
       }
 
       setIsChecking(false);

@@ -1,0 +1,386 @@
+/* ── Page & Background ───────────────────────────────────────────────────── */
+.pub-prof-page {
+  min-height: calc(100vh - 70px); /* Дозволяємо сторінці рости, якщо контенту багато */
+  box-sizing: border-box;
+  margin-top: 50px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px; /* Додаємо відступи зверху і знизу, щоб картка не прилипала до екрана */
+}
+
+.pub-prof-bg {
+  position: fixed; /* ФІКСУЄМО фон! Він тепер не буде їздити при скролі і не викличе багів */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden; /* Обрізає кола ТІЛЬКИ на фоні */
+  pointer-events: none; /* Щоб фон випадково не перекрив кліки */
+}
+
+/* ... далі залишаються ваші .pub-prof-blob, .blob-1 і т.д. без змін ... */
+
+.pub-prof-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: float-slow 10s ease-in-out infinite alternate;
+}
+
+.blob-1 {
+  top: -100px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, rgba(123, 81, 179, 0.4), rgba(59, 130, 246, 0.2));
+}
+
+.blob-2 {
+  bottom: -150px;
+  right: -100px;
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, rgba(59, 206, 181, 0.3), rgba(16, 185, 129, 0.2));
+  animation-delay: -5s;
+}
+
+.pub-prof-blur-overlay {
+  position: absolute;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+@keyframes float-slow {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, 50px) scale(1.1); }
+}
+
+.pub-prof-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Трохи зменшили gap, щоб точно все влізло */
+
+  /* Додаємо обмеження висоти на випадок малих екранів */
+  max-height: 100%;
+
+}
+
+/* ── Topbar ──────────────────────────────────────────────────────────────── */
+.pub-prof-back-btn {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.pub-prof-back-btn:hover {
+  background: #ffffff;
+  color: #1e293b;
+  transform: translateX(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+/* ── Glass Panel Base ────────────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 28px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+}
+
+/* ── Main Profile Card ───────────────────────────────────────────────────── */
+.pub-prof-card {
+  padding: 40px;
+  animation: fade-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fade-scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pub-prof-header {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.pub-prof-avatar-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  padding: 6px;
+  background: linear-gradient(135deg, #7b51b3, #3bceb5);
+  box-shadow: 0 10px 25px rgba(123, 81, 179, 0.2);
+}
+
+.pub-prof-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  background: white;
+}
+
+.pub-prof-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #3bceb5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(59, 206, 181, 0.4);
+}
+
+.pub-prof-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pub-prof-name {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.5px;
+}
+
+.pub-prof-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.doctor-tag { background: #f0fdfa; color: #0d9488; border: 1px solid #ccfbf1; }
+.patient-tag { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+
+.pub-prof-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0) 0%, rgba(226, 232, 240, 1) 50%, rgba(226, 232, 240, 0) 100%);
+  margin: 32px 0;
+}
+
+/* ── Info Grid ───────────────────────────────────────────────────────────── */
+.pub-prof-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.pub-prof-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.6);
+  border: 1px solid rgba(241, 245, 249, 1);
+  transition: background 0.2s;
+}
+
+.pub-prof-info-item:hover { background: rgba(241, 245, 249, 0.8); }
+
+.pub-info-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.highlight-icon { color: #f59e0b; background: #fffbeb; border: 1px solid #fef3c7; }
+
+.pub-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pub-info-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pub-info-val {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.pub-info-val.link {
+  text-decoration: none;
+  color: #3b82f6;
+  transition: color 0.2s;
+}
+.pub-info-val.link:hover { color: #2563eb; }
+
+/* ── Action Card (Doctor Booking CTA) ────────────────────────────────────── */
+.pub-prof-action-card {
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(248, 250, 252, 0.95));
+}
+
+.pub-action-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.pub-action-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pub-book-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: #7b51b3;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(123, 81, 179, 0.25);
+}
+
+.pub-book-btn:hover {
+  background: #6a43a1;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(123, 81, 179, 0.35);
+}
+
+.fade-up {
+  animation: fade-up-anim 0.6s ease forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+@keyframes fade-up-anim {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Адаптивність ────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pub-prof-card { padding: 24px; }
+
+  .pub-prof-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .pub-prof-title-section { align-items: center; }
+  .pub-prof-name { font-size: 26px; }
+
+  .pub-prof-action-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .pub-book-btn { width: 100%; justify-content: center; }
+}
+.doctor-reviews-section {
+  margin-top: 32px;
+  width: 100%;
+}
+
+.reviews-section-title {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin-bottom: 16px;
+  font-weight: 700;
+  padding-left: 8px;
+}
+
+.no-reviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 4px solid #7b51b3; /* Акцентна лінія зліва */
+}
+
+.review-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.review-text {
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-style: italic;
+}
