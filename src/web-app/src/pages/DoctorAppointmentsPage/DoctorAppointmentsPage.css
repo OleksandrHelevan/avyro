@@ -400,7 +400,7 @@
 .cancel-modal-text { color: #475569; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; }
 .cancel-textarea-wrapper { margin-bottom: 24px; }
 .cancel-textarea-label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; }
-.cancel-textarea { width: 100%; padding: 14px; border-radius: 16px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; resize: none; font-family: inherit; transition: all 0.2s ease; }
+.cancel-textarea { width: 90%; padding: 14px; border-radius: 16px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; resize: none; font-family: inherit; transition: all 0.2s ease; }
 .cancel-textarea:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
 .cancel-modal-actions { display: flex; gap: 12px; }
 .btn-cancel-return { flex: 1; padding: 14px; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }

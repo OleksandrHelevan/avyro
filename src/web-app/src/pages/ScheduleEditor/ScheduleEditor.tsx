@@ -38,19 +38,16 @@ export default function ScheduleEditor() {
     startTime: "09:00",
     endTime: "18:00",
     slotDuration: 30,
-    price: 500 // Стейт форми
+    price: 500 // Стейт форми залишаємо в ГРИВНЯХ
   });
 
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // 🚀 ОНОВЛЕНО: Тепер ми беремо найсвіжіший графік з кінця масиву
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return null;
 
-    // Робимо копію і перевертаємо, щоб найновіші були першими
     const reversedSchedules = [...schedules].reverse();
-
     return reversedSchedules.find((s: any) => s.status === "APPROVED") || reversedSchedules[0];
   }, [doctor]);
 
@@ -61,25 +58,25 @@ export default function ScheduleEditor() {
   const hasConfirmedSchedule = !!repeatingParams;
   const showForm = !hasConfirmedSchedule || isEditing;
 
-  // Глибокий пошук ціни для автозаповнення форми
+  // Автозаповнення форми
   useEffect(() => {
     if (repeatingParams && isEditing) {
       setSelectedDays(repeatingParams.daysOfWeek || []);
 
-      const savedPrice = activeSchedule?.pricePerSlot
+      const savedPriceInKopecks = activeSchedule?.pricePerSlot
         || activeSchedule?.price
         || activeSchedule?.payload?.pricePerSlot
         || activeSchedule?.payload?.price
         || repeatingParams?.pricePerSlot
         || repeatingParams?.price
-        || 500;
+        || 50000; // Дефолт 500 грн в копійках
 
       setParams(prev => ({
         ...prev,
         startTime: repeatingParams.startTime || repeatingParams.start_time || "09:00",
         endTime: repeatingParams.endTime || repeatingParams.end_time || "18:00",
         slotDuration: repeatingParams.slotDuration || repeatingParams.slot_duration || 30,
-        price: savedPrice
+        price: savedPriceInKopecks / 100 // 🚀 ДІЛИМО НА 100 для відображення в інпуті в гривнях
       }));
     }
   }, [repeatingParams, isEditing, activeSchedule]);
@@ -94,14 +91,13 @@ export default function ScheduleEditor() {
     e.preventDefault();
     if (selectedDays.length === 0) return toast.error("Оберіть робочі дні");
 
-    // Формуємо ідеальний запит за Swagger'ом
     const payload = {
       doctorId: CURRENT_USER_ID,
       month: params.month,
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
       isRepeated: true,
-      pricePerSlot: params.price, // Тільки на верхньому рівні!
+      pricePerSlot: params.price * 100, // 🚀 МНОЖИМО НА 100, відправляємо на бекенд у копійках
       repeating: {
         type: "WEEKLY",
         daysOfWeek: selectedDays,
@@ -114,20 +110,21 @@ export default function ScheduleEditor() {
 
     requestSchedule(payload as any, {
       onSuccess: () => {
-        setIsEditing(false); // Закриваємо форму після успіху
+        setIsEditing(false);
       },
-
     });
   };
 
-  // Глибокий пошук ціни для відображення в "картці"
+  // Пошук ціни для відображення в "картці" (ділимо на 100)
   const displayPrice = useMemo(() => {
-    return activeSchedule?.pricePerSlot
+    const p = activeSchedule?.pricePerSlot
       || activeSchedule?.price
       || activeSchedule?.payload?.pricePerSlot
       || activeSchedule?.payload?.price
       || repeatingParams?.pricePerSlot
       || repeatingParams?.price;
+
+    return p ? p / 100 : null; // 🚀 ДІЛИМО НА 100 для красивого відображення в гривнях
   }, [activeSchedule, repeatingParams]);
 
   if (isDoctorLoading) return <div className="loading-screen"><Loader/></div>;

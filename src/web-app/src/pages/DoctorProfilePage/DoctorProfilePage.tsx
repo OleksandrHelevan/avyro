@@ -72,7 +72,6 @@ export default function DoctorProfile() {
 
   const rollingDays = useMemo(() => Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i)), []);
 
-  // 🚀 ОНОВЛЕНО: Тепер ми показуємо ТІЛЬКИ вільні слоти (AVAILABLE)
   const availableSlots = useMemo(() => {
     const sd = activeSchedule?.payload?.repeating || activeSchedule?.repeating;
     if (!sd) return [];
@@ -82,7 +81,6 @@ export default function DoctorProfile() {
     const now = new Date();
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
-    // Збираємо всі існуючі слоти з бекенду
     const allSlots = [
       ...(Array.isArray(doctor?.schedule) ? doctor.schedule : []),
       ...(Array.isArray(activeSchedule?.slots) ? activeSchedule.slots : []),
@@ -90,20 +88,17 @@ export default function DoctorProfile() {
     ];
 
     return allGeneratedTimes.filter(time => {
-      // 1. Відкидаємо час, який вже минув сьогодні
       if (isSameDay(selectedDate, now)) {
         if (!isAfter(parse(time, "HH:mm", selectedDate), now)) {
           return false;
         }
       }
 
-      // 2. Шукаємо відповідний слот у базі
       const matchingSlot = allSlots.find((s: any) => {
         const t = String(s.from || "");
         return t.includes(formattedDate) && t.includes(time);
       });
 
-      // 3. Залишаємо час ТІЛЬКИ якщо слот знайдено і він вільний
       return matchingSlot && (matchingSlot.type === "AVAILABLE" || matchingSlot.status === "AVAILABLE");
     });
   }, [selectedDate, activeSchedule, doctor]);
@@ -122,13 +117,21 @@ export default function DoctorProfile() {
     });
   }, [selectedDate, selectedTime, activeSchedule, doctor]);
 
+  // 🚀 ОНОВЛЕНО: Отримуємо ціну в копійках і одразу ДІЛИМО НА 100 для відображення в гривнях
   const consultationPrice = useMemo(() => {
     if (!selectedTime) return null;
-    if (selectedSlotData?.pricePerSlot || selectedSlotData?.price)
-      return selectedSlotData.pricePerSlot || selectedSlotData.price;
-    return activeSchedule?.pricePerSlot || activeSchedule?.price
-      || activeSchedule?.payload?.pricePerSlot || activeSchedule?.payload?.price
-      || doctor?.pricePerSlot || doctor?.price || doctor?.consultationPrice || null;
+
+    let rawPrice = null;
+
+    if (selectedSlotData?.pricePerSlot || selectedSlotData?.price) {
+      rawPrice = selectedSlotData.pricePerSlot || selectedSlotData.price;
+    } else {
+      rawPrice = activeSchedule?.pricePerSlot || activeSchedule?.price
+        || activeSchedule?.payload?.pricePerSlot || activeSchedule?.payload?.price
+        || doctor?.pricePerSlot || doctor?.price || doctor?.consultationPrice || null;
+    }
+
+    return rawPrice ? rawPrice / 100 : null;
   }, [selectedSlotData, activeSchedule, selectedTime, doctor]);
 
   // ── Booking handler ───────────────────────────────────────────────────
@@ -159,6 +162,7 @@ export default function DoctorProfile() {
       {
         slotId: slotIdToBook,
         doctorId: doctorIdToBook,
+        // 🚀 ОНОВЛЕНО: МНОЖИМО НА 100, щоб повернути ціну в копійках для бекенду
         pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
         payment_method: paymentMethod,
         note: note.trim() ? note.trim() : undefined,
@@ -195,7 +199,7 @@ export default function DoctorProfile() {
             date: selectedDate && selectedTime
               ? `${format(selectedDate, "d MMMM yyyy", { locale: uk })}, ${selectedTime}`
               : undefined,
-            amount:  consultationPrice ?? undefined,
+            amount:  consultationPrice ?? undefined, // Тут залишаємо у гривнях для сторінки помилки
             reason,
             slotId:  slotIdToBook,
           };
@@ -360,7 +364,7 @@ export default function DoctorProfile() {
                 onClick={handleBooking}
               >
                 {isBooking
-                  ? <span>Записуємось <Loader className="inline-loader" /></span>
+                  ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Loader className="inline-loader" /></span>
                   : !selectedTime ? "Оберіть час візиту"
                     : !consultationPrice ? "Неможливо записатися (немає ціни)"
                       : "Оплатити та Записатися"}
