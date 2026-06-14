@@ -139,6 +139,8 @@ class AppointmentService:
                     doctor_name=str(doctor_oid),
                     points_available=points_available,
                     payment_method=getattr(dto, "payment_method", "MONEY"),
+                    points_to_use=getattr(dto, "points_to_use", None),
+                    money_to_use=getattr(dto, "money_to_use", None),
                 )
 
                 # Бали списуємо ТІЛЬКИ після успішного підтвердження транзакції

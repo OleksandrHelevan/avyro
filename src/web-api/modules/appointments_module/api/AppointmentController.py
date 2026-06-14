@@ -21,6 +21,10 @@ class BookAppointmentRequest(BaseModel):
     is_discount_used: bool = False
     note: Optional[str] = None
     payment_method: str = "MONEY"
+    points_to_use: Optional[int] = None
+    money_to_use: Optional[float] = None
+
+
 
 class AddNoteRequest(BaseModel):
     message: str
