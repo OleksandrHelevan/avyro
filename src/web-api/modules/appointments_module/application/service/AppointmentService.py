@@ -143,7 +143,6 @@ class AppointmentService:
                     money_to_use=getattr(dto, "money_to_use", None),
                 )
 
-                # Бали списуємо ТІЛЬКИ після успішного підтвердження транзакції
                 if self.reward_repository and payment.get("points_used", 0) > 0:
                     self.reward_repository.spend_points(
                         patient_id=patient_oid,
