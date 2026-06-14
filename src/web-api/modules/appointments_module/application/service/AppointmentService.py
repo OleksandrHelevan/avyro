@@ -142,7 +142,6 @@ class AppointmentService:
                     points_to_use=getattr(dto, "points_to_use", None),
                     money_to_use=getattr(dto, "money_to_use", None),
                 )
-
                 if self.reward_repository and payment.get("points_used", 0) > 0:
                     self.reward_repository.spend_points(
                         patient_id=patient_oid,
