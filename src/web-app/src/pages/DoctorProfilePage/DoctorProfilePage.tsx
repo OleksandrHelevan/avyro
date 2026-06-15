@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Mail, CalendarDays, ArrowLeft, CreditCard, FileText } from "lucide-react";
+import { Mail, CalendarDays, ArrowLeft, CreditCard, FileText, Info } from "lucide-react";
 import {
   format, isSameDay, isBefore, startOfToday,
   parse, isAfter, getDay, addDays
@@ -41,7 +41,12 @@ export default function DoctorProfile() {
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
+
   const [paymentMethod, setPaymentMethod] = useState<"MONEY" | "POINTS" | "MIXED">("MONEY");
+
+  // 🚀 ДОДАНО: Стейт для часткової оплати (міксом)
+  const [mixedMoney, setMixedMoney] = useState<number | "">("");
+  const [mixedPoints, setMixedPoints] = useState<number | "">("");
 
   const [note, setNote] = useState("");
 
@@ -51,7 +56,6 @@ export default function DoctorProfile() {
 
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
-  // ── Profile completeness guard ────────────────────────────────────────
   const profileIssues = useMemo(() => {
     if (!patientResponse) return [];
     const issues: string[] = [];
@@ -63,7 +67,6 @@ export default function DoctorProfile() {
     return issues;
   }, [patientResponse]);
 
-  // ── Schedule & slots ──────────────────────────────────────────────────
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
     if (!Array.isArray(schedules) || schedules.length === 0) return null;
@@ -117,10 +120,8 @@ export default function DoctorProfile() {
     });
   }, [selectedDate, selectedTime, activeSchedule, doctor]);
 
-  // 🚀 ОНОВЛЕНО: Отримуємо ціну в копійках і одразу ДІЛИМО НА 100 для відображення в гривнях
   const consultationPrice = useMemo(() => {
     if (!selectedTime) return null;
-
     let rawPrice = null;
 
     if (selectedSlotData?.pricePerSlot || selectedSlotData?.price) {
@@ -134,19 +135,50 @@ export default function DoctorProfile() {
     return rawPrice ? rawPrice / 100 : null;
   }, [selectedSlotData, activeSchedule, selectedTime, doctor]);
 
-  // ── Booking handler ───────────────────────────────────────────────────
+  // 🚀 ДОДАНО: Логіка розрахунку комісій
+  const COMMISSION_RATE = 0.025; // 2.5%
+
+  const commissionData = useMemo(() => {
+    if (!consultationPrice) return null;
+
+    let baseMoneyToPay = 0;
+    let pointsToPay = 0;
+
+    if (paymentMethod === "MONEY") {
+      baseMoneyToPay = consultationPrice;
+    } else if (paymentMethod === "POINTS") {
+      pointsToPay = consultationPrice;
+    } else if (paymentMethod === "MIXED") {
+      baseMoneyToPay = Number(mixedMoney) || 0;
+      pointsToPay = Number(mixedPoints) || 0;
+    }
+
+    const commissionAmount = baseMoneyToPay * COMMISSION_RATE;
+    const totalMoneyWithCommission = baseMoneyToPay + commissionAmount;
+
+    return {
+      baseMoneyToPay,
+      pointsToPay,
+      commissionAmount,
+      totalMoneyWithCommission,
+      isValidMix: paymentMethod === "MIXED" ? (baseMoneyToPay + pointsToPay) === consultationPrice : true
+    };
+  }, [consultationPrice, paymentMethod, mixedMoney, mixedPoints]);
+
+
   const handleBooking = () => {
     if (profileIssues.length > 0) {
-      toast.error(`Для запису заповніть профіль: ${profileIssues.join(", ")}`, {
-        duration: 4000,
-        icon: "👤",
-        style: { maxWidth: 360 },
-      });
+      toast.error(`Для запису заповніть профіль: ${profileIssues.join(", ")}`);
       return;
     }
 
     if (!selectedSlotData) {
       toast.error("Цей час вже зайнятий або недоступний.");
+      return;
+    }
+
+    if (paymentMethod === "MIXED" && !commissionData?.isValidMix) {
+      toast.error("Сума грошей та балів має дорівнювати вартості прийому!");
       return;
     }
 
@@ -158,15 +190,23 @@ export default function DoctorProfile() {
       return;
     }
 
+    // Відправляємо на бекенд (бекенд сам бере комісію, якщо ви передасте pricePerSlot або суми в копійках)
+    const payload: any = {
+      slotId: slotIdToBook,
+      doctorId: doctorIdToBook,
+      pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
+      payment_method: paymentMethod,
+      note: note.trim() ? note.trim() : undefined,
+    };
+
+    if (paymentMethod === "MIXED") {
+      // Передаємо бекенду, скільки грошей і балів зняти (в копійках)
+      payload.moneyAmount = Number(mixedMoney) * 100;
+      payload.pointsAmount = Number(mixedPoints) * 100;
+    }
+
     bookAppointment(
-      {
-        slotId: slotIdToBook,
-        doctorId: doctorIdToBook,
-        // 🚀 ОНОВЛЕНО: МНОЖИМО НА 100, щоб повернути ціну в копійках для бекенду
-        pricePerSlot: consultationPrice ? consultationPrice * 100 : undefined,
-        payment_method: paymentMethod,
-        note: note.trim() ? note.trim() : undefined,
-      } as any,
+      payload,
       {
         onSuccess: (response: any) => {
           const data = response?.data || response;
@@ -177,6 +217,8 @@ export default function DoctorProfile() {
           } else {
             setSelectedTime(null);
             setNote("");
+            setMixedMoney("");
+            setMixedPoints("");
           }
         },
         onError: (err: any) => {
@@ -199,7 +241,7 @@ export default function DoctorProfile() {
             date: selectedDate && selectedTime
               ? `${format(selectedDate, "d MMMM yyyy", { locale: uk })}, ${selectedTime}`
               : undefined,
-            amount:  consultationPrice ?? undefined, // Тут залишаємо у гривнях для сторінки помилки
+            amount:  consultationPrice ?? undefined,
             reason,
             slotId:  slotIdToBook,
           };
@@ -216,11 +258,6 @@ export default function DoctorProfile() {
     <div className="booking-page aero-viewport light-theme">
       <div className="bright-gradient-bg">
         <div className="light-blob blob-1" /><div className="light-blob blob-2" />
-      </div>
-      <div className="floating-icons-container">
-        <div className="floating-icon icon-1">💙</div>
-        <div className="floating-icon icon-2">✨</div>
-        <div className="floating-icon icon-3">👨‍⚕️</div>
       </div>
 
       <div className="booking-wrapper">
@@ -258,7 +295,6 @@ export default function DoctorProfile() {
           {!activeSchedule ? (
             <div className="no-schedule-state">
               <p className="no-schedule-title">У цього спеціаліста наразі немає доступних годин для запису.</p>
-              <p className="no-schedule-desc">Не хвилюйтеся! У нас є інші чудові фахівці цього профілю.</p>
               <button className="confirm-booking-btn find-other-doctors-btn"
                       onClick={() => navigate(`/?spec=${encodeURIComponent(doctor?.specializationName || "Усі")}`)}>
                 Знайти схожих лікарів
@@ -322,45 +358,99 @@ export default function DoctorProfile() {
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Напишіть ваші симптоми або питання..."
                     style={{
-                      width: "100%",
-                      padding: "12px",
-                      borderRadius: "12px",
-                      border: "1px solid #e2e8f0",
-                      background: "rgba(255, 255, 255, 0.5)",
-                      minHeight: "80px",
-                      resize: "vertical",
-                      fontSize: "14px",
-                      color: "#334155",
-                      outline: "none",
-                      fontFamily: "inherit"
+                      width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #e2e8f0",
+                      background: "rgba(255, 255, 255, 0.5)", minHeight: "60px", resize: "vertical", fontSize: "14px", outline: "none", fontFamily: "inherit"
                     }}
                   />
                 </div>
               )}
 
-              {/* Payment method */}
+              {/* 🚀 ОНОВЛЕНО: Payment method та MIXED inputs */}
               {selectedTime && consultationPrice && (
-                <div className="payment-method-section"
-                     style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div className="payment-method-section" style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "600", color: "#64748b" }}>
                     <CreditCard size={16} /> Спосіб оплати
                   </label>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
                     {(["MONEY", "POINTS", "MIXED"] as const).map((m) => (
                       <button key={m} className={`time-btn ${paymentMethod === m ? "active" : ""}`}
-                              onClick={() => setPaymentMethod(m)}
+                              onClick={() => {
+                                setPaymentMethod(m);
+                                if (m !== "MIXED") { setMixedMoney(""); setMixedPoints(""); }
+                              }}
                               style={{ padding: "10px 8px", fontSize: "13px" }}>
-                        {m === "MONEY" ? "Грошима" : m === "POINTS" ? "Балами" : "Мікс"}
+                        {m === "MONEY" ? "Грошима" : m === "POINTS" ? "Бонусами" : "Мікс"}
                       </button>
                     ))}
                   </div>
+
+                  {/* Поля для MIXED */}
+                  {paymentMethod === "MIXED" && (
+                    <div style={{ display: "flex", gap: "10px", marginTop: "8px", background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px dashed #cbd5e1" }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px", display: "block" }}>Списати грошей (₴)</label>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            max={consultationPrice}
+                            value={mixedMoney}
+                            onChange={(e) => {
+                              const val = e.target.value ? Number(e.target.value) : "";
+                              setMixedMoney(val);
+                              if (val !== "" && val <= consultationPrice) setMixedPoints(consultationPrice - val);
+                            }}
+                            style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}
+                          />
+                          <button onClick={() => { setMixedMoney(consultationPrice); setMixedPoints(0); }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 6px', cursor: 'pointer' }}>Всі</button>
+                        </div>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px", display: "block" }}>Списати балів</label>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            max={consultationPrice}
+                            value={mixedPoints}
+                            onChange={(e) => {
+                              const val = e.target.value ? Number(e.target.value) : "";
+                              setMixedPoints(val);
+                              if (val !== "" && val <= consultationPrice) setMixedMoney(consultationPrice - val);
+                            }}
+                            style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}
+                          />
+                          <button onClick={() => { setMixedPoints(consultationPrice); setMixedMoney(0); }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 6px', cursor: 'pointer' }}>Всі</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 🚀 ВІДОБРАЖЕННЯ КОМІСІЇ */}
+                  {commissionData && commissionData.commissionAmount > 0 && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "#fef2f2", padding: "12px", borderRadius: "8px", border: "1px solid #fecdd3" }}>
+                      <Info size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: "2px" }} />
+                      <div style={{ fontSize: "13px", color: "#be123c" }}>
+                        Комісія платіжної системи: <strong>2.5%</strong>.
+                        <br />
+                        З вашого грошового балансу буде списано додатково <strong>{commissionData.commissionAmount.toFixed(2)} ₴</strong>.
+                        <br />
+                        Разом до списання грошима: <strong>{commissionData.totalMoneyWithCommission.toFixed(2)} ₴</strong>.
+                      </div>
+                    </div>
+                  )}
+                  {paymentMethod === "POINTS" && (
+                    <div style={{ fontSize: "13px", color: "#10b981", background: "#ecfdf5", padding: "10px", borderRadius: "8px", border: "1px solid #a7f3d0", textAlign: "center" }}>
+                      При оплаті бонусами комісія <strong>не стягується!</strong> 🎉
+                    </div>
+                  )}
                 </div>
               )}
 
               <button
                 className="confirm-booking-btn"
                 style={{ marginTop: "24px" }}
-                disabled={!selectedTime || isBooking || (selectedTime !== null && !consultationPrice)}
+                disabled={!selectedTime || isBooking || (selectedTime !== null && !consultationPrice) || (paymentMethod === "MIXED" && !commissionData?.isValidMix)}
                 onClick={handleBooking}
               >
                 {isBooking

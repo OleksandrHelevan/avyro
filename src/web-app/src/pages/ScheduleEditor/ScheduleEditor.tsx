@@ -5,6 +5,7 @@ import { Calendar, Clock, ChevronLeft, Save, CalendarCheck, Edit3 } from "lucide
 
 import { useRequestSchedule } from "../../domains/users/useRequestSchedule/useRequestSchedule";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
+import { useUpdateSchedule } from "../../domains/users/useUpdateSchedule/useUpdateSchedule.ts";
 import './ScheduleEditor.css';
 import Loader from "../../components/Loader/Loader.tsx";
 
@@ -27,7 +28,11 @@ export default function ScheduleEditor() {
   const navigate = useNavigate();
 
   const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
-  const { mutate: requestSchedule, isPending } = useRequestSchedule();
+
+  const { mutate: requestSchedule, isPending: isRequesting } = useRequestSchedule();
+  const { mutate: updateSchedule, isPending: isUpdating } = useUpdateSchedule();
+
+  const isPending = isRequesting || isUpdating;
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -38,7 +43,7 @@ export default function ScheduleEditor() {
     startTime: "09:00",
     endTime: "18:00",
     slotDuration: 30,
-    price: 500 // Стейт форми залишаємо в ГРИВНЯХ
+    price: 500
   });
 
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
@@ -58,7 +63,6 @@ export default function ScheduleEditor() {
   const hasConfirmedSchedule = !!repeatingParams;
   const showForm = !hasConfirmedSchedule || isEditing;
 
-  // Автозаповнення форми
   useEffect(() => {
     if (repeatingParams && isEditing) {
       setSelectedDays(repeatingParams.daysOfWeek || []);
@@ -69,14 +73,14 @@ export default function ScheduleEditor() {
         || activeSchedule?.payload?.price
         || repeatingParams?.pricePerSlot
         || repeatingParams?.price
-        || 50000; // Дефолт 500 грн в копійках
+        || 50000;
 
       setParams(prev => ({
         ...prev,
         startTime: repeatingParams.startTime || repeatingParams.start_time || "09:00",
         endTime: repeatingParams.endTime || repeatingParams.end_time || "18:00",
         slotDuration: repeatingParams.slotDuration || repeatingParams.slot_duration || 30,
-        price: savedPriceInKopecks / 100 // 🚀 ДІЛИМО НА 100 для відображення в інпуті в гривнях
+        price: savedPriceInKopecks / 100
       }));
     }
   }, [repeatingParams, isEditing, activeSchedule]);
@@ -97,7 +101,7 @@ export default function ScheduleEditor() {
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
       isRepeated: true,
-      pricePerSlot: params.price * 100, // 🚀 МНОЖИМО НА 100, відправляємо на бекенд у копійках
+      pricePerSlot: params.price * 100, // Конвертуємо в копійки для бекенда
       repeating: {
         type: "WEEKLY",
         daysOfWeek: selectedDays,
@@ -108,14 +112,27 @@ export default function ScheduleEditor() {
       }
     };
 
-    requestSchedule(payload as any, {
-      onSuccess: () => {
-        setIsEditing(false);
-      },
-    });
+    // 🚀 ШУКАЄМО ІСНУЮЧИЙ ГРАФІК САМЕ НА ЦЕЙ МІСЯЦЬ І РІК (навіть якщо він PENDING)
+    const existingScheduleForMonth = doctor?.schedule?.find(
+      (s: any) => (s.payload?.month === params.month || s.month === params.month) &&
+        (s.payload?.year === params.year || s.year === params.year)
+    ) || activeSchedule;
+
+    const scheduleId = existingScheduleForMonth?._id || existingScheduleForMonth?.id || existingScheduleForMonth?.scheduleId;
+
+    if (scheduleId) {
+      // 🚀 Якщо розклад вже існує в базі (навіть очікує розгляду) — залізно оновлюємо його (PUT)
+      updateSchedule({ scheduleId, payload: payload as any }, {
+        onSuccess: () => setIsEditing(false)
+      });
+    } else {
+      // 🚀 Створюємо вперше тільки якщо ID взагалі немає (POST)
+      requestSchedule(payload as any, {
+        onSuccess: () => setIsEditing(false),
+      });
+    }
   };
 
-  // Пошук ціни для відображення в "картці" (ділимо на 100)
   const displayPrice = useMemo(() => {
     const p = activeSchedule?.pricePerSlot
       || activeSchedule?.price
@@ -124,7 +141,7 @@ export default function ScheduleEditor() {
       || repeatingParams?.pricePerSlot
       || repeatingParams?.price;
 
-    return p ? p / 100 : null; // 🚀 ДІЛИМО НА 100 для красивого відображення в гривнях
+    return p ? p / 100 : null;
   }, [activeSchedule, repeatingParams]);
 
   if (isDoctorLoading) return <div className="loading-screen"><Loader/></div>;
