@@ -30,7 +30,6 @@ export const userService = {
   },
 
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
-    // Чистимо ID від випадкових пробілів, які могли потрапити з URL
     const cleanId = id?.trim() || "";
     const response = await userApiClient.getDoctorById(cleanId);
     return (response as any).data ?? response;
@@ -45,6 +44,11 @@ export const userService = {
   },
   requestSchedule: async (request: ScheduleRequest): Promise<ScheduleResponse> => {
     return userApiClient.requestSchedule(request);
+  },
+
+  // 🚀 ДОДАНО: Сервіс для оновлення розкладу
+  updateSchedule: async (scheduleId: string, request: ScheduleRequest): Promise<ScheduleResponse> => {
+    return userApiClient.updateSchedule(scheduleId, request);
   },
 
   checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {

@@ -111,7 +111,8 @@ export default function Header() {
 
         <div className={`nav-links-container ${isMobileOpen ? "open" : ""}`}>
           <div className="nav-links">
-            {!isAdmin && (
+            {/* 🚀 ОНОВЛЕНО: Тепер "Знайти лікаря" ховається і від адміна, і від лікаря */}
+            {(!isAdmin && !isDoctor) && (
               <NavLink to="/" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                 Знайти лікаря
               </NavLink>
@@ -145,7 +146,6 @@ export default function Header() {
                 <NavLink to="/admin/schedules" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Розклади
                 </NavLink>
-                {/* 🚀 ДОДАНО ВКЛАДКУ ВІДГУКІВ */}
                 <NavLink to="/admin/feedbacks" onClick={closeMobileMenu} className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
                   Відгуки
                 </NavLink>
