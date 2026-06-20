@@ -142,6 +142,7 @@ class AppointmentService:
                     points_to_use=getattr(dto, "points_to_use", None),
                     money_to_use=getattr(dto, "money_to_use", None),
                 )
+
                 if self.reward_repository and payment.get("points_used", 0) > 0:
                     self.reward_repository.spend_points(
                         patient_id=patient_oid,
@@ -150,10 +151,14 @@ class AppointmentService:
                     )
 
                 self.appointment_repository.update_payment_status(created.id, "PAID", payment.get("invoice_id"))
+                self.appointment_repository.update_payment_details(
+                    appointment_id=created.id,
+                    points_used=payment.get("points_used", 0),
+                    money_charged=payment.get("money_charged", 0.0),
+                )
                 created.payment_status = "PAID"
 
             except Exception as e:
-                # Stripe або списання впало — скасовуємо запис, бали НЕ чіпали
                 self.appointment_repository.delete(created.id)
                 self.schedule_repository.unbook_slot(schedule_id=target_schedule.id, slot_id=slot_oid)
                 raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))
@@ -296,17 +301,22 @@ class AppointmentService:
             # Нараховуємо бали лікарю за завершений оплачений візит
             if self.reward_repository and appointment.payment_status == "PAID":
                 doctor_reward = Reward(
-                    patientId=appointment.doctor_id,  # поле універсальне — тут doctor
+                    patientId=appointment.doctor_id,
                     type=RewardType.BONUS,
-                    points=50,  # фіксована винагорода лікарю за візит
-                    source=RewardSource.FIRST_VISIT_BONUS,  # краще додати RewardSource.DOCTOR_VISIT
+                    points=50,
+                    source=RewardSource.DOCTOR_VISIT_PAYOUT,  # було FIRST_VISIT_BONUS
                     description=f"Нарахування за проведений оплачений візит {appointment_id}",
                 )
                 self.reward_repository.create(doctor_reward)
 
-            # Якщо візит ще не оплачений (пацієнт платить готівкою лікарю)
             if appointment.payment_status != "PAID":
                 self.appointment_repository.update_payment_status(oid, "PAID", None)
+
+        return {
+            "status": "COMPLETED",
+            "appointment_id": appointment_id,
+            "message": "Прийом успішно завершено"
+        }
 
     def cancel_appointment(self, appointment_id: str, canceller_id: str, role: str, reason: str = None) -> dict:
         try:
@@ -343,30 +353,41 @@ class AppointmentService:
 
         self.appointment_repository.update_status(oid, "CANCELLED")
 
-        # Повернення коштів та балів при скасуванні
-        if self.account_service and self.reward_repository and appointment.payment_status == "PAID":
+        if appointment.payment_status == "PAID":
             patient_oid = appointment.patient_id
-            account = self.account_service.account_repo.find_by_user_id(patient_oid)
+            points_used = getattr(appointment, "points_used", 0) or 0
+            money_charged = getattr(appointment, "money_charged", 0.0) or 0.0
 
-            # Повертаємо гроші
-            if appointment.final_price and appointment.final_price > 0:
-                points_used = getattr(appointment, "points_used", 0) or 0
-                money_paid = appointment.final_price - points_used
-                if money_paid > 0 and account:
+            if money_charged > 0 and self.account_service:
+                account = self.account_service.account_repo.find_by_user_id(patient_oid)
+                if account:
                     self.account_service.account_repo.update_balance(
-                        patient_oid, account.balance + money_paid
+                        patient_oid, round(account.balance + money_charged, 2)
                     )
 
-            # Повертаємо бали
-            if points_used > 0:
-                reward = Reward(
+            if points_used > 0 and self.reward_repository:
+                refund_reward = Reward(
                     patientId=patient_oid,
                     type=RewardType.BONUS,
                     points=points_used,
-                    source=RewardSource.FIRST_VISIT_BONUS,  # або окремий RewardSource.REFUND
-                    description=f"Повернення балів за скасований візит {appointment_id}",
+                    source=RewardSource.REFUND,
+                    description=f"Повернення {points_used} балів за скасований візит {appointment_id}",
                 )
-                self.reward_repository.create(reward)
+                self.reward_repository.create(refund_reward)
+
+            if self.notification_service and (money_charged > 0 or points_used > 0):
+                refund_parts = []
+                if money_charged > 0:
+                    refund_parts.append(f"{money_charged} грн")
+                if points_used > 0:
+                    refund_parts.append(f"{points_used} балів")
+                self.notification_service.send_appointment_notification(
+                    recipient_id=str(patient_oid),
+                    message=f"Повернено {' та '.join(refund_parts)} за скасований візит",
+                    appointment_id=appointment_id,
+                )
+
+
 
         slot_freed = False
         schedules = self.schedule_repository.get_by_doctor_id(appointment.doctor_id)
