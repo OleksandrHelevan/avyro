@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from typing import List
 from bson import ObjectId
+from typing import Optional
+from pydantic import BaseModel
 
 from config.dependencies import get_admin_request_service, get_specialization_service
 from config.permissions import allow_admin
@@ -15,29 +17,40 @@ router = APIRouter(
     tags=["Admin"]
 )
 
-
 @router.get("/registrations", response_model=List[dict])
 async def get_registration_requests(
+    status: Optional[str] = None,
     service: AdminRequestService = Depends(get_admin_request_service),
     current_admin: dict = Depends(allow_admin)
 ):
-    return [req.to_dict() for req in service.get_all_registration_requests()]
+    status_enum = RequestStatus(status) if status else None
+    return [req.to_dict() for req in service.get_all_registration_requests(status_enum)]
 
 
 @router.get("/schedules", response_model=List[dict])
 async def get_schedule_requests(
+    status: Optional[str] = None,
     service: AdminRequestService = Depends(get_admin_request_service),
     current_admin: dict = Depends(allow_admin)
 ):
-    return [req.to_dict() for req in service.get_all_schedule_requests()]
+    status_enum = RequestStatus(status) if status else None
+    return [req.to_dict() for req in service.get_all_schedule_requests(status_enum)]
 
 
 @router.get("/specializations", response_model=List[dict])
 async def get_specialization_requests(
+    status: Optional[str] = None,
     service: AdminRequestService = Depends(get_admin_request_service),
     current_admin: dict = Depends(allow_admin)
 ):
-    return [req.to_dict() for req in service.get_all_specialization_requests()]
+    status_enum = RequestStatus(status) if status else None
+    return [req.to_dict() for req in service.get_all_specialization_requests(status_enum)]
+
+
+class UpdateRequestStatusBody(BaseModel):
+    status: str
+    comment: Optional[str] = None
+
 
 @router.post("/specialization", status_code=status.HTTP_201_CREATED)
 async def create_specialization_direct(
@@ -46,6 +59,20 @@ async def create_specialization_direct(
     current_admin: dict = Depends(allow_admin)
 ):
     return spec_service.create_specialization_direct(request)
+
+@router.put("/{request_id}/status", status_code=status.HTTP_200_OK)
+async def update_request_status(
+    request_id: str,
+    body: UpdateRequestStatusBody,
+    service: AdminRequestService = Depends(get_admin_request_service),
+    current_admin: dict = Depends(allow_admin)
+):
+    return service.update_request_status(
+        request_id=request_id,
+        new_status=body.status,
+        admin_id=current_admin["sub"],
+        comment=body.comment
+    )
 
 @router.post("/{request_id}/approve-registration", status_code=status.HTTP_200_OK)
 async def approve_doctor_registration(

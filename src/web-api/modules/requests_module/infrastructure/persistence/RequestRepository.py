@@ -41,10 +41,14 @@ class RequestRepository:
 
         return result.modified_count > 0
 
-    def get_requests_by_type(self, request_type: RequestType) -> List[Request]:
+    def get_requests_by_type(self, request_type: RequestType, status: Optional[RequestStatus] = None) -> List[Request]:
+        query = {"type": request_type.value}
+        if status:
+            query["status"] = status.value
+
         cursor = (
             self.collection
-            .find({"type": request_type.value})
+            .find(query)
             .sort("createdAt", -1)
         )
 
