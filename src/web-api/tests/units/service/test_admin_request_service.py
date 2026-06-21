@@ -228,7 +228,7 @@ def test_get_all_registration_requests(admin_service, mock_request_repo):
 
     # Assert
     assert result == mock_requests
-    mock_request_repo.get_requests_by_type.assert_called_once_with(RequestType.DOCTOR_REGISTRATION)
+    mock_request_repo.get_requests_by_type.assert_called_once_with(RequestType.DOCTOR_REGISTRATION, None)
 
 
 def test_get_all_schedule_requests(admin_service, mock_request_repo):
@@ -241,4 +241,4 @@ def test_get_all_schedule_requests(admin_service, mock_request_repo):
 
     # Assert
     assert result == mock_requests
-    mock_request_repo.get_requests_by_type.assert_called_once_with(RequestType.SCHEDULE_CREATION)
+    mock_request_repo.get_requests_by_type.assert_called_once_with(RequestType.SCHEDULE_CREATION, None)

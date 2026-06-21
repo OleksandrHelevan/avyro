@@ -100,11 +100,33 @@ class AdminRequestService:
         except Exception as e:
             raise HTTPException(400, detail=f"Помилка створення спеціалізації: {str(e)}")
 
-    def get_all_registration_requests(self):
-        return self.request_repo.get_requests_by_type(RequestType.DOCTOR_REGISTRATION)
+    def get_all_registration_requests(self, status: RequestStatus = None):
+        return self.request_repo.get_requests_by_type(RequestType.DOCTOR_REGISTRATION, status)
 
-    def get_all_schedule_requests(self):
-        return self.request_repo.get_requests_by_type(RequestType.SCHEDULE_CREATION)
+    def get_all_schedule_requests(self, status: RequestStatus = None):
+        return self.request_repo.get_requests_by_type(RequestType.SCHEDULE_CREATION, status)
 
-    def get_all_specialization_requests(self):
-        return self.request_repo.get_requests_by_type(RequestType.SPECIALIZATION_CREATION)
+    def get_all_specialization_requests(self, status: RequestStatus = None):
+        return self.request_repo.get_requests_by_type(RequestType.SPECIALIZATION_CREATION, status)
+
+    def update_request_status(self, request_id: str, new_status: str, admin_id: str, comment: str = None):
+        req = self.request_repo.get_by_id(ObjectId(request_id))
+        if not req:
+            raise HTTPException(404, "Запит не знайдено")
+
+        try:
+            status_enum = RequestStatus(new_status)
+        except ValueError:
+            raise HTTPException(400, f"Невірний статус: {new_status}. Доступні: {[s.value for s in RequestStatus]}")
+
+        success = self.request_repo.update_status(
+            ObjectId(request_id),
+            status_enum,
+            ObjectId(admin_id),
+            comment
+        )
+        if not success:
+            raise HTTPException(400, "Не вдалося оновити статус")
+
+        updated = self.request_repo.get_by_id(ObjectId(request_id))
+        return updated.to_dict()
