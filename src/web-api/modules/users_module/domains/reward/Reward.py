@@ -20,8 +20,10 @@ class RewardSource(str, Enum):
     LOYALTY_1_YEAR = "LOYALTY_1_YEAR"
     LOYALTY_2_YEARS = "LOYALTY_2_YEARS"
     LOYALTY_6_MONTHS = "LOYALTY_6_MONTHS"
-    APPOINTMENT = "APPOINTMENT"  # ✅ ДОДАНО ДЛЯ MONGODB
-    OTHER = "OTHER"              # ✅ ДОДАНО ДЛЯ MONGODB
+    APPOINTMENT = "APPOINTMENT"
+    DOCTOR_VISIT_PAYOUT = "DOCTOR_VISIT_PAYOUT"
+    REFUND = "REFUND"
+    OTHER = "OTHER"
 
 class Reward:
     def __init__(
@@ -69,7 +71,12 @@ class Reward:
         )
 
     def to_dict(self):
-        source_name = "Нарахування за прийом" if self.source == RewardSource.APPOINTMENT else "Заповнення профілю"
+        source_names = {
+            RewardSource.APPOINTMENT: "Нарахування за прийом",
+            RewardSource.DOCTOR_VISIT_PAYOUT: "Виплата за проведений візит",
+            RewardSource.REFUND: "Повернення за скасований візит",
+        }
+        source_name = source_names.get(self.source, "Заповнення профілю")
         return {
             "patientId": self.patientId,
             "type": self.type.value,
