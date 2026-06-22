@@ -155,6 +155,7 @@ export interface GetNotificationsResponse {
   unread_count: number;
 }
 export interface CreateFeedbackRequest {
-  message: string;
+  message?: string;
   rating: number;
+  source: string;
 }
