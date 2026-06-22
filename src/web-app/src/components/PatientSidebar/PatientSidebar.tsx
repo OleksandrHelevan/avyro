@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { User, Star, Wallet } from "lucide-react";
 import "./PatientSidebar.css";
-import WalletSidebarCard from "../../pages/BalanceSidebar/WalletSidebarCard.tsx";
 
 export default function PatientSidebar() {
   const { pathname } = useLocation();
@@ -25,9 +24,6 @@ export default function PatientSidebar() {
             <span>{label}</span>
           </Link>
         ))}
-
-        {/* ── Inline balance widget ── */}
-        <WalletSidebarCard />
       </div>
     </aside>
   );

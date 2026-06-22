@@ -8,7 +8,6 @@ import { useGetDoctorAppointments } from "../../domains/users/useGetDoctorAppoin
 import { useFinishAppointment } from "../../domains/appointments/useFinishAppointment/useFinishAppointment.ts";
 import { useAddAppointmentNote } from "../../domains/appointments/useAddAppointmentNote/useAddAppointmentNote.ts";
 
-// ── Helpers ──
 const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: any }> = {
   PLANNED:   { label: "Заплановано", className: "status--planned",  Icon: Timer },
   RESERVED:  { label: "Заплановано", className: "status--planned",  Icon: Timer },
@@ -35,7 +34,7 @@ function Avatar({ name, url, size = 48 }: { name?: string; url?: string; size?: 
   );
 }
 
-// ── Main Component ──
+
 export default function DoctorAppointmentsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"ALL" | "PLANNED" | "FINISHED" | "CANCELLED">("ALL");
@@ -69,17 +68,14 @@ export default function DoctorAppointmentsPage() {
       const tA = new Date(a.from).getTime();
       const tB = new Date(b.from).getTime();
 
-      // Для завершених і скасованих: найсвіжіші зверху
       if (filter === "FINISHED" || filter === "CANCELLED") {
         return tB - tA;
       }
 
-      // Для запланованих: найближчі зверху
       if (filter === "PLANNED") {
         return tA - tB;
       }
 
-      // Для "Всі": спочатку майбутні (найближчі зверху), потім минулі (найсвіжіші зверху)
       const isFutureA = tA >= currentTime;
       const isFutureB = tB >= currentTime;
 
@@ -87,9 +83,9 @@ export default function DoctorAppointmentsPage() {
       if (!isFutureA && isFutureB) return 1;
 
       if (isFutureA && isFutureB) {
-        return tA - tB; // Обидва в майбутньому -> найближчий вище
+        return tA - tB;
       } else {
-        return tB - tA; // Обидва в минулому -> найсвіжіший вище
+        return tB - tA;
       }
     });
   }, [rawAppointments, filter, currentTime]);
@@ -133,7 +129,6 @@ export default function DoctorAppointmentsPage() {
   return (
     <div className="dap-page">
 
-      {/* Модалка завершення візиту */}
       {apptToFinish && (
         <div className="cancel-modal-backdrop" onClick={() => !isFinishing && setApptToFinish(null)}>
           <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -177,7 +172,6 @@ export default function DoctorAppointmentsPage() {
         </div>
       )}
 
-      {/* Модалка збереження нотатки */}
       {apptToAddNote && (
         <div className="cancel-modal-backdrop" onClick={() => !isAddingNote && setApptToAddNote(null)}>
           <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>

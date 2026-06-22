@@ -7,8 +7,7 @@ export const useMarkNotificationsRead = () => {
   return useMutation({
     mutationFn: () => userService.markAllNotificationsAsRead(),
     onSuccess: () => {
-      // 🚀 Це змусить сторінку автоматично перезапросити сповіщення
-      // і оновити їх стилі на "прочитані"
+
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });

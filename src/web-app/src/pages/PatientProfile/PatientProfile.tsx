@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { User, Mail, Phone, Camera, Star, Loader2, UploadCloud, LogOut, MapPin, Wallet } from "lucide-react";
+import { User, Mail, Phone, Camera, Loader2, UploadCloud, LogOut, MapPin } from "lucide-react";
 import { useAuth } from "../../context/auth/useAuth.tsx";
 import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import { useUpdatePatient } from "../../domains/users/useUpdatePatient/useUpdatePatient.ts";
@@ -9,8 +9,8 @@ import Loader from "../../components/Loader/Loader.tsx";
 import BadgeUnlockOverlay from "../GamificationPage/components/BadgeUnlockOverlay/BadgeUnlockOverlay.tsx";
 
 import "./PatientProfile.css";
-import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
 import ProfileCompletionBanner from "../ProfileCompletionBanner/ProfileCompletionBanner.tsx";
+import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
 
 export default function PatientProfile() {
   const navigate = useNavigate();
@@ -156,26 +156,10 @@ export default function PatientProfile() {
       <div className="main-content">
         <div className="layout-container">
 
-          {/* ── Sidebar ── */}
-          <aside className="sidebar">
-            <div className="sidebar-menu glass-light slide-in-left">
-              <button className="menu-item active">
-                <User size={18} /> Особисті дані
-              </button>
-              <Link to="/gamification" className="menu-item" style={{ textDecoration: "none", color: "inherit" }}>
-                <Star size={18} strokeWidth={2.5} /> Досягнення та Бали
-              </Link>
-              <Link to="/wallet" className="menu-item" style={{ textDecoration: "none", color: "inherit" }}>
-                <Wallet size={18} /> Баланс
-              </Link>
-              <WalletSidebarCard />
-            </div>
-          </aside>
+          <PatientSidebar />
 
-          {/* ── Main content ── */}
           <main className="profile-content">
 
-            {/* ── Profile completion banner ── */}
             <ProfileCompletionBanner
               profile={{
                 firstName: formData.firstName,
@@ -192,7 +176,6 @@ export default function PatientProfile() {
             </div>
 
             <div className="profile-card glass-light profile-card-centered">
-              {/* ── Avatar section ── */}
               <div className="avatar-section">
                 <div className="avatar-wrapper gradient-ring" onClick={() => fileInputRef.current?.click()}>
                   <div className="avatar-large">
@@ -216,7 +199,6 @@ export default function PatientProfile() {
                 </div>
               </div>
 
-              {/* ── Form ── */}
               <form onSubmit={handleSubmit} className="profile-form">
                 <div className="form-grid">
                   <div className="form-group input-with-icon">

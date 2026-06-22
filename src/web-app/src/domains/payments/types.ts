@@ -2,7 +2,7 @@ export interface PaymentAccount {
   id: string;
   userId: string;
   stripeCustomerId: string;
-  balance: number; // in cents or UAH (depends on backend)
+  balance: number;
   currency: string;
   paymentMethods: PaymentMethod[];
   createdAt: string;
@@ -10,9 +10,9 @@ export interface PaymentAccount {
 
 export interface PaymentMethod {
   id: string;
-  type: string; // "card" | "paypal" | etc.
+  type: string;
   card?: {
-    brand: string;   // "visa" | "mastercard" | ...
+    brand: string;
     last4: string;
     expMonth: number;
     expYear: number;
@@ -20,9 +20,6 @@ export interface PaymentMethod {
   isDefault?: boolean;
 }
 
-// ─── Top Up ────────────────────────────────────────────────────────────────
-
-// ─── Top Up ────────────────────────────────────────────────────────────────
 
 export interface TopUpRequest {
   amount: number;
@@ -35,7 +32,6 @@ export interface TopUpResponse {
   amount_added: number;
   new_balance: number;
 }
-// ─── Create Account ────────────────────────────────────────────────────────
 
 export interface CreateAccountResponse {
   id: string;

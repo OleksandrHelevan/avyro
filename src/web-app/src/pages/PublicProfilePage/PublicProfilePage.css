@@ -1,6 +1,5 @@
-/* ── Page & Background ───────────────────────────────────────────────────── */
 .pub-prof-page {
-  min-height: calc(100vh - 70px); /* Дозволяємо сторінці рости, якщо контенту багато */
+  min-height: calc(100vh - 70px);
   box-sizing: border-box;
   margin-top: 50px;
   position: relative;
@@ -8,21 +7,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px; /* Додаємо відступи зверху і знизу, щоб картка не прилипала до екрана */
+  padding: 40px 20px;
 }
 
 .pub-prof-bg {
-  position: fixed; /* ФІКСУЄМО фон! Він тепер не буде їздити при скролі і не викличе багів */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   z-index: 0;
-  overflow: hidden; /* Обрізає кола ТІЛЬКИ на фоні */
-  pointer-events: none; /* Щоб фон випадково не перекрив кліки */
+  overflow: hidden;
+  pointer-events: none;
 }
 
-/* ... далі залишаються ваші .pub-prof-blob, .blob-1 і т.д. без змін ... */
 
 .pub-prof-blob {
   position: absolute;
@@ -67,14 +65,12 @@
   max-width: 680px;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Трохи зменшили gap, щоб точно все влізло */
+  gap: 20px;
 
-  /* Додаємо обмеження висоти на випадок малих екранів */
   max-height: 100%;
 
 }
 
-/* ── Topbar ──────────────────────────────────────────────────────────────── */
 .pub-prof-back-btn {
   align-self: flex-start;
   display: flex;
@@ -100,7 +96,6 @@
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
 }
 
-/* ── Glass Panel Base ────────────────────────────────────────────────────── */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(24px);
@@ -110,7 +105,6 @@
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
 }
 
-/* ── Main Profile Card ───────────────────────────────────────────────────── */
 .pub-prof-card {
   padding: 40px;
   animation: fade-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -195,7 +189,6 @@
   margin: 32px 0;
 }
 
-/* ── Info Grid ───────────────────────────────────────────────────────────── */
 .pub-prof-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -258,7 +251,6 @@
 }
 .pub-info-val.link:hover { color: #2563eb; }
 
-/* ── Action Card (Doctor Booking CTA) ────────────────────────────────────── */
 .pub-prof-action-card {
   padding: 24px 32px;
   display: flex;
@@ -314,7 +306,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Адаптивність ────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .pub-prof-card { padding: 24px; }
 
@@ -370,7 +361,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 4px solid #7b51b3; /* Акцентна лінія зліва */
+  border-left: 4px solid #7b51b3;
 }
 
 .review-rating {

@@ -2,7 +2,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { CreditCard, RefreshCw, Wallet, ArrowLeft, Calendar, Clock, Coins, Info } from "lucide-react";
 import "./PaymentFailurePage.css";
 
-// ── State passed via navigate(state) or sessionStorage fallback ───────────
 
 export interface PaymentFailureState {
   doctorId?: string;
@@ -24,7 +23,6 @@ export default function PaymentFailurePage() {
   const navigate = useNavigate();
   const location  = useLocation();
 
-  // State can arrive via navigate("/payment-failure", { state: {...} })
   const state = (location.state as PaymentFailureState | null) || {};
 
   const {
@@ -41,7 +39,6 @@ export default function PaymentFailurePage() {
 
   const handleRetry = () => {
     if (doctorId) {
-      // 🚀 ВИПРАВЛЕНО: /doctor/ замість /doctors/
       navigate(`/doctor/${doctorId}`, { state: { prefillSlotId: slotId } });
     } else {
       navigate(-1);
@@ -49,7 +46,6 @@ export default function PaymentFailurePage() {
   };
 
   const handleTopUp = () => {
-    // Pass return context so wallet page can show a banner
     navigate("/wallet?returnTo=booking", {
       state: { doctorId, doctorName, date, amount, slotId, reason },
     });
@@ -57,18 +53,15 @@ export default function PaymentFailurePage() {
 
   return (
     <div className="pf-page">
-      {/* Icon */}
       <div className="pf-icon-ring">
         <CreditCard size={34} />
       </div>
 
-      {/* Title */}
       <div className="pf-heading">
         <h1>Оплата не пройшла</h1>
         <p>На жаль, нам не вдалося провести платіж. Перевірте деталі та спробуйте ще раз.</p>
       </div>
 
-      {/* Visit details card */}
       <div className="pf-detail-card">
         {doctorName && (
           <div className="pf-detail-row">
@@ -94,7 +87,6 @@ export default function PaymentFailurePage() {
         </div>
       </div>
 
-      {/* Top-up banner (only for insufficient funds) */}
       {isInsufficientFunds && (
         <div className="pf-topup-banner">
           <Wallet size={18} className="pf-topup-icon" />
@@ -110,7 +102,6 @@ export default function PaymentFailurePage() {
         </div>
       )}
 
-      {/* Actions */}
       <div className="pf-actions">
         <button className="pf-btn-retry" onClick={handleRetry}>
           <RefreshCw size={16} />

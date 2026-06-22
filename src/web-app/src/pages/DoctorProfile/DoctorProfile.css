@@ -1,4 +1,3 @@
-/* Контейнер для переходу до розкладу */
 .schedule-redirect-card {
 
     display: flex;
@@ -33,7 +32,6 @@
     color: #718096;
 }
 
-/* Стилізація кнопки переходу */
 .btn-redirect-schedule {
     display: flex;
     align-items: center;
@@ -64,7 +62,7 @@
     transform: rotate(15deg) scale(1.1);
 }
 
-/* Адаптивність для мобільних пристроїв */
+
 @media (max-width: 600px) {
     .schedule-redirect-card {
         flex-direction: column;
@@ -78,18 +76,18 @@
     }
 }
 
-/* Контейнер для інпута з іконкою */
+
 .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-/* Стилізація іконки всередині */
+
 .input-icon-svg {
     position: absolute;
     left: 14px;
-    color: #3bceb5; /* Ваш фірмовий колір */
+    color: #3bceb5;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -97,7 +95,7 @@
 .doctor-theme .input-wrapper input,
 .doctor-theme .input-wrapper select {
     width: 100%;
-    padding: 14px 16px 14px 44px !important; /* 44px зліва для іконки */
+    padding: 14px 16px 14px 44px !important;
     border-radius: 14px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.6);
@@ -113,7 +111,6 @@
     box-shadow: 0 0 0 4px rgba(59, 206, 181, 0.1);
 }
 
-/* Сайдбар елементи */
 .menu-item {
 
     display: flex;

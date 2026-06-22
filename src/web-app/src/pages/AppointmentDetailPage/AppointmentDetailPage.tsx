@@ -11,7 +11,6 @@ import "./AppointmentDetailPage.css";
 import { useMemo } from "react";
 import { useAppointment } from "../../domains/appointments/useAppointments/useAppointments.ts";
 
-// ── Status config ─────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: any }> = {
   PLANNED:   { label: "Заплановано", className: "status--reserved",  Icon: Timer },
@@ -20,7 +19,6 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: an
   CANCELLED: { label: "Скасовано",   className: "status--cancelled", Icon: XCircle },
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("uk-UA", {
@@ -44,7 +42,6 @@ function Avatar({ name, url, size = 52 }: { name?: string; url?: string; size?: 
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 
 export default function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -92,17 +89,15 @@ export default function AppointmentDetailPage() {
   ];
   const validPrice = possiblePrices.map(p => Number(p)).find(p => !isNaN(p) && p > 0);
 
-  // ── Routing helpers ───────────────────────────────────────────────────
   const doctorId = appt.doctorId || doctor?._id || doctor?.id;
   const patientId = appt.patientId;
 
-  // Doctor → navigate to patient public profile
-  // Patient → navigate to doctor public profile
+
   const handleViewProfile = () => {
     if (isDoctor && patientId) {
-      navigate(`/patients/${patientId}`);   // adjust to your actual route
+      navigate(`/patients/${patientId}`);
     } else if (isPatient && doctorId) {
-      navigate(`/doctors/${doctorId}`);     // existing DoctorProfilePage route: /doctors/:id
+      navigate(`/doctors/${doctorId}`);
     }
   };
 
@@ -116,7 +111,6 @@ export default function AppointmentDetailPage() {
     <div className="adp-page" style={{ paddingTop: "120px" }}>
       <div className="adp-container">
 
-        {/* ── Topbar ── */}
         <div className="adp-topbar">
           <button className="adp-back" onClick={() => navigate(-1)}>
             <ArrowLeft size={18} /> Назад
@@ -126,10 +120,8 @@ export default function AppointmentDetailPage() {
           </button>
         </div>
 
-        {/* ── UNIFIED CARD ── */}
         <div className="adp-unified-card">
 
-          {/* Header & Status */}
           <div className="adp-unified-header">
             <h2 className="adp-unified-title">Деталі візиту</h2>
             <div className={`adp-status-badge ${statusCfg.className}`}>
@@ -139,7 +131,6 @@ export default function AppointmentDetailPage() {
 
           <div className="adp-divider" />
 
-          {/* Date */}
           <div className="adp-section">
             <div className="adp-section-label"><Calendar size={14} />Дата та час</div>
             <div className="adp-date-main">
@@ -156,7 +147,6 @@ export default function AppointmentDetailPage() {
             </div>
           </div>
 
-          {/* Doctor (visible to patient) */}
           {doctor && (
             <>
               <div className="adp-divider" />
@@ -186,7 +176,6 @@ export default function AppointmentDetailPage() {
             </>
           )}
 
-          {/* Patient (visible to doctor) */}
           {apptData.patient && (
             <>
               <div className="adp-divider" />
@@ -215,7 +204,6 @@ export default function AppointmentDetailPage() {
             </>
           )}
 
-          {/* Note */}
           {appointmentNote && (
             <>
               <div className="adp-divider" />
@@ -226,7 +214,6 @@ export default function AppointmentDetailPage() {
             </>
           )}
 
-          {/* Price */}
           {(validPrice || appt.price != null) && (
             <>
               <div className="adp-divider" />
@@ -244,7 +231,6 @@ export default function AppointmentDetailPage() {
 
         </div>
 
-        {/* ── View profile CTA (fallback if person not embedded) ── */}
         {canViewProfile && !apptData.patient && !apptData.doctor && (
           <button className="adp-view-profile-btn" onClick={handleViewProfile}>
             <ExternalLink size={15} /> {profileLinkLabel}

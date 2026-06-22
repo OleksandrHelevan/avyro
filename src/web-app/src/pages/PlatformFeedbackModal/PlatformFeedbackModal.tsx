@@ -20,7 +20,6 @@ export default function PlatformFeedbackModal({ onClose }: Props) {
       return;
     }
 
-    // Формуємо повідомлення
 
     setIsPending(true);
 

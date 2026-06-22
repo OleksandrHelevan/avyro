@@ -11,7 +11,6 @@ export const useAddAppointmentNote = () => {
     },
     onSuccess: () => {
       toast.success("Нотатку успішно збережено!");
-      // Оновлюємо дані візитів, щоб нова нотатка одразу підтягнулася
       queryClient.invalidateQueries({ queryKey: ["myAppointments"] });
       queryClient.invalidateQueries({ queryKey: ["appointment"] });
     },

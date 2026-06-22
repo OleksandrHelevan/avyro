@@ -30,7 +30,6 @@ export const userService = {
   },
 
   getDoctorById: async (id: string): Promise<GetDoctorResponse> => {
-    // Чистимо ID від випадкових пробілів, які могли потрапити з URL
     const cleanId = id?.trim() || "";
     const response = await userApiClient.getDoctorById(cleanId);
     return (response as any).data ?? response;

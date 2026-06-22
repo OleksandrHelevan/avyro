@@ -5,8 +5,8 @@ import { usePatient } from "../../domains/users/usePatient/usePatient.ts";
 import Loader from "../../components/Loader/Loader.tsx";
 import { REWARD_LEVELS, type RewardLevel } from "../../domains/rewards/rewardsConfig.ts";
 import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
-import RewardBadge, { REWARD_DICTIONARY } from "./components/RewardBadge.tsx"; // Імпортуємо словник
-import BadgeUnlockToast from "./components/BadgeUnlockToast.tsx"; // Імпортуємо тост
+import RewardBadge, { REWARD_DICTIONARY } from "./components/RewardBadge.tsx";
+import BadgeUnlockToast from "./components/BadgeUnlockToast.tsx";
 import toast from "react-hot-toast";
 import "./GamificationPage.css";
 
@@ -14,7 +14,6 @@ export default function GamificationPage() {
   const { userId } = useAuth();
   const { data: patient, isLoading } = usePatient(userId || "");
 
-  // Зберігаємо попередню кількість нагород, щоб відстежити появу нових
   const prevRewardsCount = useRef<number>(0);
 
   const totalPoints = useMemo(() => {
@@ -22,20 +21,16 @@ export default function GamificationPage() {
     return patient.rewards.reduce((sum, item) => sum + item.points, 0);
   }, [patient]);
 
-  // 🚀 ДОДАНО: Слідкуємо за новими нагородами
   useEffect(() => {
     if (patient?.rewards) {
       const currentCount = patient.rewards.length;
 
-      // Якщо кількість нагород збільшилась (і це не перше завантаження)
       if (currentCount > prevRewardsCount.current && prevRewardsCount.current !== 0) {
-        // Знаходимо нові нагороди (припускаємо, що вони додаються в кінець масиву)
         const newRewards = patient.rewards.slice(prevRewardsCount.current);
 
         newRewards.forEach((reward: any) => {
           const config = REWARD_DICTIONARY[reward.source] || { title: "Спеціальний бонус" };
 
-          // Викликаємо кастомний тост
           toast.custom((t) => (
             <BadgeUnlockToast t={t} title={config.title} points={reward.points} />
           ), { duration: 5000 });
@@ -95,7 +90,6 @@ export default function GamificationPage() {
 
           <div className="badges-grid">
             {patient?.rewards && patient.rewards.length > 0 ? (
-              // Сортуємо так, щоб нові нагороди були зверху
               [...patient.rewards].reverse().map((reward, idx) => (
                 <RewardBadge key={reward._id || idx} item={reward} index={idx} />
               ))

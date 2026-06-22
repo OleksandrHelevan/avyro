@@ -12,7 +12,6 @@ export const appointmentsApiClient = {
   getMyPatientAppointments: async () =>
     apiClient.get<AppointmentResponse[]>("/appointments/patient/me"),
 
-  // ── NEW: GET /appointments/{appointment_id} ────────────────────────────
   getAppointmentById: async (id: string) =>
     apiClient.get<AppointmentDetailResponse>(`/appointments/${id}`),
   cancelAppointment: async (id: string, payload: CancelAppointmentRequest) =>

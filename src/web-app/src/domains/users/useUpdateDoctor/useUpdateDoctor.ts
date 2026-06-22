@@ -11,7 +11,6 @@ export const useUpdateDoctor = () => {
       userService.patchDoctor(data),
     onSuccess: (_ ) => {
       toast.success("Профіль успішно оновлено!");
-      // Примусово оновлюємо дані лікаря в кеші після успішного збереження
       queryClient.invalidateQueries({ queryKey: ["doctor"] });
     },
     onError: () => {

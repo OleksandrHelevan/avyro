@@ -4,7 +4,6 @@ import {appointmentsService} from "../service/appointmentsService.ts"; // Ваш
 
 export const useCreateAppointment = () => {
   return useMutation({
-    // 🚀 Використовуємо CreateAppointmentRequest замість локального AppointmentPayload
     mutationFn: (payload: CreateAppointmentRequest) => {
       return appointmentsService.createAppointment(payload);
     },

@@ -34,10 +34,8 @@ export default function LoginPage() {
       try {
         const res = await apiClient.get<any>(`/doctors?email=${encodeURIComponent(savedEmail)}`);
 
-        // 🚀 ФІКС: Витягуємо лікаря з масиву, якщо бекенд повернув масив
         const doctorData = Array.isArray(res.data) ? res.data[0] : (res.data?.items?.[0] || res.data);
 
-        // Перевіряємо різні можливі варіанти статусу PENDING від бекенда
         if (doctorData?.isPending === true || doctorData?.status === "PENDING" || doctorData?.status === "WAITING") {
           navigate("/not-approved");
           return;
@@ -52,12 +50,10 @@ export default function LoginPage() {
     checkDoctorFlow();
   }, [navigate]);
 
-  // 2. ПЕРЕВІРКА ПРИ РУЧНОМУ ВВОДІ (кнопка "Увійти")
   const onSubmit = async (data: LoginRequest) => {
     try {
       const doctorStatusRes = await apiClient.get<any>(`/doctors?email=${encodeURIComponent(data.email)}`);
 
-      // 🚀 ФІКС ТУТ ТАКОЖ: Витягуємо лікаря
       const doctorData = Array.isArray(doctorStatusRes.data) ? doctorStatusRes.data[0] : (doctorStatusRes.data?.items?.[0] || doctorStatusRes.data);
 
       if (doctorData?.isPending === true || doctorData?.status === "PENDING" || doctorData?.status === "WAITING") {
@@ -67,10 +63,8 @@ export default function LoginPage() {
         return;
       }
     } catch (e) {
-      // Ігноруємо (користувач не знайдений у лікарях, мабуть це пацієнт, йдемо логінитись)
     }
 
-    // 3. ЗВИЧАЙНИЙ ЛОГІН
     mutate(data, {
       onSuccess: (response: any) => {
         const token = response?.accessToken || response?.token;

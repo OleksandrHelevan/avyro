@@ -7,7 +7,6 @@ import Loader from "../../components/Loader/Loader.tsx";
 import "./PublicProfilePage.css";
 import DoctorFeedbackForm from "../DoctorFeedbackForm/DoctorFeedbackForm.tsx";
 
-// 🚀 Імпортуємо новий хук
 import { useGetDoctorReviews } from "../../domains/users/useGetDoctorReviews/useGetDoctorReviews.ts";
 
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=User&background=f1f5f9&color=475569&size=256";
@@ -23,7 +22,6 @@ export default function PublicProfilePage() {
   const { data: docData, isLoading: isLoadingDoc } = useDoctor(isViewingDoctor ? id || "" : "");
   const { data: patData, isLoading: isLoadingPat } = usePatient(!isViewingDoctor ? id || "" : "");
 
-  // 🚀 Отримуємо відгуки (тільки якщо ми дивимось лікаря)
   const { data: reviews = [], isLoading: isLoadingReviews } = useGetDoctorReviews(isViewingDoctor ? id || "" : "");
 
   const isLoading = isLoadingDoc || isLoadingPat;
@@ -147,7 +145,6 @@ export default function PublicProfilePage() {
           </div>
         )}
 
-        {/* 🚀 ВІДГУКИ ЛІКАРЯ ВІДОБРАЖАЮТЬСЯ ТУТ */}
         {isViewingDoctor && (
           <div className="doctor-reviews-section fade-up">
             <h3 className="reviews-section-title">Відгуки пацієнтів</h3>

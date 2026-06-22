@@ -84,9 +84,9 @@ export interface GetDoctorResponse {
   createdAt: Date;
   lastLoginAt: Date;
   specializationName: string;
-  schedule: any[]; // Додайте це поле тут
-  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна за слот (глобальна для лікаря)
-  price?: number;        // 🚀 ДОДАНО: Залишив для зворотної сумісності (про всяк випадок)
+  schedule: any[];
+  pricePerSlot?: number;
+  price?: number;
 }
 
 export interface UpdateDoctorProfileRequest {
@@ -114,7 +114,7 @@ export interface RepeatingConfig {
   endTime: string;
   slotDuration: number;
   timezone: string;
-  pricePerSlot?: number; // 🚀 ДОДАНО: Ціна всередині конфігу
+  pricePerSlot?: number;
 }
 
 export interface ScheduleRequest {
@@ -123,7 +123,7 @@ export interface ScheduleRequest {
   year: number;
   title: string;
   isRepeated: boolean;
-  pricePerSlot: number;  // 🚀 ДОДАНО: Обов'язкова ціна на верхньому рівні запиту
+  pricePerSlot: number;
   repeating?: RepeatingConfig;
 }
 
@@ -156,5 +156,5 @@ export interface GetNotificationsResponse {
 }
 export interface CreateFeedbackRequest {
   message: string;
-  rating: number; // від 1 до 5
+  rating: number;
 }

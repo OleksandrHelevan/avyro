@@ -11,7 +11,7 @@ const RegistrationRequestCard = ({
                                    request,
                                    onApprove,
                                    isApproving,
-                                   onRejectClick, // 🚀 Змінено: тепер просто викликає відкриття модалки
+                                   onRejectClick,
                                    isRejecting
                                  }: {
   request: AdminRegistration;
@@ -45,7 +45,6 @@ const RegistrationRequestCard = ({
       </div>
 
       <div className="req-actions">
-        {/* КНОПКА ПІДТВЕРДЖЕННЯ */}
         <button
           className="req-btn approve"
           onClick={() => onApprove(request._id)}
@@ -56,7 +55,6 @@ const RegistrationRequestCard = ({
           {isApproving ? "Обробка..." : "Прийняти"}
         </button>
 
-        {/* КНОПКА ВІДХИЛЕННЯ */}
         <button
           className="req-btn reject"
           onClick={() => onRejectClick(request._id)}
@@ -77,7 +75,6 @@ export default function AdminRequests() {
   const { mutate: approveRegistration, isPending: isApproving } = useApproveRegistration();
   const { mutate: rejectRegistration, isPending: isRejecting } = useRejectRegistration();
 
-  // 🚀 ДОДАНО: Стейт для модалки відхилення
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectComment, setRejectComment] = useState("");
 
@@ -126,7 +123,6 @@ export default function AdminRequests() {
     <div className="req-page">
       <h2>Нові заявки на реєстрацію ({pendingRequests.length})</h2>
 
-      {/* 🚀 ДОДАНО: Модальне вікно відхилення */}
       {rejectModalId && (
         <div className="admin-modal-backdrop" onClick={!isRejecting ? handleCloseRejectModal : undefined}>
           <div className="admin-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -180,7 +176,7 @@ export default function AdminRequests() {
               request={req}
               onApprove={approveRegistration}
               isApproving={isApproving}
-              onRejectClick={handleOpenRejectModal} // 🚀 Відкриває модалку
+              onRejectClick={handleOpenRejectModal}
               isRejecting={isRejecting}
             />
           ))}

@@ -14,7 +14,6 @@ import { PAYMENT_ACCOUNT_QUERY_KEY } from "../../domains/payments/usePaymentAcco
 import { useTopUpBalance } from "../../domains/payments/useTopUpBalance/useTopUpBalance.ts";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
-// ─── Inner form (needs Elements context) ──────────────────────────────────
 
 interface CheckoutFormProps {
   amount: number;
@@ -42,7 +41,6 @@ function CheckoutForm({ amount, onSuccess, onCancel }: CheckoutFormProps) {
       return;
     }
 
-    // 1. Створюємо PaymentMethod у Stripe напряму з фронта
     const { error, paymentMethod } = await stripe.createPaymentMethod({
       type: "card",
       card: cardElement,
@@ -54,10 +52,9 @@ function CheckoutForm({ amount, onSuccess, onCancel }: CheckoutFormProps) {
       return;
     }
 
-    // 2. Відправляємо суму та ID методу на наш бекенд
     initiateTopUp(
       {
-        amount: amount * 100, // 🚀 ЗМІНА 1: Множимо на 100, щоб Stripe отримав копійки, а не гривні
+        amount: amount * 100,
         payment_method_id: paymentMethod.id
       },
       {
@@ -130,7 +127,7 @@ function CheckoutForm({ amount, onSuccess, onCancel }: CheckoutFormProps) {
   );
 }
 
-// ─── Amount Step ───────────────────────────────────────────────────────────
+
 
 interface AmountStepProps {
   onConfirm: (amount: number) => void;
@@ -149,7 +146,6 @@ function AmountStep({ onConfirm, onCancel }: AmountStepProps) {
       toast.error("Мінімальна сума: 10 ₴");
       return;
     }
-    // Тепер ми не викликаємо бекенд тут, а просто зберігаємо суму і йдемо далі
     onConfirm(num);
   };
 
@@ -195,7 +191,6 @@ function AmountStep({ onConfirm, onCancel }: AmountStepProps) {
   );
 }
 
-// ─── Main Modal ────────────────────────────────────────────────────────────
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -208,7 +203,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
   const handleAmountConfirm = (amount: number) => {
     setSelectedAmount(amount);
-    setStep("payment"); // Одразу перемикаємо на форму картки
+    setStep("payment");
   };
 
   const handleClose = () => {

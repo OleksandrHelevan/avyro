@@ -6,13 +6,11 @@ export const useCancelAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // 🚀 Використовуємо наш сервіс
     mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
       return await appointmentsService.cancelAppointment(id, { reason });
     },
     onSuccess: () => {
       toast.success("Візит успішно скасовано");
-      // Оновлюємо список візитів, щоб UI миттєво зреагував
       queryClient.invalidateQueries({ queryKey: ["myAppointments"] });
     },
     onError: (err: any) => {

@@ -15,7 +15,6 @@ export default function PatientAppointmentsPage() {
 
   const [filter, setFilter] = useState<"ALL" | "PLANNED" | "FINISHED" | "CANCELLED">("ALL");
 
-  // Стейт для модалки скасування
   const [apptToCancel, setApptToCancel] = useState<AppointmentInfo | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
@@ -54,7 +53,6 @@ export default function PatientAppointmentsPage() {
     });
   }, [appointments, filter]);
 
-  // Обробник підтвердження скасування
   const handleConfirmCancel = () => {
     if (!apptToCancel) return;
     const apptId = apptToCancel._id || apptToCancel.id;
@@ -75,7 +73,6 @@ export default function PatientAppointmentsPage() {
 
   return (
     <div className="aero-viewport light-theme appointments-page">
-      {/* 🚀 ОНОВЛЕНА: Модалка скасування з класами */}
       {apptToCancel && (
         <div className="cancel-modal-backdrop" onClick={() => !isCanceling && setApptToCancel(null)}>
           <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>
