@@ -5,7 +5,7 @@ import type {
   GetDoctorResponse, UpdateDoctorProfileRequest, UpdateProfileResponse,
   ScheduleRequest, ScheduleResponse,
   DoctorListItem, DoctorApprovalResponse,
-  GetNotificationsResponse, CreateFeedbackRequest // 🚀 ДОДАНО
+  GetNotificationsResponse, CreateFeedbackRequest
 } from "../types.ts";
 
 export const userApiClient = {
@@ -34,6 +34,10 @@ export const userApiClient = {
 
   requestSchedule: async (request: ScheduleRequest) =>
     apiClient.post<ScheduleResponse>('/schedules/request', request),
+
+  // 🚀 ДОДАНО: Метод для оновлення існуючого розкладу (PUT)
+  updateSchedule: async (scheduleId: string, request: ScheduleRequest) =>
+    apiClient.put<ScheduleResponse>(`/schedules/${scheduleId}`, request),
 
   checkDoctorStatus: async (email: string) => {
     return apiClient.get<DoctorApprovalResponse>(`/doctors?email=${encodeURIComponent(email)}`);
