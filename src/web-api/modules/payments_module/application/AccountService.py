@@ -166,39 +166,43 @@ class AccountService:
 
         if payment_method == "POINTS":
             if points_to_use is None:
-                actual_points_used = min(real_points_balance, int(amount))
+                # Ділимо amount на 100, щоб порівнювати бали з балами
+                actual_points_used = min(real_points_balance, int(amount / 100))
             else:
-                actual_points_used = min(points_to_use, real_points_balance, int(amount))
+                actual_points_used = min(points_to_use, real_points_balance, int(amount / 100))
 
-            if actual_points_used < amount:
+            # Множимо використані бали на 100 для перевірки з копійками
+            if (actual_points_used * 100) < amount:
                 raise ValueError(
-                    f"Недостатньо балів. Є: {real_points_balance}, потрібно: {int(amount)}"
+                    f"Недостатньо балів. Є: {real_points_balance}, потрібно: {int(amount / 100)}"
                 )
             actual_money_charged = 0.0
 
         elif payment_method == "MIXED":
             if points_to_use is None:
-                actual_points_used = min(real_points_balance, int(amount))
+                actual_points_used = min(real_points_balance, int(amount / 100))
             else:
-                actual_points_used = min(points_to_use, real_points_balance, int(amount))
+                actual_points_used = min(points_to_use, real_points_balance, int(amount / 100))
 
-            remaining_after_points = round(amount - actual_points_used, 2)
+            # ВИПРАВЛЕНА МАТЕМАТИКА: Переводимо бали в копійки перед відніманням
+            remaining_after_points = round(amount - (actual_points_used * 100), 2)
 
             if money_to_use is None:
                 actual_money_charged = remaining_after_points
             else:
                 actual_money_charged = min(money_to_use, remaining_after_points)
 
-            if round(actual_points_used + actual_money_charged, 2) < amount:
+            # Перевіряємо, чи покриває мікс повну вартість (все в копійках)
+            if round((actual_points_used * 100) + actual_money_charged, 2) < amount:
                 raise ValueError(
                     f"Недостатньо коштів. Балів: {actual_points_used}, "
-                    f"грошей: {actual_money_charged}, потрібно покрити: {amount}"
+                    f"грошей: {actual_money_charged / 100} грн, потрібно покрити: {amount / 100} грн"
                 )
 
             if account.balance < actual_money_charged:
                 raise ValueError(
                     f"Недостатньо коштів на балансі. "
-                    f"Є: {account.balance} грн, потрібно: {actual_money_charged} грн"
+                    f"Є: {account.balance / 100} грн, потрібно: {actual_money_charged / 100} грн"
                 )
 
         elif payment_method == "MONEY":
@@ -208,13 +212,13 @@ class AccountService:
                 actual_money_charged = money_to_use
                 if actual_money_charged < amount:
                     raise ValueError(
-                        f"Вказана сума {actual_money_charged} грн менша за вартість {amount} грн"
+                        f"Вказана сума {actual_money_charged / 100} грн менша за вартість {amount / 100} грн"
                     )
 
             if account.balance < actual_money_charged:
                 raise ValueError(
-                    f"Недостатньо коштів. Баланс: {account.balance} грн, "
-                    f"потрібно: {actual_money_charged} грн"
+                    f"Недостатньо коштів. Баланс: {account.balance / 100} грн, "
+                    f"потрібно: {actual_money_charged / 100} грн"
                 )
             actual_points_used = 0
 

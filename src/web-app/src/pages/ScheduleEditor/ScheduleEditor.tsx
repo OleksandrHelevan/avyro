@@ -5,10 +5,10 @@ import { Calendar, Clock, ChevronLeft, Save, CalendarCheck, Edit3 } from "lucide
 
 import { useRequestSchedule } from "../../domains/users/useRequestSchedule/useRequestSchedule";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
+// 🚀 ДОДАНО ІМПОРТ ХУКА АВТОРИЗАЦІЇ
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import './ScheduleEditor.css';
 import Loader from "../../components/Loader/Loader.tsx";
-
-const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
 const DAYS_OF_WEEK = [
   { id: 1, label: "Пн" }, { id: 2, label: "Вт" }, { id: 3, label: "Ср" },
@@ -26,7 +26,11 @@ const getDaysNames = (daysArray: number[]) => {
 export default function ScheduleEditor() {
   const navigate = useNavigate();
 
-  const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
+  // 🚀 ОТРИМУЄМО АКТУАЛЬНИЙ ID З КОНТЕКСТУ
+  const { userId } = useAuth();
+
+  // Передаємо userId у хук
+  const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
   const { mutate: requestSchedule, isPending } = useRequestSchedule();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -88,10 +92,11 @@ export default function ScheduleEditor() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return toast.error("Помилка авторизації: ID лікаря не знайдено");
     if (selectedDays.length === 0) return toast.error("Оберіть робочі дні");
 
     const payload = {
-      doctorId: CURRENT_USER_ID,
+      doctorId: userId, // 🚀 ВИКОРИСТОВУЄМО АКТУАЛЬНИЙ ID ТУТ
       month: params.month,
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
@@ -111,6 +116,9 @@ export default function ScheduleEditor() {
       onSuccess: () => {
         setIsEditing(false);
       },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.detail || "Помилка при збереженні графіка");
+      }
     });
   };
 

@@ -210,16 +210,6 @@
   box-shadow: 0 8px 20px rgba(114, 86, 161, 0.3);
 }
 
-@media (max-width: 768px) {
-  .appt-main-info {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-text-group h1 {
-    font-size: 2rem;
-  }
-}
 .patient-filters {
   display: flex;
   gap: 8px;
@@ -228,6 +218,7 @@
   padding-bottom: 4px;
   scrollbar-width: none;
 }
+
 .patient-filters::-webkit-scrollbar {
   display: none;
 }
@@ -257,6 +248,8 @@
   border-color: #7b51b3;
   box-shadow: 0 4px 12px rgba(123, 81, 179, 0.2);
 }
+
+/* МОДАЛЬНЕ ВІКНО СКАСУВАННЯ / ДІЙ */
 .cancel-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -334,7 +327,8 @@
 }
 
 .cancel-textarea {
-  width: 90%;
+  width: 100%; /* Змінено з 90% для правильного центрування */
+  box-sizing: border-box; /* Враховує падінги у загальній ширині */
   padding: 14px;
   border-radius: 16px;
   border: 1.5px solid #e2e8f0;
@@ -408,6 +402,73 @@
   opacity: 0.7;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.dap-cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ef4444;
+  background-color: transparent;
+  border: 1px solid #fee2e2;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.dap-cancel-btn:hover {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.dap-cancel-btn:active {
+  transform: scale(0.98);
+}
+
+.dap-card-bottom div[style*="display: flex"],
+.dap-card-bottom div {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.dap-add-note-btn,
+.dap-quick-finish-btn,
+.dap-action-btn {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .appt-main-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-text-group h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .dap-card-bottom div[style*="display: flex"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100%;
+  }
+
+  .dap-add-note-btn,
+  .dap-quick-finish-btn,
+  .dap-cancel-btn,
+  .dap-action-btn {
+    justify-content: center !important;
+    width: 100% !important;
+  }
 }
 
 @keyframes fadeIn {

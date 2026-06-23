@@ -56,11 +56,11 @@ class RewardRepository:
             patientId=patient_id,
             type=RewardType.SPEND,
             points=-points,
-            source=RewardSource.APPOINTMENT_PAYMENT,
+            # Використовуємо дозволене базою значення (APPOINTMENT або OTHER)
+            source=RewardSource.APPOINTMENT,
             description=description
         )
         self.create(reward)
-
     def has_bonus(self, patient_id: ObjectId, source: str) -> bool:
         return self.collection.find_one({
             "patientId": patient_id,

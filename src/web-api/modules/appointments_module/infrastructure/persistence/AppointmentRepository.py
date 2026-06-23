@@ -3,7 +3,7 @@ from bson import ObjectId
 from pymongo.collection import Collection
 from modules.appointments_module.domains.appointment.Appointment import Appointment
 from datetime import datetime
-
+import json
 
 class AppointmentRepository:
     def __init__(self, collection: Collection):
@@ -82,21 +82,27 @@ class AppointmentRepository:
         return result.deleted_count > 0
 
     def add_note(self, appointment_id: ObjectId, note: dict) -> bool:
-        self.collection.update_one(
-            {
-                "_id": appointment_id,
-                "$or": [
-                    {"notes": {"$exists": False}},
-                    {"notes": None}
-                ]
-            },
-            {"$set": {"notes": []}}
-        )
+        doc = self.collection.find_one({"_id": appointment_id})
+        if not doc:
+            return False
+
+        # Отримуємо існуючий список з рядка або створюємо порожній список
+        raw_notes = doc.get("notes")
+        if isinstance(raw_notes, str):
+            current_notes = json.loads(raw_notes)
+        else:
+            current_notes = []
+
+        current_notes.append(note)
+
+        # Зберігаємо назад у базу як РЯДОК (String), який любить ваша валідація
         result = self.collection.update_one(
             {"_id": appointment_id},
             {
-                "$push": {"notes": note},
-                "$set": {"updatedAt": datetime.utcnow()}
+                "$set": {
+                    "notes": json.dumps(current_notes, default=str),
+                    "updatedAt": datetime.utcnow()
+                }
             }
         )
         return result.modified_count > 0
