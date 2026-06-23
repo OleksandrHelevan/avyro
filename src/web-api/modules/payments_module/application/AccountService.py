@@ -14,9 +14,10 @@ COMMISSION_RATE = 0.025  # 2.5%
 
 
 class AccountService:
-    def __init__(self, account_repo: AccountRepository, stripe_service: StripeService):
+    def __init__(self, account_repo: AccountRepository, stripe_service: StripeService, reward_repository=None):
         self.account_repo = account_repo
         self.stripe_service = stripe_service
+        self.reward_repository = reward_repository
 
     async def get_or_create_account(self, user_id: str, email: str, name: str) -> Account:
         oid = ObjectId(user_id)
@@ -144,7 +145,7 @@ class AccountService:
         appointment_id: str,
         amount: float,
         doctor_name: str,
-        points_available: int,
+        points_available: int,  # залишається для сумісності, але більше не довіряємо
         payment_method: str = "MONEY",
         points_to_use: Optional[int] = None,
         money_to_use: Optional[float] = None,
@@ -154,26 +155,32 @@ class AccountService:
         if not account:
             raise ValueError("Платіжний акаунт не знайдено. Створіть акаунт.")
 
+        # Завжди беремо реальний баланс балів з БД, ігноруємо points_available ззовні
+        if self.reward_repository and payment_method in ("POINTS", "MIXED"):
+            real_points_balance = self.reward_repository.get_total_points(oid)
+        else:
+            real_points_balance = points_available
+
         actual_points_used = 0
         actual_money_charged = 0.0
 
         if payment_method == "POINTS":
             if points_to_use is None:
-                actual_points_used = min(points_available, int(amount))
+                actual_points_used = min(real_points_balance, int(amount))
             else:
-                actual_points_used = min(points_to_use, points_available, int(amount))
+                actual_points_used = min(points_to_use, real_points_balance, int(amount))
 
             if actual_points_used < amount:
                 raise ValueError(
-                    f"Недостатньо балів. Є: {points_available}, потрібно: {int(amount)}"
+                    f"Недостатньо балів. Є: {real_points_balance}, потрібно: {int(amount)}"
                 )
             actual_money_charged = 0.0
 
         elif payment_method == "MIXED":
             if points_to_use is None:
-                actual_points_used = min(points_available, int(amount))
+                actual_points_used = min(real_points_balance, int(amount))
             else:
-                actual_points_used = min(points_to_use, points_available, int(amount))
+                actual_points_used = min(points_to_use, real_points_balance, int(amount))
 
             remaining_after_points = round(amount - actual_points_used, 2)
 
