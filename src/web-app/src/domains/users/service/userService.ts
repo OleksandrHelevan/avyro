@@ -46,6 +46,11 @@ export const userService = {
     return userApiClient.requestSchedule(request);
   },
 
+  // 🚀 ДОДАНО: Сервіс для оновлення розкладу
+  updateSchedule: async (scheduleId: string, request: ScheduleRequest): Promise<ScheduleResponse> => {
+    return userApiClient.updateSchedule(scheduleId, request);
+  },
+
   checkDoctorStatus: async (email: string): Promise<DoctorApprovalResponse> => {
     return userApiClient.checkDoctorStatus(email);
   },
