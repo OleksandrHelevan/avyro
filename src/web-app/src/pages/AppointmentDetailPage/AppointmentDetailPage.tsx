@@ -91,7 +91,17 @@ export default function AppointmentDetailPage() {
 
   const doctorId = appt.doctorId || doctor?._id || doctor?.id;
   const patientId = appt.patientId;
+  const rawPrice = useMemo(() => {
+    const possiblePrices = [
+      apptData.finalPrice, apptData.basePrice, apptData.price,
+      apptData.payload?.price, apptData.payload?.pricePerSlot,
+      doctor?.price, doctor?.pricePerSlot, doctor?.consultationPrice,
+    ];
+    return possiblePrices.map(p => Number(p)).find(p => !isNaN(p) && p > 0);
+  }, [apptData, doctor]);
 
+  // 2. Рахуємо ціну в гривнях (ділимо на 100)
+  const displayPrice = rawPrice ? (rawPrice / 100).toFixed(2) : null;
 
   const handleViewProfile = () => {
     if (isDoctor && patientId) {
@@ -106,7 +116,7 @@ export default function AppointmentDetailPage() {
     : "Профіль лікаря";
 
   const canViewProfile = (isDoctor && !!patientId) || (isPatient && !!doctorId);
-
+  const allNotes = Array.isArray(apptData.notes) ? apptData.notes : [];
   return (
     <div className="adp-page" style={{ paddingTop: "120px" }}>
       <div className="adp-container">
@@ -213,14 +223,38 @@ export default function AppointmentDetailPage() {
               </div>
             </>
           )}
-
+          {allNotes.length > 0 && (
+            <>
+              <div className="adp-divider" />
+              <div className="adp-section">
+                <div className="adp-section-label">
+                  <MessageSquare size={14} /> Нотатки та записи
+                </div>
+                <div className="adp-notes-list">
+                  {allNotes.map((note: any, index: number) => (
+                    <div key={index} className={`adp-note-item adp-note--${note.source?.toLowerCase()}`}>
+                      <div className="adp-note-header">
+                        <span className="adp-note-source">{note.source === "DOCTOR" ? "Лікар" : "Пацієнт"}</span>
+                        <span className="adp-note-date">
+                  {new Date(note.createdAt).toLocaleString("uk-UA", {
+                    day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+                  })}
+                </span>
+                      </div>
+                      <div className="adp-note-message">{note.message}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
           {(validPrice || appt.price != null) && (
             <>
               <div className="adp-divider" />
               <div className="adp-section adp-price-section">
                 <div className="adp-section-label"><Coins size={14} />Вартість</div>
                 <div className="adp-price-row">
-                  <div className="adp-price-val">{validPrice ?? appt.price} ₴</div>
+                  <div className="adp-price-val">{displayPrice} ₴</div>
                   {appt.status === "FINISHED" && (
                     <div className="adp-paid-badge"><CheckCircle2 size={14} />Сплачено</div>
                   )}

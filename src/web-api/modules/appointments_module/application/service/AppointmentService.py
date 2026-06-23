@@ -87,8 +87,7 @@ class AppointmentService:
             base_price=price,
             discount=dto.discount,
             is_discount_used=dto.is_discount_used,
-            final_price=round(final_price, 2),
-            notes=[]
+            final_price=round(final_price, 2)
         )
         created = self.appointment_repository.create(appointment)
 
@@ -139,8 +138,8 @@ class AppointmentService:
                     doctor_name=str(doctor_oid),
                     points_available=points_available,
                     payment_method=getattr(dto, "payment_method", "MONEY"),
-                    points_to_use=getattr(dto, "points_to_use", None),
-                    money_to_use=getattr(dto, "money_to_use", None),
+                    points_to_use=getattr(dto, "pointsAmount", None), # ЗМІНЕНО НАЗВУ
+                    money_to_use=getattr(dto, "moneyAmount", None),   # ЗМІНЕНО НАЗВУ
                 )
 
                 if self.reward_repository and payment.get("points_used", 0) > 0:

@@ -13,7 +13,6 @@ from modules.appointments_module.application.service.AppointmentService import A
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
-
 class BookAppointmentRequest(BaseModel):
     doctorId: str
     slotId: str
@@ -21,9 +20,8 @@ class BookAppointmentRequest(BaseModel):
     is_discount_used: bool = False
     note: Optional[str] = None
     payment_method: str = "MONEY"
-    points_to_use: Optional[int] = None
-    money_to_use: Optional[float] = None
-
+    pointsAmount: Optional[int] = None   # ЗМІНЕНО НАЗВУ
+    moneyAmount: Optional[float] = None
 
 
 class AddNoteRequest(BaseModel):

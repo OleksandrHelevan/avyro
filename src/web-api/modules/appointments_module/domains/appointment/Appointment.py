@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import Optional, List
 from bson import ObjectId
@@ -74,16 +75,23 @@ class Appointment(BaseModel):
             "invoiceId": self.invoice_id,
             "pointsUsed": self.points_used,
             "moneyCharged": self.money_charged,
-            "notes": [
+        }
+
+        # МАСКУВАННЯ: перетворюємо список на JSON-рядок, щоб задовольнити вимоги БД (String)
+        if self.notes:
+            notes_list = [
                 {
                     "source": n.source.value,
                     "message": n.message,
                     "type": n.type.value,
-                    "createdAt": n.created_at,
+                    "createdAt": n.created_at.isoformat() if isinstance(n.created_at, datetime) else n.created_at,
                 }
                 for n in self.notes
-            ],
-        }
+            ]
+            data["notes"] = json.dumps(notes_list)
+        else:
+            data["notes"] = None
+
         if self.id:
             data["_id"] = self.id
         return data
@@ -92,17 +100,23 @@ class Appointment(BaseModel):
     def from_dict(data: dict) -> Optional["Appointment"]:
         if not data:
             return None
+
+        # РОЗПАКОВКА: читаємо рядок з бази і перетворюємо назад у список об'єктів
+        raw_notes = data.get("notes")
         notes = []
-        for n in data.get("notes") or []:
+        if isinstance(raw_notes, str):
             try:
-                notes.append(AppointmentNote(
-                    source=NoteSource(n.get("source", "PATIENT")),
-                    message=n.get("message", ""),
-                    type=NoteType(n.get("type", "SPECIFICATION")),
-                    created_at=n.get("createdAt", datetime.now(timezone.utc)),
-                ))
+                parsed_notes = json.loads(raw_notes)
+                for n in parsed_notes:
+                    notes.append(AppointmentNote(
+                        source=NoteSource(n.get("source", "PATIENT")),
+                        message=n.get("message", ""),
+                        type=NoteType(n.get("type", "SPECIFICATION")),
+                        created_at=datetime.fromisoformat(n.get("createdAt")) if n.get("createdAt") else datetime.now(timezone.utc),
+                    ))
             except Exception:
                 pass
+
         return Appointment(
             id=data.get("_id"),
             patient_id=data.get("patientId"),

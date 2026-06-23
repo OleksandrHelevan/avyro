@@ -4,13 +4,15 @@ import {
   Loader2, Plus, ShieldCheck
 } from "lucide-react";
 import TopUpModal from "../../components/WalletModal/TopUpModal.tsx";
-
 import "./WalletPage.css";
-import {usePaymentAccount} from "../../domains/payments/usePaymentAccount/usePaymentAccount.ts";
-import {useCreatePaymentAccount} from "../../domains/payments/useCreatePaymentAccount/useCreatePaymentAccount.ts";
+import { usePaymentAccount } from "../../domains/payments/usePaymentAccount/usePaymentAccount.ts";
+import { useCreatePaymentAccount } from "../../domains/payments/useCreatePaymentAccount/useCreatePaymentAccount.ts";
 import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar.tsx";
+import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
+import { useAuth } from "../../context/auth/useAuth.tsx";
 
 export default function WalletPage() {
+  const { isDoctor } = useAuth();
   const { data: account, isLoading, isError, error, refetch, isFetching } = usePaymentAccount();
   const { mutate: createAccount, isPending: isCreating } = useCreatePaymentAccount();
   const [showTopUp, setShowTopUp] = useState(false);
@@ -21,13 +23,12 @@ export default function WalletPage() {
   const balance = account ? (account.balance / 100).toFixed(2) : "0.00";
   const currency = account?.currency?.toUpperCase() || "UAH";
 
-
   return (
     <div className="aero-viewport light-theme" style={{ height: "calc(100vh - 70px)", overflow: "hidden" }}>
       <div className="main-content" style={{ height: "100%", position: "relative", zIndex: 1 }}>
         <div className="layout-container" style={{ height: "100%", display: "flex" }}>
 
-          <DoctorSidebar />
+          {isDoctor ? <DoctorSidebar /> : <PatientSidebar />}
 
           <main className="profile-content" style={{ flex: 1, overflowY: "auto", paddingBottom: "40px" }}>
             <div className="wallet-page__header">
@@ -72,7 +73,6 @@ export default function WalletPage() {
                 <div className="balance-card">
                   <div className="balance-card__bg" />
                   <div className="balance-card__inner">
-
                     <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", flexWrap: "wrap" }}>
                       <div>
                         <div className="balance-card__label">Поточний баланс</div>
@@ -81,14 +81,7 @@ export default function WalletPage() {
                           <span className="balance-currency">{currency}</span>
                         </div>
                       </div>
-
-                      <div>
-
-
-                      </div>
                     </div>
-
-
                   </div>
                   <button className="balance-card__topup" onClick={() => setShowTopUp(true)}>
                     <ArrowUpCircle size={18} /> Поповнити
