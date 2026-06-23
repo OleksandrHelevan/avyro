@@ -10,7 +10,6 @@ import type {
 
 export const adminService = {
 
-  /* ===== REGISTRATIONS ===== */
   getAdminRegistrations: async (): Promise<AdminRegistration[]> => {
     return adminApiClient.getAdminRegistrations();
   },
@@ -28,7 +27,6 @@ export const adminService = {
     return adminApiClient.rejectRegistration(requestId, comment);
   },
 
-  /* ===== SCHEDULES ===== */
   getAdminSchedules: async () => {
     return adminApiClient.getAdminSchedules();
   },
@@ -41,12 +39,10 @@ export const adminService = {
     return adminApiClient.rejectSchedule(scheduleId, comment);
   },
 
-  /* ===== SPECIALIZATIONS ===== */
   getAdminSpecializations: async () => {
     return adminApiClient.getAdminSpecializations();
   },
 
-  // 🚀 ОНОВЛЕНО: Додали description у тип data
   createSpecializationDirect: async (data: { name: string; description?: string }) => {
     return adminApiClient.createSpecializationDirect(data);
   },
@@ -54,14 +50,12 @@ export const adminService = {
   approveSpecialization: async (requestId: string) => {
     return adminApiClient.approveSpecialization(requestId);
   },
-  /* ===== NOTIFICATIONS ===== */
   sendNotification: async (
     data: SendNotificationRequest
   ): Promise<SendNotificationResponse> => {
     return adminApiClient.sendNotification(data);
   },
 
-  /* ===== FEEDBACK ===== */
   getAllFeedbacks: async (): Promise<AdminFeedback[]> => {
     return adminApiClient.getAllFeedbacks();
   },

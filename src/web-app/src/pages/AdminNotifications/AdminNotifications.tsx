@@ -20,19 +20,15 @@ export default function AdminSpecializations() {
     },
   });
 
-  // Пряме створення спеціалізації адміном
   const { mutate: createDirect, isPending: isCreating } = useCreateSpecializationDirect();
 
-  // Отримання запропонованих спеціалізацій
   const { data: proposedRequests, isLoading: isFetchingRequests } = useQuery({
     queryKey: ["adminSpecializations"],
     queryFn: () => adminService.getAdminSpecializations(),
   });
 
-  // Отримання всіх існуючих спеціалізацій
   const { data: allSpecializations, isLoading: isFetchingSpecs } = useSpecializations();
 
-  // Схвалення
   const { mutate: approveSpec, isPending: isApproving } = useMutation({
     mutationFn: (requestId: string) => adminService.approveSpecialization(requestId),
     onSuccess: () => {
@@ -43,7 +39,6 @@ export default function AdminSpecializations() {
     onError: () => toast.error("Помилка при схваленні спеціалізації"),
   });
 
-  // Відхилення
   const { mutate: rejectSpec, isPending: isRejecting } = useMutation({
     mutationFn: (requestId: string) => adminService.rejectRegistration(requestId, "Відхилено адміністратором"),
     onSuccess: () => {
@@ -75,7 +70,6 @@ export default function AdminSpecializations() {
     <div className="admin-spec-page">
       <h2 className="admin-spec-title">Управління спеціалізаціями</h2>
 
-      {/* ── СТВОРЕННЯ ВРУЧНУ ── */}
       <div className="admin-spec-create-card">
         <h3 className="admin-spec-create-card-title">
           <Tag size={20} color="#4f46e5" />
@@ -114,7 +108,6 @@ export default function AdminSpecializations() {
         </FormProvider>
       </div>
 
-      {/* ── ЗАПРОПОНОВАНІ ЛІКАРЯМИ ── */}
       <div style={{ marginTop: "32px" }}>
         <h3 style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", marginBottom: "16px", color: "#1e293b", fontWeight: 600 }}>
           <Clock size={22} color="#f59e0b" />
@@ -132,7 +125,6 @@ export default function AdminSpecializations() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {pendingRequests.map((req: any) => {
-              // Витягуємо опис з різних можливих місць, як віддає бекенд
               const description = req.description || req.payload?.description;
               const docName = req.doctorName || req.email || req.payload?.doctorName || "Невідомо";
 
@@ -153,12 +145,10 @@ export default function AdminSpecializations() {
                   }}
                 >
                   <div style={{ flex: 1, minWidth: "200px" }}>
-                    {/* Назва */}
                     <h4 style={{ margin: 0, fontSize: "16px", color: "#0f172a", fontWeight: 600 }}>
                       {req.name || req.payload?.name || "Назва не вказана"}
                     </h4>
 
-                    {/* Опис */}
                     {description && (
                       <p style={{ margin: "6px 0 0", fontSize: "14px", color: "#475569", display: "flex", gap: "6px", alignItems: "flex-start" }}>
                         <FileText size={16} color="#94a3b8" style={{ flexShrink: 0, marginTop: "2px" }} />
@@ -166,7 +156,6 @@ export default function AdminSpecializations() {
                       </p>
                     )}
 
-                    {/* Хто запропонував */}
                     <p style={{ margin: "8px 0 0", fontSize: "13px", color: "#64748b" }}>
                       Запропоновано лікарем: <span style={{ fontWeight: 500 }}>{docName}</span>
                     </p>
@@ -196,7 +185,6 @@ export default function AdminSpecializations() {
         )}
       </div>
 
-      {/* ── ІСНУЮЧІ СПЕЦІАЛІЗАЦІЇ ── */}
       <div style={{ marginTop: "40px", borderTop: "1px solid #e2e8f0", paddingTop: "32px" }}>
         <h3 style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", marginBottom: "16px", color: "#1e293b", fontWeight: 600 }}>
           <BookOpen size={22} color="#10b981" />

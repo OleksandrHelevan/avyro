@@ -11,7 +11,6 @@ import "./AppointmentDetailPage.css";
 import { useMemo } from "react";
 import { useAppointment } from "../../domains/appointments/useAppointments/useAppointments.ts";
 
-// ── Status config ─────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: any }> = {
   PLANNED:   { label: "Заплановано", className: "status--reserved",  Icon: Timer },
@@ -20,7 +19,6 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: an
   CANCELLED: { label: "Скасовано",   className: "status--cancelled", Icon: XCircle },
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("uk-UA", {
@@ -44,7 +42,6 @@ function Avatar({ name, url, size = 52 }: { name?: string; url?: string; size?: 
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 
 export default function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -92,17 +89,25 @@ export default function AppointmentDetailPage() {
   ];
   const validPrice = possiblePrices.map(p => Number(p)).find(p => !isNaN(p) && p > 0);
 
-  // ── Routing helpers ───────────────────────────────────────────────────
   const doctorId = appt.doctorId || doctor?._id || doctor?.id;
   const patientId = appt.patientId;
+  const rawPrice = useMemo(() => {
+    const possiblePrices = [
+      apptData.finalPrice, apptData.basePrice, apptData.price,
+      apptData.payload?.price, apptData.payload?.pricePerSlot,
+      doctor?.price, doctor?.pricePerSlot, doctor?.consultationPrice,
+    ];
+    return possiblePrices.map(p => Number(p)).find(p => !isNaN(p) && p > 0);
+  }, [apptData, doctor]);
 
-  // Doctor → navigate to patient public profile
-  // Patient → navigate to doctor public profile
+  // 2. Рахуємо ціну в гривнях (ділимо на 100)
+  const displayPrice = rawPrice ? (rawPrice / 100).toFixed(2) : null;
+
   const handleViewProfile = () => {
     if (isDoctor && patientId) {
-      navigate(`/patients/${patientId}`);   // adjust to your actual route
+      navigate(`/patients/${patientId}`);
     } else if (isPatient && doctorId) {
-      navigate(`/doctors/${doctorId}`);     // existing DoctorProfilePage route: /doctors/:id
+      navigate(`/doctors/${doctorId}`);
     }
   };
 
@@ -111,12 +116,11 @@ export default function AppointmentDetailPage() {
     : "Профіль лікаря";
 
   const canViewProfile = (isDoctor && !!patientId) || (isPatient && !!doctorId);
-
+  const allNotes = Array.isArray(apptData.notes) ? apptData.notes : [];
   return (
     <div className="adp-page" style={{ paddingTop: "120px" }}>
       <div className="adp-container">
 
-        {/* ── Topbar ── */}
         <div className="adp-topbar">
           <button className="adp-back" onClick={() => navigate(-1)}>
             <ArrowLeft size={18} /> Назад
@@ -126,10 +130,8 @@ export default function AppointmentDetailPage() {
           </button>
         </div>
 
-        {/* ── UNIFIED CARD ── */}
         <div className="adp-unified-card">
 
-          {/* Header & Status */}
           <div className="adp-unified-header">
             <h2 className="adp-unified-title">Деталі візиту</h2>
             <div className={`adp-status-badge ${statusCfg.className}`}>
@@ -139,7 +141,6 @@ export default function AppointmentDetailPage() {
 
           <div className="adp-divider" />
 
-          {/* Date */}
           <div className="adp-section">
             <div className="adp-section-label"><Calendar size={14} />Дата та час</div>
             <div className="adp-date-main">
@@ -156,7 +157,6 @@ export default function AppointmentDetailPage() {
             </div>
           </div>
 
-          {/* Doctor (visible to patient) */}
           {doctor && (
             <>
               <div className="adp-divider" />
@@ -186,7 +186,6 @@ export default function AppointmentDetailPage() {
             </>
           )}
 
-          {/* Patient (visible to doctor) */}
           {apptData.patient && (
             <>
               <div className="adp-divider" />
@@ -215,7 +214,6 @@ export default function AppointmentDetailPage() {
             </>
           )}
 
-          {/* Note */}
           {appointmentNote && (
             <>
               <div className="adp-divider" />
@@ -225,15 +223,38 @@ export default function AppointmentDetailPage() {
               </div>
             </>
           )}
-
-          {/* Price */}
+          {allNotes.length > 0 && (
+            <>
+              <div className="adp-divider" />
+              <div className="adp-section">
+                <div className="adp-section-label">
+                  <MessageSquare size={14} /> Нотатки та записи
+                </div>
+                <div className="adp-notes-list">
+                  {allNotes.map((note: any, index: number) => (
+                    <div key={index} className={`adp-note-item adp-note--${note.source?.toLowerCase()}`}>
+                      <div className="adp-note-header">
+                        <span className="adp-note-source">{note.source === "DOCTOR" ? "Лікар" : "Пацієнт"}</span>
+                        <span className="adp-note-date">
+                  {new Date(note.createdAt).toLocaleString("uk-UA", {
+                    day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+                  })}
+                </span>
+                      </div>
+                      <div className="adp-note-message">{note.message}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
           {(validPrice || appt.price != null) && (
             <>
               <div className="adp-divider" />
               <div className="adp-section adp-price-section">
                 <div className="adp-section-label"><Coins size={14} />Вартість</div>
                 <div className="adp-price-row">
-                  <div className="adp-price-val">{validPrice ?? appt.price} ₴</div>
+                  <div className="adp-price-val">{displayPrice} ₴</div>
                   {appt.status === "FINISHED" && (
                     <div className="adp-paid-badge"><CheckCircle2 size={14} />Сплачено</div>
                   )}
@@ -244,7 +265,6 @@ export default function AppointmentDetailPage() {
 
         </div>
 
-        {/* ── View profile CTA (fallback if person not embedded) ── */}
         {canViewProfile && !apptData.patient && !apptData.doctor && (
           <button className="adp-view-profile-btn" onClick={handleViewProfile}>
             <ExternalLink size={15} /> {profileLinkLabel}

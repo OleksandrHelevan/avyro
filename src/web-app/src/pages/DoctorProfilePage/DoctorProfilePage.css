@@ -39,7 +39,6 @@
   display: block; font-weight: 700; color: #334155; margin-bottom: 12px;
 }
 
-/* Горизонтальна прокрутка дат */
 .date-scroll-container {
   display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
   scrollbar-width: none;
@@ -56,7 +55,6 @@
 .day-name { font-size: 11px; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
 .day-num { font-size: 19px; font-weight: 800; }
 
-/* Сітка годин */
 .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .time-btn {
   padding: 12px; border-radius: 14px; border: 2px solid #f1f5f9; background: white;
@@ -75,9 +73,7 @@
 .confirm-booking-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 .payment-info { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 14px; }
 
-/* --- ДОДАНІ СТИЛІ, ПЕРЕНЕСЕНІ З TSX --- */
 
-/* Стан: немає графіка */
 .no-schedule-state {
   text-align: center;
   padding: 30px 10px;
@@ -98,7 +94,6 @@
   box-shadow: 0 5px 15px rgba(123, 81, 179, 0.3);
 }
 
-/* Відображення ціни */
 .price-display {
   text-align: center;
   margin: 20px 0 10px;
@@ -113,7 +108,6 @@
   color: #ef4444;
   font-size: 1rem;
 }
-/* ── Секція Нотатки ── */
 .booking-note-section {
   margin-top: 24px;
   display: flex;
@@ -157,7 +151,6 @@
 .booking-note-input::placeholder {
   color: #94a3b8;
 }
-/* ── Add to DoctorProfilePage.css ─────────────────────────────────────── */
 
 .booking-profile-warn {
   display: flex;

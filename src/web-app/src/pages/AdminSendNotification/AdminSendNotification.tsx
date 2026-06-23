@@ -5,7 +5,6 @@ import { Bell, Send, Users, User, Loader2, MessageSquare } from "lucide-react";
 
 import "./AdminSendNotification.css";
 import { apiClient } from "../../services/apiClient.ts";
-// 🚀 Перевірте, чи правильний шлях до userService у вашому проєкті!
 import { userService } from "../../domains/users/service/userService.ts";
 
 interface NotificationForm {
@@ -25,7 +24,6 @@ export default function AdminSendNotification() {
 
   const sendMode = watch("sendMode");
 
-  // 🚀 Стягуємо всіх користувачів для випадаючого списку
   const { data: allUsers = [], isLoading: isUsersLoading } = useQuery({
     queryKey: ["adminAllUsers"],
     queryFn: () => userService.getAllUsers(),
@@ -68,7 +66,6 @@ export default function AdminSendNotification() {
       <div className="notification-card glass-light">
         <form onSubmit={handleSubmit(onSubmit)} className="notification-form">
 
-          {/* БЛОК ВИБОРУ ОДЕРЖУВАЧА */}
           <div className="form-section">
             <h3 className="section-title">Одержувач</h3>
 
@@ -103,7 +100,6 @@ export default function AdminSendNotification() {
             </div>
           </div>
 
-          {/* 🚀 ДРОПДАУН ДЛЯ ВИБОРУ КОРИСТУВАЧА */}
           {sendMode === "single" && (
             <div className="form-group slide-down">
               <label>Оберіть користувача</label>
@@ -117,7 +113,6 @@ export default function AdminSendNotification() {
                     required: sendMode === "single" ? "Оберіть користувача обов'язково" : false
                   })}
                   className={`custom-input ${errors.recipientId ? "input-error" : ""}`}
-                  // Додаємо трохи стилів, щоб select виглядав як input
                   style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #d1d5db", backgroundColor: "white", cursor: "pointer" }}
                 >
                   <option value="">-- Оберіть користувача зі списку --</option>
@@ -132,7 +127,6 @@ export default function AdminSendNotification() {
             </div>
           )}
 
-          {/* ПОЛЕ ДЛЯ ТЕКСТУ ПОВІДОМЛЕННЯ */}
           <div className="form-section">
             <h3 className="section-title">Текст сповіщення</h3>
             <div className="form-group">
@@ -152,7 +146,6 @@ export default function AdminSendNotification() {
             </div>
           </div>
 
-          {/* КНОПКА ВІДПРАВКИ */}
           <div className="form-actions">
             <button type="submit" disabled={isPending} className="send-btn glow-effect">
               {isPending ? (

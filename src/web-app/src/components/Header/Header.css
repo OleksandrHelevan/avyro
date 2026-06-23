@@ -1,12 +1,12 @@
 .white-nav {
-  position: fixed; /* або sticky, щоб не випадати з потоку */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 70px; /* Жорстко задаємо висоту, на яку спирається мобільне меню */
+  height: 70px;
   background-color: #ffffff;
-  z-index: 100; /* Має бути більше, ніж у мобільного випадаючого меню (99) */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Легка тінь для відділення від контенту */
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .nav-content {
   max-width: 1200px;
@@ -15,9 +15,8 @@
   justify-content: space-between;
   align-items: center;
 
-  /* ДОДАЙТЕ ЦІ 2 РЯДКИ: */
-  height: 100%;       /* Щоб контент розтягнувся на всі 70px хедера і став чітко по центру */
-  padding: 0 20px;    /* Щоб на планшетах логотип і кнопки не прилипали до самих країв екрана */
+  height: 100%;
+  padding: 0 20px;
 }
 
 .logo-group {
@@ -41,12 +40,11 @@
   font-weight: 800;
 }
 
-/* ОНОВЛЕНО: Центруємо лінки */
 .nav-links {
   display: flex;
   gap: 2rem;
-  flex-grow: 1; /* Займає весь доступний простір між лого і профілем */
-  justify-content: center; /* Ставить посилання чітко посередині */
+  flex-grow: 1;
+  justify-content: center;
 }
 
 .nav-link {
@@ -65,12 +63,11 @@
   border-bottom: 2px solid #7b51b3;
 }
 
-/* ОНОВЛЕНО: Притискаємо до правого краю */
 .auth-group {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-left: auto; /* Відштовхує блок максимально вправо */
+  margin-left: auto;
 }
 
 .user-profile {
@@ -157,14 +154,12 @@
   background-color: #ebf8ff;
 }
 
-/* ОНОВЛЕНО: Десктопна версія контейнера */
 .nav-links-container {
   display: flex;
   align-items: center;
   flex-grow: 1;
 }
 
-/* Ховаємо бургер на десктопі */
 .mobile-menu-btn {
   display: none;
   background: none;
@@ -173,13 +168,11 @@
   cursor: pointer;
 }
 
-/* АДАПТИВНІСТЬ ДЛЯ МОБІЛОК */
 @media screen and (max-width: 768px) {
   .mobile-menu-btn {
     display: block;
   }
 
-  /* Перетворюємо контейнер у випадаюче меню */
   .nav-links-container {
     position: absolute;
     top: 70px;
@@ -191,7 +184,6 @@
     padding: 20px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
-    /* Анімація появи */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-20px);
@@ -219,14 +211,13 @@
     padding: 8px 0;
   }
 
-  /* Лінія розділювача перед блоком авторизації/кабінету */
   .auth-group {
     width: 100%;
     flex-direction: column;
     border-top: 1px solid #e2e8f0;
     padding-top: 20px;
     gap: 12px;
-    margin-left: 0; /* ОНОВЛЕНО: скидаємо margin для мобілок, щоб меню не з'їжджало */
+    margin-left: 0;
   }
 
   .btn-login, .btn-signup {
@@ -234,7 +225,6 @@
     text-align: center;
   }
 }
-/* --- СТИЛІ ДЛЯ ДРОПДАУНУ СПОВІЩЕНЬ --- */
 .notif-wrapper {
   position: relative;
   display: flex;
@@ -268,7 +258,7 @@
 .notif-dropdown {
   position: absolute;
   top: 50px;
-  right: -50px; /* Центруємо відносно іконки */
+  right: -50px;
   width: 320px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
@@ -299,7 +289,6 @@
   overflow-y: auto;
 }
 
-/* Scrollbar для менюшки */
 .notif-dropdown-body::-webkit-scrollbar {
   width: 6px;
 }
@@ -376,7 +365,6 @@
   margin-top: 6px;
 }
 
-/* Адаптивність для телефонів */
 @media (max-width: 768px) {
   .notif-dropdown {
     position: fixed;

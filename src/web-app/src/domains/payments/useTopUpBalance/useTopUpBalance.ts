@@ -10,7 +10,6 @@ export const useTopUpBalance = () => {
   return useMutation<TopUpResponse, Error, TopUpRequest>({
     mutationFn: topUpBalance,
     onSuccess: () => {
-      // Invalidate after Stripe confirms — called from component after stripe.confirmPayment
       queryClient.invalidateQueries({ queryKey: PAYMENT_ACCOUNT_QUERY_KEY });
     },
   });

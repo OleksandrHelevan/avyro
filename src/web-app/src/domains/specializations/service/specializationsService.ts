@@ -11,7 +11,6 @@ export const specializationService = {
     return specializationsApiClient.getSpecializationById(spec_id);
   },
 
-  // 🚀 Перейменували тут теж
   createSpecialization: async (data: { name: string }): Promise<any> => {
     return specializationsApiClient.createSpecialization(data);
   },

@@ -11,7 +11,6 @@ export const useFinishAppointment = () => {
     },
     onSuccess: () => {
       toast.success("Візит успішно завершено!");
-      // Оновлюємо дані, щоб статус на сторінці змінився миттєво
       queryClient.invalidateQueries({ queryKey: ["myAppointments"] });
       queryClient.invalidateQueries({ queryKey: ["appointment"] });
     },

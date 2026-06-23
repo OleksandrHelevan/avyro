@@ -1,12 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
-import { userService } from "../service/userService.ts";
-import type { CreateFeedbackRequest } from "../types.ts";
+import {userService} from "../service/userService.ts";
+import {useMutation} from "@tanstack/react-query";
+import type {CreateFeedbackRequest} from "../types.ts";
 import toast from "react-hot-toast";
 
 export const useCreateFeedback = () => {
   return useMutation({
-    mutationFn: ({ doctorId, data }: { doctorId: string; data: CreateFeedbackRequest }) => {
-      return userService.createFeedback(doctorId, data);
+    mutationFn: ({ doctorId, data }: { doctorId?: string; data: CreateFeedbackRequest }) => {
+
+      return userService.createFeedback(doctorId || "platform", data);
     },
     onSuccess: () => {
       toast.success("Ваш відгук успішно надіслано!");

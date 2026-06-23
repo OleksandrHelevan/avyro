@@ -2,6 +2,8 @@ from typing import List
 from bson import ObjectId
 from pymongo.collection import Collection
 from modules.users_module.domains.reward.Reward import Reward, RewardSource, RewardType
+
+
 class RewardRepository:
     def __init__(self, collection: Collection):
         self.collection = collection
@@ -23,7 +25,6 @@ class RewardRepository:
         return count > 0
 
     def get_all_by_patient_id(self, patient_id: ObjectId) -> list:
-
         rewards = self.collection.find({"user_id": patient_id})
         return list(rewards)
 
@@ -43,35 +44,38 @@ class RewardRepository:
         return max(result[0]["total"] if result else 0, 0)
 
     def spend_points(self, patient_id: ObjectId, points: int, description: str) -> None:
+        # Рахуємо реальний баланс прямо в момент списання
+        current_balance = self.get_total_points(patient_id)
+
+        if current_balance < points:
+            raise ValueError(
+                f"Недостатньо балів. Є: {current_balance}, потрібно: {points}"
+            )
+
         reward = Reward(
             patientId=patient_id,
             type=RewardType.SPEND,
             points=-points,
-            source=RewardSource.APPOINTMENT_PAYMENT,
+            # Використовуємо дозволене базою значення (APPOINTMENT або OTHER)
+            source=RewardSource.APPOINTMENT,
             description=description
         )
         self.create(reward)
-
     def has_bonus(self, patient_id: ObjectId, source: str) -> bool:
         return self.collection.find_one({
             "patientId": patient_id,
             "description": {"$regex": source}
         }) is not None
 
-    def count_finished_appointments(self, patient_id: ObjectId,
-                                    appointment_repo) -> int:
+    def count_finished_appointments(self, patient_id: ObjectId, appointment_repo) -> int:
         return len(appointment_repo.get_finished_by_patient_id(patient_id))
 
-    def count_monthly_appointments(self, patient_id: ObjectId,
-                                   appointment_repo) -> int:
+    def count_monthly_appointments(self, patient_id: ObjectId, appointment_repo) -> int:
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
         start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         return appointment_repo.count_finished_in_period(patient_id, start, now)
 
-    def count_same_doctor_appointments(self, patient_id: ObjectId,
-                                       doctor_id: ObjectId,
+    def count_same_doctor_appointments(self, patient_id: ObjectId, doctor_id: ObjectId,
                                        appointment_repo) -> int:
         return appointment_repo.count_finished_by_doctor(patient_id, doctor_id)
-
-

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
+from fastapi import Body
 
 
 from config.dependencies import get_appointment_service
@@ -12,7 +13,6 @@ from modules.appointments_module.application.service.AppointmentService import A
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
-
 class BookAppointmentRequest(BaseModel):
     doctorId: str
     slotId: str
@@ -20,6 +20,9 @@ class BookAppointmentRequest(BaseModel):
     is_discount_used: bool = False
     note: Optional[str] = None
     payment_method: str = "MONEY"
+    pointsAmount: Optional[int] = None   # ЗМІНЕНО НАЗВУ
+    moneyAmount: Optional[float] = None
+
 
 class AddNoteRequest(BaseModel):
     message: str
@@ -65,13 +68,21 @@ async def add_note(
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(get_current_user)
 ):
+    role = current_user.get("role", "")
+    user_id = str(current_user["sub"])
 
-    return service.add_note(
-        appointment_id=appointment_id,
-        user_id=str(current_user["sub"]),
-        role=str(current_user.get("role", "")),
-        message=body.message,
-    )
+    if role == "DOCTOR":
+        return service.add_doctor_receipt(
+            appointment_id=appointment_id,
+            doctor_id=user_id,
+            message=body.message,
+        )
+    else:
+        return service.add_patient_note(
+            appointment_id=appointment_id,
+            patient_id=user_id,
+            message=body.message,
+        )
 
 
 @router.get("/{appointment_id}", status_code=status.HTTP_200_OK)
@@ -100,7 +111,7 @@ async def cancel_appointment(
     appointment_id: str,
     service: AppointmentService = Depends(get_appointment_service),
     current_user: dict = Depends(get_current_user),
-    body: Optional[CancelAppointmentRequest] = None,
+    body: Optional[CancelAppointmentRequest] = Body(default=None),
 ):
     reason = body.reason if body else None
     return service.cancel_appointment(

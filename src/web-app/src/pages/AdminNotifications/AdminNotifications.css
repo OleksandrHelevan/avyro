@@ -1,9 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-/* --- ОСНОВНИЙ ФОН --- */
 .admin-spec-page {
   padding: 2rem 1.5rem;
-  width: 100%; /* Розтягуємо на всю ширину */
+  width: 100%;
   height: calc(100vh - 70px);
   box-sizing: border-box;
   overflow: hidden;
@@ -40,7 +39,6 @@
   letter-spacing: -0.01em;
 }
 
-/* --- БЛОК СТВОРЕННЯ --- */
 .admin-spec-create-card {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
@@ -120,7 +118,6 @@
   box-shadow: 0 15px 25px -8px rgba(79, 70, 229, 0.6);
 }
 
-/* --- СІТКА КАРТОК --- */
 .admin-spec-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -246,9 +243,6 @@
   background: transparent !important;
 }
 
-/* =========================================
-   АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
-   ========================================= */
 
 @media (max-width: 1024px) {
   .admin-spec-grid {

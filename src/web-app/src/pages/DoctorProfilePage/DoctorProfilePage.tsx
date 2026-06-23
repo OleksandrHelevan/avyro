@@ -29,7 +29,7 @@ const generateTimeSlots = (startTime: string, endTime: string, slotDuration: num
       slots.push(format(current, "HH:mm"));
       current = new Date(current.getTime() + slotDuration * 60000);
     }
-  } catch (e) { console.error("Помилка генерації слотів:", e); }
+  } catch (e) { console.error(e); }
   return slots;
 };
 
@@ -44,7 +44,6 @@ export default function DoctorProfile() {
 
   const [paymentMethod, setPaymentMethod] = useState<"MONEY" | "POINTS" | "MIXED">("MONEY");
 
-  // 🚀 ДОДАНО: Стейт для часткової оплати (міксом)
   const [mixedMoney, setMixedMoney] = useState<number | "">("");
   const [mixedPoints, setMixedPoints] = useState<number | "">("");
 
@@ -54,23 +53,40 @@ export default function DoctorProfile() {
   const { data: patientResponse } = usePatient(userId || "");
   const { mutate: bookAppointment, isPending: isBooking } = useCreateAppointment();
 
+  const availablePoints = useMemo(() => {
+    const pData = (patientResponse as any)?.data || patientResponse;
+    if (!pData) return 0;
+
+    if (typeof pData.points === 'number') return pData.points;
+
+    if (Array.isArray(pData.rewards)) {
+      return pData.rewards.reduce((sum: number, reward: any) => {
+        return sum + (Number(reward.points) || 0);
+      }, 0);
+    }
+
+    return 0;
+  }, [patientResponse]);
+
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
 
   const profileIssues = useMemo(() => {
-    if (!patientResponse) return [];
+    const pData = (patientResponse as any)?.data || patientResponse;
+    if (!pData) return [];
     const issues: string[] = [];
-    const rawName = patientResponse.fullName || "";
+    const rawName = pData.fullName || "";
     const parts = rawName.trim().split(/\s+/);
     if (!parts[0]) issues.push("ім'я");
     if (!parts[1]) issues.push("прізвище");
-    if (!patientResponse.phone?.trim()) issues.push("номер телефону");
+    if (!pData.phone?.trim()) issues.push("номер телефону");
     return issues;
   }, [patientResponse]);
 
   const activeSchedule = useMemo(() => {
     const schedules = doctor?.schedule;
     if (!Array.isArray(schedules) || schedules.length === 0) return null;
-    return [...schedules].reverse().find((s: any) => s.status === "APPROVED") || [...schedules].reverse()[0];
+
+    return [...schedules].reverse()[0];
   }, [doctor]);
 
   const rollingDays = useMemo(() => Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i)), []);
@@ -135,8 +151,7 @@ export default function DoctorProfile() {
     return rawPrice ? rawPrice / 100 : null;
   }, [selectedSlotData, activeSchedule, selectedTime, doctor]);
 
-  // 🚀 ДОДАНО: Логіка розрахунку комісій
-  const COMMISSION_RATE = 0.025; // 2.5%
+  const COMMISSION_RATE = 0.025;
 
   const commissionData = useMemo(() => {
     if (!consultationPrice) return null;
@@ -165,7 +180,6 @@ export default function DoctorProfile() {
     };
   }, [consultationPrice, paymentMethod, mixedMoney, mixedPoints]);
 
-
   const handleBooking = () => {
     if (profileIssues.length > 0) {
       toast.error(`Для запису заповніть профіль: ${profileIssues.join(", ")}`);
@@ -190,7 +204,6 @@ export default function DoctorProfile() {
       return;
     }
 
-    // Відправляємо на бекенд (бекенд сам бере комісію, якщо ви передасте pricePerSlot або суми в копійках)
     const payload: any = {
       slotId: slotIdToBook,
       doctorId: doctorIdToBook,
@@ -200,9 +213,13 @@ export default function DoctorProfile() {
     };
 
     if (paymentMethod === "MIXED") {
-      // Передаємо бекенду, скільки грошей і балів зняти (в копійках)
-      payload.moneyAmount = Number(mixedMoney) * 100;
-      payload.pointsAmount = Number(mixedPoints) * 100;
+      const mAmount = Number(mixedMoney) * 100;
+      const pAmount = Number(mixedPoints);
+
+      payload.money_amount = mAmount;
+      payload.points_amount = pAmount;
+      payload.moneyAmount = mAmount;
+      payload.pointsAmount = pAmount;
     }
 
     bookAppointment(
@@ -254,6 +271,8 @@ export default function DoctorProfile() {
 
   if (isDocLoading) return <div className="loading-screen"><Loader /></div>;
 
+  const safePrice = consultationPrice || 0;
+
   return (
     <div className="booking-page aero-viewport light-theme">
       <div className="bright-gradient-bg">
@@ -302,7 +321,6 @@ export default function DoctorProfile() {
             </div>
           ) : (
             <>
-              {/* Date selector */}
               <div className="date-selector-section">
                 <label>Оберіть дату</label>
                 <div className="date-scroll-container">
@@ -323,7 +341,6 @@ export default function DoctorProfile() {
                 </div>
               </div>
 
-              {/* Time slots */}
               <div className="time-selector-section">
                 <label>Вільні години</label>
                 <div className="time-grid">
@@ -365,7 +382,6 @@ export default function DoctorProfile() {
                 </div>
               )}
 
-              {/* 🚀 ОНОВЛЕНО: Payment method та MIXED inputs */}
               {selectedTime && consultationPrice && (
                 <div className="payment-method-section" style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "600", color: "#64748b" }}>
@@ -384,49 +400,74 @@ export default function DoctorProfile() {
                     ))}
                   </div>
 
-                  {/* Поля для MIXED */}
                   {paymentMethod === "MIXED" && (
                     <div style={{ display: "flex", gap: "10px", marginTop: "8px", background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px dashed #cbd5e1" }}>
+
                       <div style={{ flex: 1 }}>
                         <label style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px", display: "block" }}>Списати грошей (₴)</label>
                         <div style={{ display: 'flex', gap: '4px' }}>
                           <input
                             type="number"
                             min="0"
-                            max={consultationPrice}
+                            max={safePrice}
                             value={mixedMoney}
                             onChange={(e) => {
-                              const val = e.target.value ? Number(e.target.value) : "";
-                              setMixedMoney(val);
-                              if (val !== "" && val <= consultationPrice) setMixedPoints(consultationPrice - val);
+                              const rawValue = e.target.value;
+                              if (rawValue === "") {
+                                setMixedMoney("");
+                                setMixedPoints("");
+                              } else {
+                                let numVal = Number(rawValue);
+                                if (numVal > safePrice) numVal = safePrice;
+                                setMixedMoney(numVal);
+                                setMixedPoints(safePrice - numVal);
+                              }
                             }}
                             style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}
                           />
-                          <button onClick={() => { setMixedMoney(consultationPrice); setMixedPoints(0); }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 6px', cursor: 'pointer' }}>Всі</button>
+                          <button onClick={() => { setMixedMoney(safePrice); setMixedPoints(0); }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 8px', cursor: 'pointer', fontWeight: '600' }}>Всі</button>
                         </div>
                       </div>
+
                       <div style={{ flex: 1 }}>
-                        <label style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px", display: "block" }}>Списати балів</label>
+                        <label style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px", display: "block" }}>
+                          Списати балів <span style={{ color: "#10b981" }}>(Доступно: {availablePoints})</span>
+                        </label>
                         <div style={{ display: 'flex', gap: '4px' }}>
                           <input
                             type="number"
                             min="0"
-                            max={consultationPrice}
+                            max={Math.min(safePrice, availablePoints)}
                             value={mixedPoints}
                             onChange={(e) => {
-                              const val = e.target.value ? Number(e.target.value) : "";
-                              setMixedPoints(val);
-                              if (val !== "" && val <= consultationPrice) setMixedMoney(consultationPrice - val);
+                              const rawValue = e.target.value;
+                              if (rawValue === "") {
+                                setMixedPoints("");
+                                setMixedMoney("");
+                              } else {
+                                let numVal = Number(rawValue);
+                                if (numVal > availablePoints) {
+                                  numVal = availablePoints;
+                                  toast.error(`У вас лише ${availablePoints} балів!`, { id: "p-err" });
+                                }
+                                if (numVal > safePrice) numVal = safePrice;
+                                setMixedPoints(numVal);
+                                setMixedMoney(safePrice - numVal);
+                              }
                             }}
                             style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}
                           />
-                          <button onClick={() => { setMixedPoints(consultationPrice); setMixedMoney(0); }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 6px', cursor: 'pointer' }}>Всі</button>
+                          <button onClick={() => {
+                            const pointsToSpend = Math.min(safePrice, availablePoints);
+                            setMixedPoints(pointsToSpend);
+                            setMixedMoney(safePrice - pointsToSpend);
+                          }} style={{ background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', padding: '0 8px', cursor: 'pointer', fontWeight: '600' }}>Всі</button>
                         </div>
                       </div>
+
                     </div>
                   )}
 
-                  {/* 🚀 ВІДОБРАЖЕННЯ КОМІСІЇ */}
                   {commissionData && commissionData.commissionAmount > 0 && (
                     <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "#fef2f2", padding: "12px", borderRadius: "8px", border: "1px solid #fecdd3" }}>
                       <Info size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: "2px" }} />

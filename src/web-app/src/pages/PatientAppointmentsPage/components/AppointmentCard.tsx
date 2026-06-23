@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { uk } from "date-fns/locale";
-import { CalendarDays, Clock, CheckCircle2, Clock3, ExternalLink, XCircle } from "lucide-react"; // 🚀 ДОДАНО XCircle
+import { CalendarDays, Clock, CheckCircle2, Clock3, ExternalLink, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import './AppointmentCard.css'
 const DEFAULT_AVATAR = "https://ui-avatars.com/api/?name=Doctor&background=E0E7FF&color=4F46E5&size=128";
@@ -36,7 +36,6 @@ export default function AppointmentCard({ appointment, doctor, onCancel }: Appoi
   const endDate = appointment.to ? parseISO(appointment.to) : new Date();
   const isPast = appointment.to ? new Date(appointment.to) < new Date() : false;
 
-  // 🚀 ДОДАНО: Перевірка, чи можна скасувати (статус Planned/Reserved і час ще не минув)
   const canCancel = !isPast && (appointment.status === "PLANNED" || appointment.status === "RESERVED");
 
   return (
@@ -82,7 +81,6 @@ export default function AppointmentCard({ appointment, doctor, onCancel }: Appoi
         </div>
 
         <div style={{ display: "flex", gap: "8px" }}>
-          {/* 🚀 ДОДАНО: Кнопка скасування */}
           {canCancel && (
             <button
               className="btn-cancel-appt"

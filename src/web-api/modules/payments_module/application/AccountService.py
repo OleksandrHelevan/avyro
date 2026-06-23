@@ -1,4 +1,5 @@
 import bcrypt
+from typing import Optional
 from bson import ObjectId
 from modules.payments_module.domains.Account import Account, CardInfo
 from modules.payments_module.infrastructure.persistence.AccountRepository import AccountRepository
@@ -13,9 +14,10 @@ COMMISSION_RATE = 0.025  # 2.5%
 
 
 class AccountService:
-    def __init__(self, account_repo: AccountRepository, stripe_service: StripeService):
+    def __init__(self, account_repo: AccountRepository, stripe_service: StripeService, reward_repository=None):
         self.account_repo = account_repo
         self.stripe_service = stripe_service
+        self.reward_repository = reward_repository
 
     async def get_or_create_account(self, user_id: str, email: str, name: str) -> Account:
         oid = ObjectId(user_id)
@@ -143,53 +145,82 @@ class AccountService:
         appointment_id: str,
         amount: float,
         doctor_name: str,
-        points_available: float,
+        points_available: int,  # залишається для сумісності, але більше не довіряємо
         payment_method: str = "MONEY",
-        doctor_stripe_account_id: str = None,  # Stripe Connect акаунт лікаря
+        points_to_use: Optional[int] = None,
+        money_to_use: Optional[float] = None,
     ) -> dict:
         oid = ObjectId(patient_id)
         account = self.account_repo.find_by_user_id(oid)
         if not account:
             raise ValueError("Платіжний акаунт не знайдено. Створіть акаунт.")
 
-        commission = round(amount * COMMISSION_RATE, 2)
-        doctor_receives = amount  # лікар отримує суму без комісії
+        # Завжди беремо реальний баланс балів з БД, ігноруємо points_available ззовні
+        if self.reward_repository and payment_method in ("POINTS", "MIXED"):
+            real_points_balance = self.reward_repository.get_total_points(oid)
+        else:
+            real_points_balance = points_available
 
-        points_to_use = 0
-        money_to_charge = 0.0
+        actual_points_used = 0
+        actual_money_charged = 0.0
 
         if payment_method == "POINTS":
-            # Бали покривають вартість слоту, але комісію платить грошима
-            if points_available < amount:
+            if points_to_use is None:
+                # Ділимо amount на 100, щоб порівнювати бали з балами
+                actual_points_used = min(real_points_balance, int(amount / 100))
+            else:
+                actual_points_used = min(points_to_use, real_points_balance, int(amount / 100))
+
+            # Множимо використані бали на 100 для перевірки з копійками
+            if (actual_points_used * 100) < amount:
                 raise ValueError(
-                    f"Недостатньо балів. Є: {points_available}, потрібно: {int(amount)}"
+                    f"Недостатньо балів. Є: {real_points_balance}, потрібно: {int(amount / 100)}"
                 )
-            if account.balance < commission:
-                raise ValueError(
-                    f"Недостатньо коштів для оплати комісії ({commission} грн). "
-                    f"Баланс: {account.balance} грн"
-                )
-            points_to_use = int(amount)
-            money_to_charge = commission  # тільки комісія
+            actual_money_charged = 0.0
 
         elif payment_method == "MIXED":
-            points_to_use = min(int(points_available), int(amount))
-            money_to_charge = round(amount - points_to_use + commission, 2)
-            if account.balance < money_to_charge:
+            if points_to_use is None:
+                actual_points_used = min(real_points_balance, int(amount / 100))
+            else:
+                actual_points_used = min(points_to_use, real_points_balance, int(amount / 100))
+
+            # ВИПРАВЛЕНА МАТЕМАТИКА: Переводимо бали в копійки перед відніманням
+            remaining_after_points = round(amount - (actual_points_used * 100), 2)
+
+            if money_to_use is None:
+                actual_money_charged = remaining_after_points
+            else:
+                actual_money_charged = min(money_to_use, remaining_after_points)
+
+            # Перевіряємо, чи покриває мікс повну вартість (все в копійках)
+            if round((actual_points_used * 100) + actual_money_charged, 2) < amount:
                 raise ValueError(
-                    f"Недостатньо коштів. Баланс: {account.balance} грн + "
-                    f"{points_available} балів, потрібно: {round(amount + commission, 2)} грн"
+                    f"Недостатньо коштів. Балів: {actual_points_used}, "
+                    f"грошей: {actual_money_charged / 100} грн, потрібно покрити: {amount / 100} грн"
+                )
+
+            if account.balance < actual_money_charged:
+                raise ValueError(
+                    f"Недостатньо коштів на балансі. "
+                    f"Є: {account.balance / 100} грн, потрібно: {actual_money_charged / 100} грн"
                 )
 
         elif payment_method == "MONEY":
-            total_charged = round(amount + commission, 2)
-            if account.balance < total_charged:
+            if money_to_use is None:
+                actual_money_charged = amount
+            else:
+                actual_money_charged = money_to_use
+                if actual_money_charged < amount:
+                    raise ValueError(
+                        f"Вказана сума {actual_money_charged / 100} грн менша за вартість {amount / 100} грн"
+                    )
+
+            if account.balance < actual_money_charged:
                 raise ValueError(
-                    f"Недостатньо коштів. Баланс: {account.balance} грн, "
-                    f"потрібно: {total_charged} грн (комісія {commission} грн)"
+                    f"Недостатньо коштів. Баланс: {account.balance / 100} грн, "
+                    f"потрібно: {actual_money_charged / 100} грн"
                 )
-            money_to_charge = total_charged
-            points_to_use = 0
+            actual_points_used = 0
 
         else:
             raise ValueError(f"Невідомий метод оплати: {payment_method}")
@@ -197,19 +228,17 @@ class AccountService:
         invoice_id = None
         invoice_url = None
 
-        # 1. Stripe інвойс — якщо впаде, нічого не списуємо
-        if money_to_charge > 0:
+        if actual_money_charged > 0:
             try:
                 invoice = await self.stripe_service.create_invoice(
                     customer_id=account.stripe_customer_id,
-                    amount=money_to_charge,
-                    description=f"Візит до лікаря {doctor_name} (комісія {commission} грн)",
+                    amount=actual_money_charged,
+                    description=f"Візит до лікаря {doctor_name}",
                     metadata={
                         "appointment_id": appointment_id,
                         "patient_id": patient_id,
                         "payment_method": payment_method,
-                        "points_used": str(points_to_use),
-                        "commission": str(commission),
+                        "points_used": str(actual_points_used),
                     },
                 )
                 invoice_id = invoice["invoice_id"]
@@ -217,34 +246,16 @@ class AccountService:
             except Exception as e:
                 raise ValueError(f"Помилка транзакції: {str(e)}")
 
-            # 2. Stripe успішний — списуємо з балансу
-            success = self.account_repo.deduct_balance(oid, money_to_charge)
+            success = self.account_repo.deduct_balance(oid, actual_money_charged)
             if not success:
                 raise ValueError("Помилка списання з балансу після успішної транзакції")
-
-        # 3. Переказуємо лікарю через Stripe Connect
-        transfer_id = None
-        if doctor_stripe_account_id and doctor_receives > 0:
-            try:
-                transfer = await self.stripe_service.transfer_to_doctor(
-                    doctor_stripe_account_id=doctor_stripe_account_id,
-                    amount_uah=doctor_receives,
-                    appointment_id=appointment_id,
-                )
-                transfer_id = transfer["transfer_id"]
-            except Exception as e:
-                print(f"WARNING: Не вдалось перерахувати лікарю {doctor_name}: {e}")
 
         return {
             "invoice_id": invoice_id,
             "invoice_url": invoice_url,
-            "base_amount": amount,
-            "commission": commission,
-            "amount_paid": round(money_to_charge + (points_to_use if payment_method != "MONEY" else 0), 2),
-            "doctor_receives": doctor_receives,
-            "points_used": points_to_use,
-            "money_charged": money_to_charge,
-            "new_balance": round(account.balance - money_to_charge, 2),
+            "amount_paid": amount,
+            "points_used": actual_points_used,
+            "money_charged": actual_money_charged,
+            "new_balance": account.balance - actual_money_charged,
             "payment_method": payment_method,
-            "transfer_id": transfer_id,
         }

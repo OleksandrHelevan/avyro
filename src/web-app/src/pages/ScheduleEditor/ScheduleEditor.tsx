@@ -5,11 +5,10 @@ import { Calendar, Clock, ChevronLeft, Save, CalendarCheck, Edit3 } from "lucide
 
 import { useRequestSchedule } from "../../domains/users/useRequestSchedule/useRequestSchedule";
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
-import { useUpdateSchedule } from "../../domains/users/useUpdateSchedule/useUpdateSchedule.ts";
+// 🚀 ДОДАНО ІМПОРТ ХУКА АВТОРИЗАЦІЇ
+import { useAuth } from "../../context/auth/useAuth.tsx";
 import './ScheduleEditor.css';
 import Loader from "../../components/Loader/Loader.tsx";
-
-const CURRENT_USER_ID = (localStorage.getItem("userId") || "").replace(/"/g, '');
 
 const DAYS_OF_WEEK = [
   { id: 1, label: "Пн" }, { id: 2, label: "Вт" }, { id: 3, label: "Ср" },
@@ -27,12 +26,12 @@ const getDaysNames = (daysArray: number[]) => {
 export default function ScheduleEditor() {
   const navigate = useNavigate();
 
-  const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(CURRENT_USER_ID);
+  // 🚀 ОТРИМУЄМО АКТУАЛЬНИЙ ID З КОНТЕКСТУ
+  const { userId } = useAuth();
 
-  const { mutate: requestSchedule, isPending: isRequesting } = useRequestSchedule();
-  const { mutate: updateSchedule, isPending: isUpdating } = useUpdateSchedule();
-
-  const isPending = isRequesting || isUpdating;
+  // Передаємо userId у хук
+  const { data: rawDoctor, isLoading: isDoctorLoading } = useDoctor(userId || "");
+  const { mutate: requestSchedule, isPending } = useRequestSchedule();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -93,15 +92,16 @@ export default function ScheduleEditor() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return toast.error("Помилка авторизації: ID лікаря не знайдено");
     if (selectedDays.length === 0) return toast.error("Оберіть робочі дні");
 
     const payload = {
-      doctorId: CURRENT_USER_ID,
+      doctorId: userId, // 🚀 ВИКОРИСТОВУЄМО АКТУАЛЬНИЙ ID ТУТ
       month: params.month,
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
       isRepeated: true,
-      pricePerSlot: params.price * 100, // Конвертуємо в копійки для бекенда
+      pricePerSlot: params.price * 100,
       repeating: {
         type: "WEEKLY",
         daysOfWeek: selectedDays,
@@ -112,25 +112,14 @@ export default function ScheduleEditor() {
       }
     };
 
-    // 🚀 ШУКАЄМО ІСНУЮЧИЙ ГРАФІК САМЕ НА ЦЕЙ МІСЯЦЬ І РІК (навіть якщо він PENDING)
-    const existingScheduleForMonth = doctor?.schedule?.find(
-      (s: any) => (s.payload?.month === params.month || s.month === params.month) &&
-        (s.payload?.year === params.year || s.year === params.year)
-    ) || activeSchedule;
-
-    const scheduleId = existingScheduleForMonth?._id || existingScheduleForMonth?.id || existingScheduleForMonth?.scheduleId;
-
-    if (scheduleId) {
-      // 🚀 Якщо розклад вже існує в базі (навіть очікує розгляду) — залізно оновлюємо його (PUT)
-      updateSchedule({ scheduleId, payload: payload as any }, {
-        onSuccess: () => setIsEditing(false)
-      });
-    } else {
-      // 🚀 Створюємо вперше тільки якщо ID взагалі немає (POST)
-      requestSchedule(payload as any, {
-        onSuccess: () => setIsEditing(false),
-      });
-    }
+    requestSchedule(payload as any, {
+      onSuccess: () => {
+        setIsEditing(false);
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.detail || "Помилка при збереженні графіка");
+      }
+    });
   };
 
   const displayPrice = useMemo(() => {
@@ -162,57 +151,50 @@ export default function ScheduleEditor() {
 
         {!showForm ? (
           <div className="profile-card glass-light editor-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
-              <div>
-                <h2 style={{ color: "#1f2937", margin: "0 0 5px", fontSize: "1.5rem", fontWeight: "800", display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="active-schedule-header">
+              <div className="active-schedule-title-wrapper">
+                <h2 className="active-schedule-title">
                   <CalendarCheck size={28} color="#10b981" />
                   Ваш активний графік
                 </h2>
-                <p style={{ color: "#6b7280", margin: 0, fontSize: "0.95rem" }}>
+                <p className="active-schedule-subtitle">
                   Пацієнти бачать ці налаштування при записі
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsEditing(true)}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "8px",
-                  padding: "10px 20px", fontSize: "0.95rem", borderRadius: "12px",
-                  border: "none", cursor: "pointer", background: "#f3f4f6", color: "#374151", fontWeight: "600",
-                }}
-              >
+              <button className="edit-schedule-btn" onClick={() => setIsEditing(true)}>
                 <Edit3 size={18} />
                 Змінити
               </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "var(--med-purple)" }}>
+            <div className="active-schedule-grid">
+              <div className="active-schedule-info-box">
+                <div className="info-box-header" style={{ color: "var(--med-purple)" }}>
                   <Calendar size={24} />
-                  <h3 style={{ margin: 0, color: "#1e293b" }}>Робочі дні</h3>
+                  <h3>Робочі дні</h3>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div className="days-badge-container">
                   {repeatingParams?.daysOfWeek?.map((d: number) => (
-                    <span key={d} style={{ background: "var(--med-purple)", color: "white", padding: "6px 14px", borderRadius: "20px", fontWeight: "600", fontSize: "0.95rem" }}>
+                    <span key={d} className="day-badge">
                       {getDaysNames([d])}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "#0284c7" }}>
+              <div className="active-schedule-info-box">
+                <div className="info-box-header" style={{ color: "#0284c7" }}>
                   <Clock size={24} />
-                  <h3 style={{ margin: 0, color: "#1e293b" }}>Години та вартість</h3>
+                  <h3>Години та вартість</h3>
                 </div>
-                <p style={{ margin: "0 0 10px", fontSize: "1.1rem", fontWeight: "600", color: "#334155" }}>
+                <p className="schedule-time-range">
                   {repeatingParams?.startTime || repeatingParams?.start_time} — {repeatingParams?.endTime || repeatingParams?.end_time}
                 </p>
-                <p style={{ margin: "0 0 8px 0", fontSize: "0.95rem", color: "#64748b" }}>
+                <p className="schedule-slot-duration">
                   Тривалість слота: <strong>{repeatingParams?.slotDuration || repeatingParams?.slot_duration} хв</strong>
                 </p>
-                <p style={{ margin: 0, fontSize: "1.05rem", color: "#10b981", fontWeight: "700" }}>
+                <p className="schedule-price">
                   Вартість прийому: {displayPrice ? `${displayPrice} ₴` : "Не вказана"}
                 </p>
               </div>
@@ -221,11 +203,8 @@ export default function ScheduleEditor() {
         ) : (
           <div className="profile-card glass-light editor-card">
             {hasConfirmedSchedule && isEditing && (
-              <div style={{ marginBottom: "20px", textAlign: "right" }}>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  style={{ background: "transparent", border: "none", color: "#6b7280", cursor: "pointer", fontWeight: "600", textDecoration: "underline" }}
-                >
+              <div className="cancel-edit-wrapper">
+                <button className="cancel-edit-btn" onClick={() => setIsEditing(false)}>
                   Скасувати редагування
                 </button>
               </div>

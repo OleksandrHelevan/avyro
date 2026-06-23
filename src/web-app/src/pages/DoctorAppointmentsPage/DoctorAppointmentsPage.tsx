@@ -1,12 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Clock, User, ChevronRight, CheckCircle2, Timer, XCircle, Stethoscope, CheckSquare, X, Loader2, FileText } from "lucide-react";
+import { Calendar, Clock, User, ChevronRight, CheckCircle2, Timer, XCircle, Stethoscope, CheckSquare, X, Loader2, FileText, AlertTriangle } from "lucide-react";
 import Loader from "../../components/Loader/Loader.tsx";
 
 import "./DoctorAppointmentsPage.css";
 import { useGetDoctorAppointments } from "../../domains/users/useGetDoctorAppointments/useGetDoctorAppointments.ts";
 import { useFinishAppointment } from "../../domains/appointments/useFinishAppointment/useFinishAppointment.ts";
 import { useAddAppointmentNote } from "../../domains/appointments/useAddAppointmentNote/useAddAppointmentNote.ts";
+// Імпортуємо хук скасування (як на сторінці пацієнта)
+import { useCancelAppointment } from "../../domains/appointments/useCancelAppointment/useCancelAppointment.ts";
 
 // ── Helpers ──
 const STATUS_CONFIG: Record<string, { label: string; className: string; Icon: any }> = {
@@ -35,7 +37,6 @@ function Avatar({ name, url, size = 48 }: { name?: string; url?: string; size?: 
   );
 }
 
-// ── Main Component ──
 export default function DoctorAppointmentsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"ALL" | "PLANNED" | "FINISHED" | "CANCELLED">("ALL");
@@ -46,11 +47,17 @@ export default function DoctorAppointmentsPage() {
   const [apptToAddNote, setApptToAddNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
 
+  // Стейти для скасування запису лікарем
+  const [apptToCancel, setApptToCancel] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+
   const [currentTime, setCurrentTime] = useState(new Date().getTime());
 
   const { data: rawAppointments, isLoading, isError } = useGetDoctorAppointments();
   const { mutate: finishAppointment, isPending: isFinishing } = useFinishAppointment();
   const { mutate: addAppointmentNote, isPending: isAddingNote } = useAddAppointmentNote();
+  // Мутація для скасування запису
+  const { mutate: cancelAppointment, isPending: isCanceling } = useCancelAppointment();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date().getTime()), 60000);
@@ -69,17 +76,14 @@ export default function DoctorAppointmentsPage() {
       const tA = new Date(a.from).getTime();
       const tB = new Date(b.from).getTime();
 
-      // Для завершених і скасованих: найсвіжіші зверху
       if (filter === "FINISHED" || filter === "CANCELLED") {
         return tB - tA;
       }
 
-      // Для запланованих: найближчі зверху
       if (filter === "PLANNED") {
         return tA - tB;
       }
 
-      // Для "Всі": спочатку майбутні (найближчі зверху), потім минулі (найсвіжіші зверху)
       const isFutureA = tA >= currentTime;
       const isFutureB = tB >= currentTime;
 
@@ -87,9 +91,9 @@ export default function DoctorAppointmentsPage() {
       if (!isFutureA && isFutureB) return 1;
 
       if (isFutureA && isFutureB) {
-        return tA - tB; // Обидва в майбутньому -> найближчий вище
+        return tA - tB;
       } else {
-        return tB - tA; // Обидва в минулому -> найсвіжіший вище
+        return tB - tA;
       }
     });
   }, [rawAppointments, filter, currentTime]);
@@ -115,6 +119,20 @@ export default function DoctorAppointmentsPage() {
         onSuccess: () => {
           setApptToAddNote(null);
           setNoteText("");
+        }
+      }
+    );
+  };
+
+  // Хендлер підтвердження скасування
+  const handleConfirmCancel = () => {
+    if (!apptToCancel) return;
+    cancelAppointment(
+      { id: apptToCancel, reason: cancelReason },
+      {
+        onSuccess: () => {
+          setApptToCancel(null);
+          setCancelReason("");
         }
       }
     );
@@ -177,7 +195,7 @@ export default function DoctorAppointmentsPage() {
         </div>
       )}
 
-      {/* Модалка збереження нотатки */}
+      {/* Модалка додавання нотатки */}
       {apptToAddNote && (
         <div className="cancel-modal-backdrop" onClick={() => !isAddingNote && setApptToAddNote(null)}>
           <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>
@@ -215,6 +233,50 @@ export default function DoctorAppointmentsPage() {
                 style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 4px 12px rgba(99, 102, 241, 0.2)" }}
               >
                 {isAddingNote ? <><Loader2 size={18} className="spin" /> Збереження...</> : "Зберегти нотатку"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* НОВА: Модалка скасування візиту лікарем */}
+      {apptToCancel && (
+        <div className="cancel-modal-backdrop" onClick={() => !isCanceling && setApptToCancel(null)}>
+          <div className="cancel-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-modal-header">
+              <h3 className="cancel-modal-title" style={{ color: "#0f172a" }}>
+                <AlertTriangle color="#ef4444" size={22} strokeWidth={2.5} />
+                Скасування візиту лікарем
+              </h3>
+              <button className="cancel-close-btn" onClick={() => setApptToCancel(null)} disabled={isCanceling}>
+                <X size={20} />
+              </button>
+            </div>
+            <p className="cancel-modal-text">
+              Ви впевнені, що хочете скасувати цей прийом? Пацієнт отримає сповіщення, а цей слот часу буде звільнено.
+            </p>
+            <div className="cancel-textarea-wrapper">
+              <label className="cancel-textarea-label">Причина скасування (необов'язково)</label>
+              <textarea
+                className="cancel-textarea"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Вкажіть причину для пацієнта (наприклад: терміновий виклик, лікар на лікарняному)..."
+                disabled={isCanceling}
+                style={{ minHeight: "100px" }}
+              />
+            </div>
+            <div className="cancel-modal-actions">
+              <button className="btn-cancel-return" onClick={() => setApptToCancel(null)} disabled={isCanceling}>
+                Повернутися
+              </button>
+              <button
+                className="btn-cancel-confirm"
+                onClick={handleConfirmCancel}
+                disabled={isCanceling}
+                style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 12px rgba(239, 68, 68, 0.2)" }}
+              >
+                {isCanceling ? <><Loader2 size={18} className="spin" /> Скасування...</> : "Скасувати візит"}
               </button>
             </div>
           </div>
@@ -266,11 +328,13 @@ export default function DoctorAppointmentsPage() {
               const toMs = appt.to ? new Date(appt.to).getTime() : fromMs + 30 * 60000;
               const isCurrentNow = isPlanned && currentTime >= fromMs && currentTime <= toMs;
 
+              const appointmentId = appt._id || appt.id;
+
               return (
                 <div
-                  key={appt._id || appt.id}
+                  key={appointmentId}
                   className={`dap-card ${isCurrentNow ? "dap-card--active-now" : ""}`}
-                  onClick={() => navigate(`/appointments/${appt._id || appt.id}`)}
+                  onClick={() => navigate(`/appointments/${appointmentId}`)}
                 >
                   <div className="dap-card-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className={`dap-badge ${statusCfg.className}`}>
@@ -305,27 +369,49 @@ export default function DoctorAppointmentsPage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <button
                         className="dap-add-note-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setApptToAddNote(appt._id || appt.id);
+                          setApptToAddNote(appointmentId);
                         }}
                       >
                         <FileText size={16} /> Нотатка
                       </button>
 
                       {isPlanned && (
-                        <button
-                          className="dap-quick-finish-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setApptToFinish(appt._id || appt.id);
-                          }}
-                        >
-                          <CheckSquare size={16} /> Завершити
-                        </button>
+                        <>
+                          <button
+                            className="dap-quick-finish-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setApptToFinish(appointmentId);
+                            }}
+                          >
+                            <CheckSquare size={16} /> Завершити
+                          </button>
+
+                          {/* НОВА: Кнопка «Скасувати» для лікаря */}
+                          <button
+                            className="btn-cancel-return"
+                            style={{
+                              borderColor: '#ef4444',
+                              color: '#ef4444',
+                              padding: '6px 12px',
+                              fontSize: '0.875rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setApptToCancel(appointmentId);
+                            }}
+                          >
+                            <X size={16} /> Скасувати
+                          </button>
+                        </>
                       )}
 
                       <button className="dap-action-btn">
