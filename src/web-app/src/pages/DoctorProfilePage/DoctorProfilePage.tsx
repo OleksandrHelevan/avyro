@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Mail, CalendarDays, ArrowLeft, CreditCard, FileText, Info } from "lucide-react";
+import { Mail, CalendarDays, ArrowLeft, CreditCard, FileText } from "lucide-react";
 import {
   format, isSameDay, isBefore, startOfToday,
   parse, isAfter, getDay, addDays
@@ -468,18 +468,7 @@ export default function DoctorProfile() {
                     </div>
                   )}
 
-                  {commissionData && commissionData.commissionAmount > 0 && (
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", background: "#fef2f2", padding: "12px", borderRadius: "8px", border: "1px solid #fecdd3" }}>
-                      <Info size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: "2px" }} />
-                      <div style={{ fontSize: "13px", color: "#be123c" }}>
-                        Комісія платіжної системи: <strong>2.5%</strong>.
-                        <br />
-                        З вашого грошового балансу буде списано додатково <strong>{commissionData.commissionAmount.toFixed(2)} ₴</strong>.
-                        <br />
-                        Разом до списання грошима: <strong>{commissionData.totalMoneyWithCommission.toFixed(2)} ₴</strong>.
-                      </div>
-                    </div>
-                  )}
+
                   {paymentMethod === "POINTS" && (
                     <div style={{ fontSize: "13px", color: "#10b981", background: "#ecfdf5", padding: "10px", borderRadius: "8px", border: "1px solid #a7f3d0", textAlign: "center" }}>
                       При оплаті бонусами комісія <strong>не стягується!</strong> 🎉

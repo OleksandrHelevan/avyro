@@ -129,9 +129,7 @@ const HomePage = () => {
               <div className="slide-content">
                 <h2>{slides[currentSlide].title}</h2>
                 <p>{slides[currentSlide].desc}</p>
-                <button type="button" className="btn-white-glass">
-                  Дізнатися більше
-                </button>
+
               </div>
             </motion.div>
           </AnimatePresence>
