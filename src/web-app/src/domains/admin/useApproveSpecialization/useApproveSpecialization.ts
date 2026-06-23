@@ -8,7 +8,6 @@ export const useApproveSpecialization = () => {
   return useMutation({
     mutationFn: (requestId: string) => adminService.approveSpecialization(requestId),
     onSuccess: () => {
-      // 🔄 Оновлюємо кеш, щоб запит зник зі списку або змінив статус
       queryClient.invalidateQueries({ queryKey: ["adminSpecializations"] });
       toast.success("Спеціалізацію успішно схвалено!");
     },

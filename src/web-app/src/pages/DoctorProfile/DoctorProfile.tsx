@@ -4,8 +4,9 @@ import toast from "react-hot-toast";
 import {
   Stethoscope,
   UserCircle,
-  LayoutDashboard,
-  LogOut, Wallet, PlusCircle, Check
+  LogOut,
+  PlusCircle,
+  Check
 } from "lucide-react";
 
 import { useDoctor } from "../../domains/users/useDoctor/useDoctor";
@@ -19,7 +20,7 @@ import Loader from "../../components/Loader/Loader.tsx";
 import SelectInput from "../../components/SelectInput/SelectInput.tsx";
 
 import "./DoctorProfile.css";
-import WalletSidebarCard from "../BalanceSidebar/WalletSidebarCard.tsx";
+import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar.tsx";
 
 export default function DoctorProfile() {
   const navigate = useNavigate();
@@ -38,7 +39,6 @@ export default function DoctorProfile() {
     avatarUrl: "",
   });
 
-  // 🚀 Стейт для нової спеціалізації (назва та опис)
   const [showNewSpecForm, setShowNewSpecForm] = useState(false);
   const [newSpecName, setNewSpecName] = useState("");
   const [newSpecDesc, setNewSpecDesc] = useState("");
@@ -94,7 +94,6 @@ export default function DoctorProfile() {
     navigate("/login");
   };
 
-  // 🚀 Обробник створення нової спеціалізації (тепер передаємо і description)
   const handleCreateSpec = () => {
     if (!newSpecName.trim()) {
       toast.error("Введіть назву спеціалізації");
@@ -106,7 +105,6 @@ export default function DoctorProfile() {
     }
 
     createSpecialization(
-      // Переконайся, що твій хук та apiClient приймають description!
       { name: newSpecName, description: newSpecDesc } as any,
       {
         onSuccess: () => {
@@ -129,24 +127,8 @@ export default function DoctorProfile() {
   return (
     <div className="main-content">
       <div className="layout-container">
-        <aside className="sidebar">
-          <div className="sidebar-menu glass-light">
-            <button className="menu-item active">
-              <LayoutDashboard size={18}/>
-              <span>Кабінет лікаря</span>
-            </button>
 
-            <button
-              className="menu-item"
-              onClick={() => navigate("/wallet")}
-            >
-              <Wallet size={18}/>
-              <span>Баланс</span>
-            </button>
-
-            <WalletSidebarCard/>
-          </div>
-        </aside>
+        <DoctorSidebar />
 
         <main className="profile-content">
           <div className="page-header">
@@ -211,7 +193,6 @@ export default function DoctorProfile() {
                     onChange={(val) => setFormData({...formData, specializationId: val.toString()})}
                   />
 
-                  {/* Кнопка для відкриття форми нової спеціалізації */}
                   {!showNewSpecForm ? (
                     <button
                       type="button"
@@ -234,7 +215,6 @@ export default function DoctorProfile() {
                         Запропонуйте нову спеціалізацію:
                       </label>
 
-                      {/* 🚀 Оновлена форма з полем для опису */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <input
                           type="text"

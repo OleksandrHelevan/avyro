@@ -1,13 +1,9 @@
-/* src/pages/Admin/AdminSchedules.css */
 .dash-page {
-  width: 100%; /* ДОДАЙТЕ ЦЕЙ РЯДОК */
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  /* Додаємо відступи, щоб не ховалося під хедером і не прилипало до боків екрана */
   padding: 100px 2rem 2rem 2rem;
-
-  /* Вбиваємо небажаний бекграунд */
   background: transparent !important;
   background-image: none !important;
   background-color: transparent !important;
@@ -16,12 +12,11 @@
 .dash-page h2 {
   color: #0f172a;
   margin-bottom: 2rem;
-  text-align: center; /* Можна вирівняти по центру для краси */
+  text-align: center;
 }
 
 .dash-grid {
   display: grid;
-  /* Жорстко задаємо 3 рівні колонки (3 в ряд) */
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
@@ -31,14 +26,11 @@
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.6);
-
-  /* Робимо їх трохи "скляними", щоб гарно виглядали на вашому синьому фоні */
   background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(10px);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Легкий ефект підняття картки при наведенні */
 .dash-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
@@ -48,7 +40,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 0; /* Додаємо відступи всередині картки */
+  padding: 1.5rem 1.5rem 0;
 }
 
 .dash-header h3 {
@@ -72,7 +64,7 @@
   flex: 1;
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(241, 245, 249, 0.6); /* Легкий фон для метрик */
+  background: rgba(241, 245, 249, 0.6);
   text-align: center;
 }
 
@@ -93,7 +85,7 @@
 .dash-actions {
   padding: 0 1.5rem 1.5rem;
   display: flex;
-  gap: 10px; /* На випадок, якщо кнопок буде дві (Прийняти/Відхилити) */
+  gap: 10px;
 }
 
 .dash-btn {
@@ -108,35 +100,27 @@
   transition: all 0.2s ease;
 }
 
-/* ДОДАНО: Ефект при наведенні на кнопку */
 .dash-btn:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
 }
 
-
-/* =========================================
-   АДАПТИВНІСТЬ (МЕДІА-ЗАПИТИ)
-   ========================================= */
-
-/* Планшети і невеликі ноутбуки */
 @media (max-width: 1024px) {
   .dash-grid {
-    grid-template-columns: repeat(2, 1fr); /* По 2 в ряд */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Мобільні телефони */
 @media (max-width: 768px) {
   .dash-page {
-    padding: 85px 1rem 1rem 1rem; /* Менші бокові відступи */
+    padding: 85px 1rem 1rem 1rem;
   }
 
   .dash-grid {
-    grid-template-columns: 1fr; /* 1 в ряд */
+    grid-template-columns: 1fr;
   }
 
   .metric-box strong {
-    font-size: 1.4rem; /* Зменшуємо шрифт цифр, щоб помістилися */
+    font-size: 1.4rem;
   }
 }

@@ -1,4 +1,3 @@
-/* ===== REGISTRATIONS ===== */
 export interface AdminRegistrationPayload {
   email: string;
   password?: string;
@@ -35,7 +34,6 @@ export interface RejectRegistrationResponse {
   status: string;
 }
 
-/* ===== SCHEDULES ===== */
 export interface AdminSchedulePayload {
   doctorId?: string;
   startDate?: string;
@@ -53,7 +51,6 @@ export interface AdminScheduleRequest {
   updatedAt?: string;
 }
 
-/* ===== NOTIFICATIONS ===== */
 export interface SendNotificationRequest {
   message: string;
   recipient_id: string | null;
@@ -67,7 +64,6 @@ export interface SendNotificationResponse {
   recipient_id: string | null;
 }
 
-/* ===== FEEDBACK ===== */
 export interface AdminFeedback {
   _id: string;
   userId: string | null;

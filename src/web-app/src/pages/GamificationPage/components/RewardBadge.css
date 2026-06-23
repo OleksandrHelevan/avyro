@@ -52,7 +52,6 @@
   padding-left: 12px;
 }
 
-/* Адаптив під мобілки */
 @media (max-width: 480px) {
   .reward-badge-card {
     padding: 12px;

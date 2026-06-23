@@ -39,13 +39,10 @@ export const userApiClient = {
     return apiClient.get<DoctorApprovalResponse>(`/doctors?email=${encodeURIComponent(email)}`);
   },
 
-  // 🚀 ДОДАНО: Метод отримання сповіщень
   getNotifications: async () =>
     apiClient.get<GetNotificationsResponse>('/notifications'),
-  // 🚀 ДОДАНО: Метод для позначення всіх як прочитаних (за Swagger)
   markAllNotificationsAsRead: async () =>
     apiClient.post('/notifications/read-all', {}),
-  // 🚀 ВИПРАВЛЕНО: Прибрали ID з URL і передаємо його в тіло запиту
   createFeedback: async (doctorId: string, request: CreateFeedbackRequest) =>
     apiClient.post('/feedback', { ...request, doctorId }),
   createDoctorFeedback: async (request: {

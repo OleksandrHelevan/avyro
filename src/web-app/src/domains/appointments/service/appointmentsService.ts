@@ -16,7 +16,6 @@ export const appointmentsService = {
     return (res as any).data ?? res;
   },
 
-  // ── NEW ──────────────────────────────────────────────────────────────────
   getAppointmentById: async (id: string): Promise<AppointmentDetailResponse> => {
     const res = await appointmentsApiClient.getAppointmentById(id);
     return (res as any).data ?? res;

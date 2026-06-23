@@ -3,12 +3,12 @@ import {
   Wallet, CreditCard, ArrowUpCircle, RefreshCw,
   Loader2, Plus, ShieldCheck
 } from "lucide-react";
-import PatientSidebar from "../../components/PatientSidebar/PatientSidebar.tsx";
 import TopUpModal from "../../components/WalletModal/TopUpModal.tsx";
 
 import "./WalletPage.css";
 import {usePaymentAccount} from "../../domains/payments/usePaymentAccount/usePaymentAccount.ts";
 import {useCreatePaymentAccount} from "../../domains/payments/useCreatePaymentAccount/useCreatePaymentAccount.ts";
+import DoctorSidebar from "../../components/DoctorSidebar/DoctorSidebar.tsx";
 
 export default function WalletPage() {
   const { data: account, isLoading, isError, error, refetch, isFetching } = usePaymentAccount();
@@ -27,11 +27,9 @@ export default function WalletPage() {
       <div className="main-content" style={{ height: "100%", position: "relative", zIndex: 1 }}>
         <div className="layout-container" style={{ height: "100%", display: "flex" }}>
 
-          {/* ── Unified sidebar ── */}
-          <PatientSidebar />
+          <DoctorSidebar />
 
           <main className="profile-content" style={{ flex: 1, overflowY: "auto", paddingBottom: "40px" }}>
-            {/* Header */}
             <div className="wallet-page__header">
               <div className="wallet-page__title">
                 <Wallet size={22} />
@@ -45,7 +43,6 @@ export default function WalletPage() {
               </button>
             </div>
 
-            {/* Loading */}
             {isLoading && (
               <div className="wallet-page__loading">
                 <Loader2 size={32} className="spin" />
@@ -53,7 +50,6 @@ export default function WalletPage() {
               </div>
             )}
 
-            {/* No account */}
             {!isLoading && (accountNotFound || !account) && (
               <div className="wallet-page__empty">
                 <div className="wallet-empty-card">
@@ -71,16 +67,13 @@ export default function WalletPage() {
               </div>
             )}
 
-            {/* Has account */}
             {!isLoading && account && (
               <div className="wallet-page__content">
-                {/* Balance card */}
                 <div className="balance-card">
                   <div className="balance-card__bg" />
                   <div className="balance-card__inner">
 
                     <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", flexWrap: "wrap" }}>
-                      {/* Основний баланс */}
                       <div>
                         <div className="balance-card__label">Поточний баланс</div>
                         <div className="balance-card__amount">
@@ -89,7 +82,6 @@ export default function WalletPage() {
                         </div>
                       </div>
 
-                      {/* Бали */}
                       <div>
 
 
@@ -103,7 +95,6 @@ export default function WalletPage() {
                   </button>
                 </div>
 
-                {/* Security note */}
                 <div className="security-note">
                   <ShieldCheck size={16} />
                   <p>Ваші платіжні дані захищені шифруванням Stripe. Ми ніколи не зберігаємо реквізити ваших карток.</p>

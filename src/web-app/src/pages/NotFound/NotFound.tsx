@@ -8,7 +8,6 @@ const NotFoundPage: React.FC = () => {
 
   return (
     <div className="not-found-viewport">
-      {/* Фон з вашими оригінальними кольорами блобів */}
       <div className="bright-gradient-bg">
         <div className="light-blob blob-404-1"></div>
         <div className="light-blob blob-404-2"></div>

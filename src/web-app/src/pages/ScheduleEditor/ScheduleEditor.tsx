@@ -38,7 +38,7 @@ export default function ScheduleEditor() {
     startTime: "09:00",
     endTime: "18:00",
     slotDuration: 30,
-    price: 500 // Стейт форми залишаємо в ГРИВНЯХ
+    price: 500
   });
 
   const doctor = useMemo(() => (rawDoctor as any)?.data || rawDoctor, [rawDoctor]);
@@ -58,7 +58,6 @@ export default function ScheduleEditor() {
   const hasConfirmedSchedule = !!repeatingParams;
   const showForm = !hasConfirmedSchedule || isEditing;
 
-  // Автозаповнення форми
   useEffect(() => {
     if (repeatingParams && isEditing) {
       setSelectedDays(repeatingParams.daysOfWeek || []);
@@ -69,14 +68,14 @@ export default function ScheduleEditor() {
         || activeSchedule?.payload?.price
         || repeatingParams?.pricePerSlot
         || repeatingParams?.price
-        || 50000; // Дефолт 500 грн в копійках
+        || 50000;
 
       setParams(prev => ({
         ...prev,
         startTime: repeatingParams.startTime || repeatingParams.start_time || "09:00",
         endTime: repeatingParams.endTime || repeatingParams.end_time || "18:00",
         slotDuration: repeatingParams.slotDuration || repeatingParams.slot_duration || 30,
-        price: savedPriceInKopecks / 100 // 🚀 ДІЛИМО НА 100 для відображення в інпуті в гривнях
+        price: savedPriceInKopecks / 100
       }));
     }
   }, [repeatingParams, isEditing, activeSchedule]);
@@ -97,7 +96,7 @@ export default function ScheduleEditor() {
       year: params.year,
       title: `Графік: ${params.month}/${params.year}`,
       isRepeated: true,
-      pricePerSlot: params.price * 100, // 🚀 МНОЖИМО НА 100, відправляємо на бекенд у копійках
+      pricePerSlot: params.price * 100,
       repeating: {
         type: "WEEKLY",
         daysOfWeek: selectedDays,
@@ -115,7 +114,6 @@ export default function ScheduleEditor() {
     });
   };
 
-  // Пошук ціни для відображення в "картці" (ділимо на 100)
   const displayPrice = useMemo(() => {
     const p = activeSchedule?.pricePerSlot
       || activeSchedule?.price
@@ -124,7 +122,7 @@ export default function ScheduleEditor() {
       || repeatingParams?.pricePerSlot
       || repeatingParams?.price;
 
-    return p ? p / 100 : null; // 🚀 ДІЛИМО НА 100 для красивого відображення в гривнях
+    return p ? p / 100 : null;
   }, [activeSchedule, repeatingParams]);
 
   if (isDoctorLoading) return <div className="loading-screen"><Loader/></div>;
@@ -145,57 +143,50 @@ export default function ScheduleEditor() {
 
         {!showForm ? (
           <div className="profile-card glass-light editor-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
-              <div>
-                <h2 style={{ color: "#1f2937", margin: "0 0 5px", fontSize: "1.5rem", fontWeight: "800", display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="active-schedule-header">
+              <div className="active-schedule-title-wrapper">
+                <h2 className="active-schedule-title">
                   <CalendarCheck size={28} color="#10b981" />
                   Ваш активний графік
                 </h2>
-                <p style={{ color: "#6b7280", margin: 0, fontSize: "0.95rem" }}>
+                <p className="active-schedule-subtitle">
                   Пацієнти бачать ці налаштування при записі
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsEditing(true)}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "8px",
-                  padding: "10px 20px", fontSize: "0.95rem", borderRadius: "12px",
-                  border: "none", cursor: "pointer", background: "#f3f4f6", color: "#374151", fontWeight: "600",
-                }}
-              >
+              <button className="edit-schedule-btn" onClick={() => setIsEditing(true)}>
                 <Edit3 size={18} />
                 Змінити
               </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "var(--med-purple)" }}>
+            <div className="active-schedule-grid">
+              <div className="active-schedule-info-box">
+                <div className="info-box-header" style={{ color: "var(--med-purple)" }}>
                   <Calendar size={24} />
-                  <h3 style={{ margin: 0, color: "#1e293b" }}>Робочі дні</h3>
+                  <h3>Робочі дні</h3>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div className="days-badge-container">
                   {repeatingParams?.daysOfWeek?.map((d: number) => (
-                    <span key={d} style={{ background: "var(--med-purple)", color: "white", padding: "6px 14px", borderRadius: "20px", fontWeight: "600", fontSize: "0.95rem" }}>
+                    <span key={d} className="day-badge">
                       {getDaysNames([d])}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div style={{ background: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "#0284c7" }}>
+              <div className="active-schedule-info-box">
+                <div className="info-box-header" style={{ color: "#0284c7" }}>
                   <Clock size={24} />
-                  <h3 style={{ margin: 0, color: "#1e293b" }}>Години та вартість</h3>
+                  <h3>Години та вартість</h3>
                 </div>
-                <p style={{ margin: "0 0 10px", fontSize: "1.1rem", fontWeight: "600", color: "#334155" }}>
+                <p className="schedule-time-range">
                   {repeatingParams?.startTime || repeatingParams?.start_time} — {repeatingParams?.endTime || repeatingParams?.end_time}
                 </p>
-                <p style={{ margin: "0 0 8px 0", fontSize: "0.95rem", color: "#64748b" }}>
+                <p className="schedule-slot-duration">
                   Тривалість слота: <strong>{repeatingParams?.slotDuration || repeatingParams?.slot_duration} хв</strong>
                 </p>
-                <p style={{ margin: 0, fontSize: "1.05rem", color: "#10b981", fontWeight: "700" }}>
+                <p className="schedule-price">
                   Вартість прийому: {displayPrice ? `${displayPrice} ₴` : "Не вказана"}
                 </p>
               </div>
@@ -204,11 +195,8 @@ export default function ScheduleEditor() {
         ) : (
           <div className="profile-card glass-light editor-card">
             {hasConfirmedSchedule && isEditing && (
-              <div style={{ marginBottom: "20px", textAlign: "right" }}>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  style={{ background: "transparent", border: "none", color: "#6b7280", cursor: "pointer", fontWeight: "600", textDecoration: "underline" }}
-                >
+              <div className="cancel-edit-wrapper">
+                <button className="cancel-edit-btn" onClick={() => setIsEditing(false)}>
                   Скасувати редагування
                 </button>
               </div>

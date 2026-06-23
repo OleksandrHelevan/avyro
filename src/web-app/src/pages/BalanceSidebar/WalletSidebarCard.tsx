@@ -14,7 +14,6 @@ export default function WalletSidebarCard() {
   const accountNotFound =
     isError && (error?.message?.includes("404") || error?.message?.includes("not found"));
 
-  // ── Loading ──
   if (isLoading) {
     return (
       <div className="wallet-card wallet-card--loading">
@@ -24,7 +23,6 @@ export default function WalletSidebarCard() {
     );
   }
 
-  // ── No account yet ──
   if (accountNotFound || !account) {
     return (
       <div className="wallet-card wallet-card--empty">
@@ -47,7 +45,6 @@ export default function WalletSidebarCard() {
     );
   }
 
-  // ── Has account ──
   const balance = (account.balance / 100).toFixed(2); // assuming cents
   const currency = account.currency?.toUpperCase() || "UAH";
   const cardCount = account.paymentMethods?.length || 0;

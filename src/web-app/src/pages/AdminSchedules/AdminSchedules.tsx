@@ -2,12 +2,10 @@ import { CalendarDays, Check, X, Loader2, Clock, AlertCircle } from "lucide-reac
 import toast from "react-hot-toast";
 import { useMemo, useState } from "react";
 
-// Ваші стилі
 import "./AdminSchedule.css";
 import { useRejectSchedule } from "../../domains/admin/useRejectSchedule/useRejectSchedule.ts";
 import { useAdminSchedules } from "../../domains/admin/useAdminSchedules/useAdminSchedules.ts";
 import { useApproveSchedule } from "../../domains/admin/useApproveSchedule/useApproveSchedule.ts";
-// Хук лікарів
 import { useGetDoctors } from "../../domains/users/useGetDoctors/useGetDoctors";
 
 const ScheduleRequestCard = ({
@@ -41,7 +39,6 @@ const ScheduleRequestCard = ({
       return;
     }
     onReject({ scheduleId: schedule._id || schedule.id, comment: rejectComment.trim() });
-    // Модалка закриється автоматично, коли запис зникне зі списку після успішного відхилення
   };
 
   return (
@@ -108,7 +105,6 @@ const ScheduleRequestCard = ({
         </div>
       </div>
 
-      {/* ── ГАРНА МОДАЛКА ДЛЯ ВІДХИЛЕННЯ ── */}
       {isModalOpen && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,

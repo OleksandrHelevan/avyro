@@ -1,4 +1,3 @@
-/* ── Layout ── */
 .dap-page {
   min-height: calc(100vh - 70px);
   padding: 40px 20px 80px;
@@ -16,7 +15,6 @@
   gap: 24px;
 }
 
-/* ── Header ── */
 .dap-header {
   display: flex;
   flex-direction: column;
@@ -42,13 +40,12 @@
   margin: 0;
 }
 
-/* ── Filters ── */
 .dap-filters {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 8px;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 .dap-filters::-webkit-scrollbar { display: none; }
 
@@ -78,7 +75,6 @@
   box-shadow: 0 4px 12px rgba(123, 81, 179, 0.2);
 }
 
-/* ── List & Empty State ── */
 .dap-list {
   display: flex;
   flex-direction: column;
@@ -120,7 +116,6 @@
   color: #1e293b;
 }
 
-/* ── Cards ── */
 .dap-card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(20px);
@@ -140,7 +135,6 @@
   box-shadow: 0 12px 40px rgba(123, 81, 179, 0.08);
 }
 
-/* Card Top */
 .dap-card-top {
   display: flex;
   justify-content: space-between;
@@ -169,7 +163,6 @@
   color: #1e293b;
 }
 
-/* Card Middle (Patient Info) */
 .dap-card-middle {
   display: flex;
   align-items: center;
@@ -217,14 +210,12 @@
   color: #1e293b;
 }
 
-/* Card Divider */
 .dap-divider {
   height: 1px;
   background: rgba(203, 213, 225, 0.4);
   border-radius: 2px;
 }
 
-/* Card Bottom */
 .dap-card-bottom {
   display: flex;
   justify-content: space-between;
@@ -265,10 +256,8 @@
 .dap-card:hover .dap-action-btn {
   text-decoration: underline;
 }
-/* 📱 ── Mobile Responsive (Адаптив) ──────────────────────────────────────── */
 @media (max-width: 600px) {
   .dap-page {
-    /* Зменшуємо бокові відступи, щоб картки були ширшими на вузьких екранах */
     padding: 20px 12px 60px;
   }
 
@@ -284,13 +273,11 @@
     font-size: 14px;
   }
 
-  /* Фільтри робимо трохи компактнішими */
   .dap-filter-btn {
     padding: 8px 14px;
     font-size: 13px;
   }
 
-  /* Сама картка візиту */
   .dap-card {
     padding: 16px;
     border-radius: 20px;
@@ -312,7 +299,6 @@
     font-size: 15px;
   }
 
-  /* Нижній блок: дата і кнопка "Деталі" */
   .dap-card-bottom {
     flex-direction: column;
     align-items: flex-start;
@@ -320,7 +306,7 @@
   }
 
   .dap-datetime {
-    flex-wrap: wrap; /* Дозволяє перенести час на новий рядок, якщо телефон дуже вузький */
+    flex-wrap: wrap;
     gap: 12px;
   }
 
@@ -328,7 +314,6 @@
     font-size: 13px;
   }
 
-  /* Перетворюємо кнопку "Деталі" у велику таб-кнопку для зручного натискання пальцем */
   .dap-action-btn {
     width: 100%;
     justify-content: center;
@@ -340,7 +325,6 @@
 }
 
 @media (max-width: 380px) {
-  /* Ультра-малі екрани (наприклад, старі iPhone) */
   .dap-badge {
     font-size: 10px;
     padding: 4px 8px;
@@ -350,14 +334,13 @@
     font-size: 20px;
   }
 }
-/* ── Кнопка швидкого завершення на картці ── */
 .dap-quick-finish-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: #ecfdf5; /* Світло-зелений фон */
-  color: #10b981; /* Смарагдовий текст */
+  background-color: #ecfdf5;
+  color: #10b981;
   border: 1px solid #a7f3d0;
   border-radius: 12px;
   font-size: 0.9rem;
@@ -378,7 +361,6 @@
   transform: translateY(1px);
 }
 
-/* ── Модальне вікно (якщо класи не були глобальними) ── */
 .cancel-modal-backdrop {
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: center; justify-content: center;
@@ -411,10 +393,9 @@
 .btn-cancel-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-/* 🚀 Стилі для візиту, який відбувається ПРЯМО ЗАРАЗ */
 .dap-card--active-now {
   transform: scale(1.02);
-  border: 2px solid #3bceb5 !important; /* Яскрава бірюзова рамка */
+  border: 2px solid #3bceb5 !important;
   box-shadow: 0 12px 32px rgba(59, 206, 181, 0.25) !important;
   z-index: 10;
   position: relative;
@@ -426,7 +407,6 @@
   box-shadow: 0 16px 40px rgba(59, 206, 181, 0.35) !important;
 }
 
-/* 🚀 Пульсуюча мітка "Йде зараз" */
 .dap-now-badge {
   display: flex;
   align-items: center;
@@ -464,14 +444,13 @@
   0% { transform: scale(0.5); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }
 }
-/* ── Кнопка додавання нотатки ── */
 .dap-add-note-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: #eef2ff; /* Світло-індиго фон */
-  color: #6366f1; /* Індиго текст */
+  background-color: #eef2ff;
+  color: #6366f1;
   border: 1px solid #c7d2fe;
   border-radius: 12px;
   font-size: 0.9rem;

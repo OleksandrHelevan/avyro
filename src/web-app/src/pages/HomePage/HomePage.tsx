@@ -21,6 +21,24 @@ const fadeUpVariant = {
   },
 };
 
+const slides = [
+  {
+    title: "Безкоштовна онлайн-консультація",
+    desc: "Для нових пацієнтів до кінця місяця",
+    color: "linear-gradient(135deg, #18c0c4, #7256a1)",
+  },
+  {
+    title: "Комплексний чекап організму",
+    desc: "Знижка 20% на всі аналізи",
+    color: "linear-gradient(135deg, #7256a1, #18c0c4)",
+  },
+  {
+    title: "Сімейний лікар у смартфоні",
+    desc: "Зв'язок 24/7 у нашому додатку",
+    color: "linear-gradient(135deg, #38bdf8, #6366f1)",
+  },
+];
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,15 +49,11 @@ const HomePage = () => {
   const [activeSpec, setActiveSpec] = useState(initialSpec);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  // 🔥 СТАН МОДАЛКИ
   const [isPlatformFeedbackOpen, setIsPlatformFeedbackOpen] = useState(false);
 
   const { data: doctors = [], isLoading: isLoadingDoctors } = useGetDoctors();
-  const { data: apiSpecs = [], isLoading: isLoadingSpecs } =
-    useSpecializations();
+  const { data: apiSpecs = [], isLoading: isLoadingSpecs } = useSpecializations();
 
-  // Синхронізація URL
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeSpec !== "Усі") params.set("spec", activeSpec);
@@ -52,35 +66,15 @@ const HomePage = () => {
     [apiSpecs]
   );
 
-  const slides = [
-    {
-      title: "Безкоштовна онлайн-консультація",
-      desc: "Для нових пацієнтів до кінця місяця",
-      color: "linear-gradient(135deg, #18c0c4, #7256a1)",
-    },
-    {
-      title: "Комплексний чекап організму",
-      desc: "Знижка 20% на всі аналізи",
-      color: "linear-gradient(135deg, #7256a1, #18c0c4)",
-    },
-    {
-      title: "Сімейний лікар у смартфоні",
-      desc: "Зв'язок 24/7 у нашому додатку",
-      color: "linear-gradient(135deg, #38bdf8, #6366f1)",
-    },
-  ];
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, []);
 
   const filteredDoctors = useMemo(() => {
-    const selectedSpecObj: any = apiSpecs.find(
-      (s) => s.name === activeSpec
-    );
+    const selectedSpecObj: any = apiSpecs.find((s) => s.name === activeSpec);
     const selectedSpecId = selectedSpecObj
       ? selectedSpecObj.id || selectedSpecObj._id
       : null;
@@ -94,9 +88,7 @@ const HomePage = () => {
       const search = searchTerm.toLowerCase().trim();
       const specNameToSearch =
         docSpecName ||
-        apiSpecs.find(
-          (s: any) => (s.id || s._id) === docSpecId
-        )?.name ||
+        apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name ||
         "";
 
       const matchesCategory =
@@ -118,12 +110,12 @@ const HomePage = () => {
   return (
     <>
       <main className="main-content">
-        {/* ===== SLIDER ===== */}
-        <motion.div
+        <motion.section
           className="slider-container"
           initial="hidden"
           animate="visible"
           variants={fadeUpVariant}
+          aria-label="Спеціальні пропозиції"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -137,24 +129,24 @@ const HomePage = () => {
               <div className="slide-content">
                 <h2>{slides[currentSlide].title}</h2>
                 <p>{slides[currentSlide].desc}</p>
-                <button className="btn-white-glass">
+                <button type="button" className="btn-white-glass">
                   Дізнатися більше
                 </button>
               </div>
             </motion.div>
           </AnimatePresence>
-        </motion.div>
+        </motion.section>
 
-        {/* ===== SPECIALIZATIONS ===== */}
-        <motion.div
+        <motion.section
           className="specs-section"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeUpVariant}
+          aria-labelledby="specializations-title"
         >
-          <h3 className="section-subtitle">Спеціалізації</h3>
-          <div className="specs-scroll-wrapper">
+          <h3 id="specializations-title" className="section-subtitle">Спеціалізації</h3>
+          <div className="specs-scroll-wrapper" role="group" aria-label="Вибір спеціалізації">
             <div className="specs-group">
               {isLoadingSpecs ? (
                 <Loader />
@@ -162,10 +154,10 @@ const HomePage = () => {
                 displaySpecs.map((spec) => (
                   <button
                     key={spec}
+                    type="button"
+                    aria-pressed={activeSpec === spec}
                     className={`spec-tag-light ${
-                      activeSpec === spec
-                        ? "spec-active"
-                        : "glass-light"
+                      activeSpec === spec ? "spec-active" : "glass-light"
                     }`}
                     onClick={() => setActiveSpec(spec)}
                   >
@@ -175,58 +167,50 @@ const HomePage = () => {
               )}
             </div>
           </div>
-        </motion.div>
+        </motion.section>
 
-        {/* ===== SEARCH ===== */}
-        <motion.div
+        <motion.section
           className="search-section"
           initial="hidden"
           whileInView="visible"
           variants={fadeUpVariant}
+          aria-labelledby="search-title"
         >
-          <h2 className="med-title-dark">Знайдіть свого лікаря</h2>
+          <h2 id="search-title" className="med-title-dark">Знайдіть свого лікаря</h2>
           <div className="search-bar-white">
-            <Search size={20} color="#6b7280" />
+            <Search size={20} color="#6b7280" aria-hidden="true" />
             <input
-              type="text"
+              type="search"
+              aria-label="Пошук лікаря за ім'ям, спеціальністю або поштою"
               placeholder="Ім'я, спеціальність або пошта..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="btn-search-dark">Знайти</button>
+            <button type="button" className="btn-search-dark" aria-label="Знайти лікаря">
+              Знайти
+            </button>
           </div>
-        </motion.div>
+        </motion.section>
 
-        {/* ===== DOCTORS GRID ===== */}
-        <div className="results-section">
+        <section className="results-section" aria-label="Результати пошуку лікарів">
           <div className="doctors-grid">
             {isLoadingDoctors ? (
               <Loader />
             ) : filteredDoctors.length === 0 ? (
-              <p
-                style={{
-                  gridColumn: "1 / -1",
-                  textAlign: "center",
-                  color: "#000",
-                }}
-              >
+              <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#000" }} role="status">
                 За вашим запитом лікарів не знайдено.
               </p>
             ) : (
-              filteredDoctors.map((doc: any, index) => {
-                const docSpecId =
-                  doc.specializationId || doc.specialization_id;
+              filteredDoctors.map((doc: any) => {
+                const docSpecId = doc.specializationId || doc.specialization_id;
                 const displaySpecName =
                   doc.specializationName ||
-                  apiSpecs.find(
-                    (s: any) =>
-                      (s.id || s._id) === docSpecId
-                  )?.name ||
+                  apiSpecs.find((s: any) => (s.id || s._id) === docSpecId)?.name ||
                   "Загальний профіль";
 
                 return (
-                  <motion.div
-                    key={doc.id || doc._id || index}
+                  <motion.article
+                    key={doc.id || doc._id}
                     className="doctor-card-light glass-light"
                     whileHover={{ y: -5 }}
                   >
@@ -234,7 +218,11 @@ const HomePage = () => {
                       <div className="doctor-avatar-placeholder">
                         <img
                           src={doc.avatarUrl || DEFAULT_AVATAR}
-                          alt="doc"
+                          alt={`Фото лікаря: ${doc.fullName || "Спеціаліст"}`}
+                          loading="lazy"
+                          decoding="async"
+                          width="64"
+                          height="64"
                           onError={(e) => {
                             e.currentTarget.src = DEFAULT_AVATAR;
                           }}
@@ -242,33 +230,29 @@ const HomePage = () => {
                       </div>
                       <div className="doctor-info-dark">
                         <h4>{doc.fullName || "Спеціаліст"}</h4>
-                        <p className="spec-text-dark">
-                          {displaySpecName}
-                        </p>
+                        <p className="spec-text-dark">{displaySpecName}</p>
                         <p className="email-hint">
-                          <Mail size={12} /> {doc.email}
+                          <Mail size={12} aria-hidden="true" />{" "}
+                          <span className="sr-only">Email:</span> {doc.email}
                         </p>
                       </div>
                     </div>
                     <button
+                      type="button"
                       className="btn-profile-light btn-outline"
-                      onClick={() =>
-                        navigate(
-                          `/doctor/${doc.id || doc._id}`
-                        )
-                      }
+                      aria-label={`Записатися на прийом до ${doc.fullName || "Спеціаліста"}`}
+                      onClick={() => navigate(`/doctor/${doc.id || doc._id}`)}
                     >
                       Записатися на прийом
                     </button>
-                  </motion.div>
+                  </motion.article>
                 );
               })
             )}
           </div>
-        </div>
+        </section>
       </main>
 
-      {/* ===== FOOTER ===== */}
       <motion.footer
         className="aero-footer glass-light"
         initial="hidden"
@@ -279,40 +263,36 @@ const HomePage = () => {
         <div className="footer-content">
           <div className="footer-col brand-col">
             <div className="logo-group">
-              <div className="logo-icon-med"></div>
+              <div className="logo-icon-med" aria-hidden="true"></div>
               <h2>
                 MED<span className="logo-accent">.avyro</span>
               </h2>
             </div>
-            <p>
-              Ваш надійний провідник у світі сучасної медицини.
-            </p>
+            <p>Ваш надійний провідник у світі сучасної медицини.</p>
             <div className="social-links">
-              <a href="#" className="social-icon">
-                <Send size={18} />
+              <a href="#" className="social-icon" aria-label="Наш Telegram канал">
+                <Send size={18} aria-hidden="true" />
               </a>
             </div>
           </div>
         </div>
       </motion.footer>
 
-      {/* ===== FLOATING HELP BUTTON ===== */}
       <div className="help-fab-container">
         <button
+          type="button"
           className="floating-chatbot"
+          aria-label="Залишити відгук про платформу"
           onClick={() => setIsPlatformFeedbackOpen(true)}
         >
-          ?
-          <div className="pulse-ring"></div>
+          <span aria-hidden="true">?</span>
+          <div className="pulse-ring" aria-hidden="true"></div>
         </button>
       </div>
 
-      {/* ===== PLATFORM FEEDBACK MODAL ===== */}
       <AnimatePresence>
         {isPlatformFeedbackOpen && (
-          <PlatformFeedbackModal
-            onClose={() => setIsPlatformFeedbackOpen(false)}
-          />
+          <PlatformFeedbackModal onClose={() => setIsPlatformFeedbackOpen(false)} />
         )}
       </AnimatePresence>
     </>
